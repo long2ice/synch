@@ -1,0 +1,4 @@
+mysql-replication
+clickhouse-driver
+redis
+mysqlclient
