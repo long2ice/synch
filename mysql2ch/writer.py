@@ -52,7 +52,7 @@ class ClickHouseWriter:
             insert_data.append(data['values'])
 
         del_sql = self.event_primary_key(schema, table, tmp_data, pk_dict)
-        insert_sql = "INSERT INTO {0}.{1} VALUES,".format(schema, table)
+        insert_sql = "INSERT INTO {0}.{1} VALUES ".format(schema, table)
         exec_sql['del_sql'] = del_sql
         exec_sql['insert_sql'] = insert_sql
         exec_sql['insert_data'] = insert_data
