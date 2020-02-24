@@ -45,10 +45,6 @@ class ClickHouseWriter:
                     elif column_type[key] in int_list:
                         data['values'][key] = 0
 
-                # decimal 字段类型处理，后期ch兼容mysql协议可以删除
-                if type(value) == decimal.Decimal:
-                    data['values'][key] = str(value)
-
             insert_data.append(data['values'])
 
         del_sql = self.event_primary_key(schema, table, tmp_data, pk_dict)
