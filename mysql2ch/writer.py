@@ -62,7 +62,7 @@ class ClickHouseWriter:
         pattern = re.compile(r'\sdelete\s')
         query_sql = re.sub(pattern, ' ', query_sql)
         exec_sql['query_sql'] = query_sql
-        return exec_sql
+        return schema, table, exec_sql
 
     # 根据主键以及没有主键的删除数据处理函数
     def event_primary_key(self, schema, table, tmp_data, pk_dict):
@@ -218,7 +218,7 @@ class ClickHouseWriter:
                     return False
 
             elif tmp_data[0]['action'] == 'insert':
-                sql = self.insert_update(tmp_data, pk_dict)
+                schema, table, sql = self.insert_update(tmp_data, pk_dict)
                 try:
                     if self.client.execute(sql['query_sql'])[0][0] >= 1:
                         self.client.execute(sql['del_sql'])
@@ -232,6 +232,8 @@ class ClickHouseWriter:
                 logger.debug(message)
                 try:
                     self.client.execute(sql['insert_sql'], sql['insert_data'], types_check=True)
+                    num = len(sql['insert_data'])
+                    logger.info(f'{schema}.{table}：成功插入 {num} 条数据！')
                 except Exception as error:
                     message = "插入数据执行出错SQL:  " + sql['insert_sql'] + str(sql['insert_data'])
                     logger.error(message)

@@ -55,9 +55,15 @@ def etl_full(database, table):
     if database not in only_schemas:
         logger.error(f'Database {database} not in only_schemas')
         exit(1)
-    if table not in only_tables:
-        logger.error(f'Table {table} not in only_schemas')
-        exit(1)
+    tables = []
+    if table:
+        if table not in only_tables:
+            logger.error(f'Table {table} not in only_schemas')
+            exit(1)
+        else:
+            tables.append(table)
+    else:
+        tables = only_tables
     master_server = Config.get('master_server')
     host = master_server.get('host')
     port = master_server.get('port')
@@ -70,7 +76,8 @@ def etl_full(database, table):
     reader = MysqlReader(
         host=host, user=user, port=port, password=password
     )
-    pk = reader.get_primary_key(database, table)[0]
-    sql = f"CREATE TABLE {database}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{host}:{port}', '{database}', '{table}', '{user}', '{password}')"
-    writer.client.execute(sql)
-    logger.info(f'全量迁移成功：{database}.{table}')
+    for table in tables:
+        pk = reader.get_primary_key(database, table)[0]
+        sql = f"CREATE TABLE {database}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{host}:{port}', '{database}', '{table}', '{user}', '{password}')"
+        writer.client.execute(sql)
+        logger.info(f'全量迁移成功：{database}.{table}')

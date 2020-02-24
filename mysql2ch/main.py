@@ -17,7 +17,8 @@ def cli():
     group.add_argument('--etl', action='store_true', default=False,
                        help='Full data etl with table create,must create database first.', )
     parser.add_argument('--etl-database', required=False, help='Database to full etl.')
-    parser.add_argument('--etl-table', required=False, help='Table to full etl.')
+    parser.add_argument('--etl-table', required=False,
+                        help='Table to full etl,if not set,will etl all only tables in config.')
     parser.add_argument('--log-file', required=False, default='./mysql2ch.log', help='logging file.')
     args = parser.parse_args()
 
