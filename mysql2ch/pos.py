@@ -25,8 +25,8 @@ class FileLogPos(LogPos):
         self.config.read(log_pos_file)
 
     def set_log_pos_master(self, master_host, master_port, relay_master_log_file, exec_master_log_pos):
-        self.config.set('log_position', 'master_host', master_port)
-        self.config.set('log_position', 'master_port', master_port)
+        self.config.set('log_position', 'master_host', master_host)
+        self.config.set('log_position', 'master_port', str(master_port))
         self.config.set('log_position', 'relay_master_log_file', relay_master_log_file)
         self.config.set('log_position', 'exec_master_log_pos', exec_master_log_pos)
         self.config.write(open(self.file, 'w'))
