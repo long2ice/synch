@@ -9,17 +9,17 @@ def cli():
         description='A tool replication data from MySQL to ClickHouse',
     )
     parser.add_argument('-c', '--conf', required=False, default='./config.ini',
-                        help='Data synchronization config file.')
+                        help='Config file.')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='Display SQL information.')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--log-pos-to', required=False, choices=('redis', 'file'),
-                       help='log position to redis or file.')
+                       help='Log position to redis or file.')
     group.add_argument('--etl', action='store_true', default=False,
                        help='Full data etl with table create,must create database first.', )
     parser.add_argument('--etl-database', required=False, help='Database to full etl.')
     parser.add_argument('--etl-table', required=False,
-                        help='Table to full etl,if not set,will etl all only tables in config.')
-    parser.add_argument('--log-file', required=False, default='./mysql2ch.log', help='logging file.')
+                        help='Table to full etl,multiple tables split with comma.')
+    parser.add_argument('--log-file', required=False, default='./mysql2ch.log', help='Logging file.')
     args = parser.parse_args()
 
     config_file = args.conf

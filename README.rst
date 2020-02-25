@@ -16,25 +16,26 @@ Usage
 =====
 .. code-block:: bash
 
-   usage: mysql2ch [-h] [-c CONF] [-d] [--log-pos-to {redis,file} | --etl]
-                   [--etl-database ETL_DATABASE] [--etl-table ETL_TABLE]
-                   [--log-file LOG_FILE]
+    usage: mysql2ch [-h] [-c CONF] [-d] [--log-pos-to {redis,file} | --etl]
+                    [--etl-database ETL_DATABASE] [--etl-table ETL_TABLE]
+                    [--log-file LOG_FILE]
 
-   A tool replication data from MySQL to ClickHouse
+    A tool replication data from MySQL to ClickHouse
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     -c CONF, --conf CONF  Data synchronization config file
-     -d, --debug           Display SQL information.
-     --log-pos-to {redis,file}
-                           log position to redis or file.
-     --etl                 Full data etl with table create,must create database
-                           first.
-     --etl-database ETL_DATABASE
-                           Database to full etl.
-     --etl-table ETL_TABLE
-                           Table to full etl.
-     --log-file LOG_FILE   logging file.
+    optional arguments:
+      -h, --help            Show this help message and exit
+      -c CONF, --conf CONF  Config file.
+      -d, --debug           Display SQL information.
+      --log-pos-to {redis,file}
+                            Log position to redis or file.
+      --etl                 Full data etl with table create,must create database
+                            first.
+      --etl-database ETL_DATABASE
+                            Database to full etl.
+      --etl-table ETL_TABLE
+                            Table to full etl,multiple tables split with comma.
+      --log-file LOG_FILE   Logging file.
+
 
 Config
 ======

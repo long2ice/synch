@@ -50,20 +50,20 @@ def run_replication(pos_type):
 
 
 def etl_full(database, table):
+    assert database and table, '--etl-database and --etl-table must set.'
     only_schemas = Config.get('only_schemas')['schemas'].split(',')
     only_tables = Config.get('only_tables')['tables'].split(',')
+
     if database not in only_schemas:
         logger.error(f'Database {database} not in only_schemas')
         exit(1)
-    tables = []
-    if table:
-        if table not in only_tables:
+
+    tables = table.split(',')
+    for t in tables:
+        if t not in only_tables:
             logger.error(f'Table {table} not in only_schemas')
             exit(1)
-        else:
-            tables.append(table)
-    else:
-        tables = only_tables
+
     master_server = Config.get('master_server')
     host = master_server.get('host')
     port = master_server.get('port')
