@@ -21,6 +21,7 @@ setup(
     url='https://github.com/long2ice/mysql2ch',
     author_email='long2ice@gamil.com',
     zip_safe=True,
+    include_package_data=True,
     version=version(),
     packages=find_packages(include=['mysql2ch*']),
     description='A tool replication data from MySQL to ClickHouse.',
