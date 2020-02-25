@@ -79,5 +79,8 @@ def etl_full(database, table):
     for table in tables:
         pk = reader.get_primary_key(database, table)[0]
         sql = f"CREATE TABLE {database}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{host}:{port}', '{database}', '{table}', '{user}', '{password}')"
-        writer.client.execute(sql)
-        logger.info(f'全量迁移成功：{database}.{table}')
+        try:
+            writer.client.execute(sql)
+            logger.info(f'全量迁移成功：{database}.{table}')
+        except Exception as e:
+            logger.error(f'全量迁移失败：{database}.{table}，{e}')
