@@ -29,12 +29,14 @@ class FileLogPos(LogPos):
         self.config.set('log_position', 'master_port', str(master_port))
         self.config.set('log_position', 'relay_master_log_file', relay_master_log_file)
         self.config.set('log_position', 'exec_master_log_pos', str(exec_master_log_pos))
-        self.config.write(open(self.file, 'w'))
+        with open(self.file, 'w') as f:
+            self.config.write(f)
 
     def set_log_pos_slave(self, log_file, log_pos):
         self.config.set('log_position', 'log_file', log_file)
         self.config.set('log_position', 'log_pos', str(log_pos))
-        self.config.write(open(self.file, 'w'))
+        with open(self.file, 'w') as f:
+            self.config.write(f)
 
     def get_log_pos(self):
         log_position = self.config['log_position']
