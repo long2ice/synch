@@ -51,3 +51,6 @@ def init_logging(log_file, debug):
     logger.addHandler(fh)
     logger.addHandler(sh)
     logger.addHandler(eh)
+
+
+__version__ = '0.0.1'
