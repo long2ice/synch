@@ -24,7 +24,8 @@ def init_logging(log_file, debug):
     else:
         logger.setLevel(logging.INFO)
 
-    fh = logging.FileHandler(log_file)
+    fh = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=1, backupCount=3)
+    fh.suffix = "%Y-%m-%d"
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(logging.Formatter(
         fmt="[%(asctime)s] [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s",
