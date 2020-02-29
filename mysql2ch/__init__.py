@@ -24,7 +24,7 @@ def init_logging(log_file, debug):
     else:
         logger.setLevel(logging.INFO)
 
-    fh = logging.handlers.TimedRotatingFileHandler(log_file, when='D', interval=1, backupCount=3)
+    fh = logging.handlers.TimedRotatingFileHandler(log_file, when='midnight', interval=1, backupCount=3)
     fh.suffix = "%Y-%m-%d"
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(logging.Formatter(
@@ -54,4 +54,4 @@ def init_logging(log_file, debug):
     logger.addHandler(eh)
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'

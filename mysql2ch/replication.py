@@ -81,6 +81,24 @@ def etl_full(database, table):
         sql = f"CREATE TABLE {database}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{host}:{port}', '{database}', '{table}', '{user}', '{password}')"
         try:
             writer.client.execute(sql)
+            fix_table_type(reader, writer, database, table)
             logger.info(f'全量迁移成功：{database}.{table}')
         except Exception as e:
             logger.error(f'全量迁移失败：{database}.{table}，{e}')
+
+
+def fix_table_type(reader: MysqlReader, writer: ClickHouseWriter, database, table):
+    """
+    fix table column type in full etl
+    :return:
+    """
+    sql = f"select COLUMN_NAME, COLUMN_TYPE from information_schema.COLUMNS where TABLE_NAME = '{table}' and COLUMN_TYPE like '%decimal%'and TABLE_SCHEMA = '{database}'"
+    cursor = reader.conn.cursor()
+    cursor.execute(sql)
+    ret = cursor.fetchall()
+    cursor.close()
+    for item in ret:
+        column_name = item.get('COLUMN_NAME')
+        column_type = item.get('COLUMN_TYPE').title()
+        fix_sql = f"alter table {database}.{table} modify column {column_name} {column_type}"
+        writer.client.execute(fix_sql)
