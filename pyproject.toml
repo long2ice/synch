@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "mysql2ch"
+version = "0.1.4"
+description = "A tool replication data from MySQL to ClickHouse"
+authors = ["long2ice <long2ice@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+mysql-replication = "*"
+clickhouse-driver = "*"
+redis = "*"
+mysqlclient = "*"
+python-dotenv = "*"
+sentry-sdk = "*"
+kafka-python = "*"
+
+[tool.taskipy.tasks]
+export = "poetry export -f requirements.txt --without-hashes > requirements.txt"
+
+[tool.poetry.dev-dependencies]
+taskipy = "*"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

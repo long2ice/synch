@@ -6,14 +6,44 @@ import re
 
 import clickhouse_driver
 
-from mysql2ch import DateEncoder
+from mysql2ch.reader import MysqlReader
 
 logger = logging.getLogger('mysql2ch.writer')
+
+
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, datetime.date):
+            return obj.strftime('%Y-%m-%d')
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 
 class ClickHouseWriter:
     def __init__(self, host, port, user, password):
         self.client = clickhouse_driver.Client(host=host, port=port, user=user, password=password)
+
+    def execute(self, sql):
+        logger.debug(sql)
+        return self.client.execute(sql)
+
+    def fix_table_column_type(self, reader: MysqlReader, database, table):
+        """
+        fix table column type in full etl
+        :return:
+        """
+        sql = f"select COLUMN_NAME, COLUMN_TYPE from information_schema.COLUMNS where TABLE_NAME = '{table}' and COLUMN_TYPE like '%decimal%'and TABLE_SCHEMA = '{database}'"
+        cursor = reader.conn.cursor()
+        cursor.execute(sql)
+        ret = cursor.fetchall()
+        cursor.close()
+        for item in ret:
+            column_name = item.get('COLUMN_NAME')
+            column_type = item.get('COLUMN_TYPE').title()
+            fix_sql = f"alter table {database}.{table} modify column {column_name} {column_type}"
+            self.execute(fix_sql)
 
     def get_ch_column_type(self, db, table):
         column_type_dic = {}
@@ -22,7 +52,7 @@ class ClickHouseWriter:
             column_type_dic[d[0]] = d[1]
         return column_type_dic
 
-    def insert_update(self, tmp_data, pk_dict):
+    def insert_update(self, tmp_data, pk):
         insert_data = []
         exec_sql = {}
         table = tmp_data[0]['table']
@@ -47,7 +77,7 @@ class ClickHouseWriter:
 
             insert_data.append(data['values'])
 
-        del_sql = self.event_primary_key(schema, table, tmp_data, pk_dict)
+        del_sql = self.event_primary_key(schema, table, tmp_data, pk)
         insert_sql = "INSERT INTO {0}.{1} VALUES ".format(schema, table)
         exec_sql['del_sql'] = del_sql
         exec_sql['insert_sql'] = insert_sql
@@ -61,11 +91,9 @@ class ClickHouseWriter:
         return schema, table, exec_sql
 
     # 根据主键以及没有主键的删除数据处理函数
-    def event_primary_key(self, schema, table, tmp_data, pk_dict):
+    def event_primary_key(self, schema, table, tmp_data, pk):
         del_list = []
         last_del = {}
-        db_table = "{0}.{1}".format(schema, table)
-        primary_key = pk_dict[db_table][0]
         for data in tmp_data:
             for k, v in data['values'].items():
                 data_dict = {}
@@ -84,9 +112,9 @@ class ClickHouseWriter:
             for k, v in i.items():
                 last_del.setdefault(k, []).append(v)
         last_del_tmp = last_del.copy()
-        if primary_key:
+        if pk:
             for k, v in last_del.items():
-                if k not in primary_key:
+                if k not in pk:
                     del last_del_tmp[k]
         else:
             message = "delete {0}.{1} 但是mysql里面没有定义主键...".format(schema, table)
@@ -115,46 +143,36 @@ class ClickHouseWriter:
         return del_sql
 
     # 把解析以后的binlog内容拼接成sql入库到ch里面
-    def insert_event(self, event, skip_dmls_all, skip_delete_tb_name, pk_dict, only_schemas):
+    def insert_event(self, event_list, skip_dmls_all, skip_delete_tb_name, pk, schema):
         # 检查mutations是否有失败的(ch后台异步的update和delete变更)
-        mutation_list = ['mutation_faild', 'table', 'create_time']
+        mutation_list = ['mutation_failed', 'table', 'create_time']
         fail_list = []
         mutation_data = []
-        if len(only_schemas) == 1:
-            query_sql = "select count(*) from system.mutations where is_done=0 and database in %s" % (
-                str(tuple(only_schemas)))
-            query_sql = query_sql.replace(",", '')
-        else:
-            query_sql = "select count(*) from system.mutations where is_done=0 and database in %s" % (
-                str(tuple(only_schemas)))
-        mutation_sql = "select count(*) as mutation_faild ,concat(database,'.',table)as db,create_time from system.mutations where is_done=0 and database in %s group by db,create_time" % (
-            str(tuple(only_schemas)))
-        mutations_faild_num = self.client.execute(query_sql)[0][0]
-        if mutations_faild_num >= 10:
-            fail_data = self.client.execute(mutation_sql)
+        query_sql = f"select count(*) from system.mutations where is_done=0 and database = '{schema}'"
+        mutation_sql = f"select count(*) as mutation_faild ,concat(database,'.',table)as db,create_time from system.mutations where is_done=0 and database = '{schema}' group by db,create_time"
+        mutations_failed_num = self.execute(query_sql)[0][0]
+        if mutations_failed_num >= 10:
+            fail_data = self.execute(mutation_sql)
             for d in fail_data:
                 fail_list.append(list(d))
             for d in fail_list:
                 tmp = dict(zip(mutation_list, d))
                 mutation_data.append(tmp)
             last_data = json.dumps(mutation_data, indent=4, cls=DateEncoder)
-            message = "mutations error faild num {0}. delete有失败.请进行检查. 详细信息: {1}".format(mutations_faild_num, last_data)
+            message = "mutations error failed num {0}. delete有失败.请进行检查. 详细信息: {1}".format(mutations_failed_num,
+                                                                                          last_data)
             logger.error(message)
 
         # 字段大小写问题的处理
-        for data in event:
-            for items in data:
-                for key, value in items['values'].items():
-                    items['values'][key] = items['values'].pop(key)
+        for data in event_list:
+            for key, value in data['values'].items():
+                data['values'][key] = data['values'].pop(key)
 
         # 处理同一条记录update多次的情况
         new_data = []
-        for tmp_data in event:
-            table = tmp_data[0]['table']
-            schema = tmp_data[0]['schema']
-
-            if tmp_data[0]['action'] == 'insert':
-                new_data.append(self.keep_new_update(tmp_data, schema, table, pk_dict))
+        for tmp_data in event_list:
+            if tmp_data['action'] == 'insert':
+                new_data.append(self.keep_new_update(tmp_data, pk))
             else:
                 new_data.append(tmp_data)
 
@@ -170,7 +188,7 @@ class ClickHouseWriter:
 
         # 删除多余的insert，并且最后生成需要的格式[[],[]]
         for table_action in del_ins:
-            self.del_insert_record(table_action, tmp_data_dic, pk_dict)
+            self.del_insert_record(table_action, tmp_data_dic, pk)
 
         # 生成最后处理好的数据
         last_data = []
@@ -197,7 +215,7 @@ class ClickHouseWriter:
                 schema = tmp_data[0]['schema']
                 skip_dml_table_name = "{0}.{1}".format(schema, table)
 
-                del_sql = self.event_primary_key(schema, table, tmp_data, pk_dict)
+                del_sql = self.event_primary_key(schema, table, tmp_data, pk)
                 logger.debug(f"DELETE 数据删除SQL: {del_sql}")
                 try:
                     if 'delete' in skip_dmls_all:
@@ -214,7 +232,7 @@ class ClickHouseWriter:
                     return False
 
             elif tmp_data[0]['action'] == 'insert':
-                schema, table, sql = self.insert_update(tmp_data, pk_dict)
+                schema, table, sql = self.insert_update(tmp_data, pk)
                 try:
                     if self.client.execute(sql['query_sql'])[0][0] >= 1:
                         self.client.execute(sql['del_sql'])
@@ -238,33 +256,29 @@ class ClickHouseWriter:
         return True
 
     # 剔除比较旧的更新，保留最新的更新，否则update的时候数据会多出,因为update已经换成delete+insert。如果不这样处理同一时间update两次就会导致数据多出
-    def keep_new_update(self, tmp_data, schema, table, pk_dict):
-        db_table = "{0}.{1}".format(schema, table)
+    def keep_new_update(self, tmp_data, pk):
         t_dict = {}
         new_update_data = []
         max_time = 0
         same_info = []
         for items in tmp_data:
-            sequence_number = items['sequence_number']
-            info = items['values'][pk_dict[db_table][0]]
+            event_unixtime = items['event_unixtime']
+            info = items['values'][pk]
 
             if info in same_info:
                 same_info.append(info)
-                if sequence_number > max_time:
+                if event_unixtime > max_time:
                     del t_dict[info]
                     t_dict.setdefault(info, []).append(items)
-                    max_time = sequence_number
+                    max_time = event_unixtime
             else:
                 same_info.append(info)
                 t_dict.setdefault(info, []).append(items)
-                max_time = sequence_number
+                max_time = event_unixtime
 
         for k, v in t_dict.items():
             for d in v:
                 new_update_data.append(d)
-
-        del t_dict
-        del same_info
         return new_update_data
 
     # 排序记录,处理insert里面数据多的情况
@@ -285,18 +299,15 @@ class ClickHouseWriter:
                     del_ins.append(v)
             else:
                 del_ins.append(v)
-
-        del data_dict
         return del_ins
 
     # 删除insert中多余的记录
-    def del_insert_record(self, table_action, tmp_data_dic, pk_dict):
+    def del_insert_record(self, table_action, tmp_data_dic, pk):
         if len(table_action) == 2:
             delete = tmp_data_dic[table_action[0]]
             insert = tmp_data_dic[table_action[1]]
             tb_name = table_action[0].split(".")
             name = "{0}.{1}".format(tb_name[0], tb_name[1])
-            pk = pk_dict[name]
             delete_list = []
             for i in delete:
                 delete_list.append((i['values'][pk[0]], i['sequence_number']))
@@ -310,5 +321,3 @@ class ClickHouseWriter:
                     if pk_id == x and sequence_number < y:
                         insert2.remove(i)
             tmp_data_dic[table_action[1]] = insert2
-            del delete_list
-            del insert2

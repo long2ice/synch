@@ -1,0 +1,260 @@
+[[package]]
+category = "main"
+description = "Python package for providing Mozilla's CA Bundle."
+name = "certifi"
+optional = false
+python-versions = "*"
+version = "2019.11.28"
+
+[[package]]
+category = "main"
+description = "Python driver with native interface for ClickHouse"
+name = "clickhouse-driver"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "0.1.3"
+
+[package.dependencies]
+pytz = "*"
+tzlocal = "*"
+
+[package.extras]
+lz4 = ["lz4 (<=3.0.1)", "clickhouse-cityhash (>=1.0.2.1)"]
+zstd = ["zstd", "clickhouse-cityhash (>=1.0.2.1)"]
+
+[[package]]
+category = "main"
+description = "Pure Python client for Apache Kafka"
+name = "kafka-python"
+optional = false
+python-versions = "*"
+version = "2.0.1"
+
+[[package]]
+category = "main"
+description = "Pure Python Implementation of MySQL replication protocol build on top of PyMYSQL."
+name = "mysql-replication"
+optional = false
+python-versions = "*"
+version = "0.21"
+
+[package.dependencies]
+pymysql = "*"
+
+[[package]]
+category = "main"
+description = "Python interface to MySQL"
+name = "mysqlclient"
+optional = false
+python-versions = "*"
+version = "1.4.6"
+
+[[package]]
+category = "main"
+description = "Pure Python MySQL Driver"
+name = "pymysql"
+optional = false
+python-versions = "*"
+version = "0.9.3"
+
+[package.extras]
+rsa = ["cryptography"]
+
+[[package]]
+category = "main"
+description = "Add .env support to your django/flask apps in development and deployments"
+name = "python-dotenv"
+optional = false
+python-versions = "*"
+version = "0.12.0"
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
+category = "main"
+description = "World timezone definitions, modern and historical"
+name = "pytz"
+optional = false
+python-versions = "*"
+version = "2019.3"
+
+[[package]]
+category = "main"
+description = "Python client for Redis key-value store"
+name = "redis"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "3.4.1"
+
+[package.extras]
+hiredis = ["hiredis (>=0.1.3)"]
+
+[[package]]
+category = "main"
+description = "Python client for Sentry (https://getsentry.com)"
+name = "sentry-sdk"
+optional = false
+python-versions = "*"
+version = "0.14.2"
+
+[package.dependencies]
+certifi = "*"
+urllib3 = ">=1.10.0"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.5)"]
+beam = ["beam (>=2.12)"]
+bottle = ["bottle (>=0.12.13)"]
+celery = ["celery (>=3)"]
+django = ["django (>=1.8)"]
+falcon = ["falcon (>=1.4)"]
+flask = ["flask (>=0.11)", "blinker (>=1.1)"]
+pyspark = ["pyspark (>=2.4.4)"]
+rq = ["0.6"]
+sanic = ["sanic (>=0.8)"]
+sqlalchemy = ["sqlalchemy (>=1.2)"]
+tornado = ["tornado (>=5)"]
+
+[[package]]
+category = "dev"
+description = "tasks runner for python projects"
+name = "taskipy"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "1.2.0"
+
+[package.dependencies]
+toml = ">=0.10.0,<0.11.0"
+
+[[package]]
+category = "dev"
+description = "Python Library for Tom's Obvious, Minimal Language"
+name = "toml"
+optional = false
+python-versions = "*"
+version = "0.10.0"
+
+[[package]]
+category = "main"
+description = "tzinfo object for the local timezone"
+name = "tzlocal"
+optional = false
+python-versions = "*"
+version = "2.0.0"
+
+[package.dependencies]
+pytz = "*"
+
+[[package]]
+category = "main"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+name = "urllib3"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+version = "1.25.8"
+
+[package.extras]
+brotli = ["brotlipy (>=0.6.0)"]
+secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
+
+[metadata]
+content-hash = "8042a869efb4b2f691659201504c3864a7c087c39d85fc4b16a71d54ec4d6bfd"
+python-versions = "^3.6"
+
+[metadata.files]
+certifi = [
+    {file = "certifi-2019.11.28-py2.py3-none-any.whl", hash = "sha256:017c25db2a153ce562900032d5bc68e9f191e44e9a0f762f373977de9df1fbb3"},
+    {file = "certifi-2019.11.28.tar.gz", hash = "sha256:25b64c7da4cd7479594d035c08c2d809eb4aab3a26e5a990ea98cc450c320f1f"},
+]
+clickhouse-driver = [
+    {file = "clickhouse-driver-0.1.3.tar.gz", hash = "sha256:1a9a0815bddc0082d2155c1803c4ae79b1fbe28ae276fe9703650208acbc5ec3"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27m-macosx_10_6_intel.whl", hash = "sha256:83c159dc88e9bb423e4844e3a27c299f52e51c17abfdf96bb5a20a168cb14103"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27m-manylinux1_i686.whl", hash = "sha256:a3126e66e09e7e69ef9be16c1439ec2e436721089a7f2841efa2e070292e3f4c"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:cffd2f8a6696ac1549e4eceeff16dd76d5caed9d00cf5026636d4733f67e09ac"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27m-manylinux2010_i686.whl", hash = "sha256:3926d56c3c3002f596f0aa79def6f038a79e4fc9317e61fbf40cdb6b3371fb13"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27m-manylinux2010_x86_64.whl", hash = "sha256:253d6f1d2978423aedd2c96a4b6a68e5fa5b92377d8f8c811134d341627d96fb"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27mu-manylinux1_i686.whl", hash = "sha256:f303731be75e12b94868d55b1e534822bcd69f963be3c4191f9a5dd15b344f7a"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:f6ce7c92a9872993dada643f801ab0ebe808dfe25e4fea2dedf18c8b44d2389c"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27mu-manylinux2010_i686.whl", hash = "sha256:c5266943deeee6d93ef87b9c2d093e7fb958a965ab34e8ae6ad294bfa7f32f00"},
+    {file = "clickhouse_driver-0.1.3-cp27-cp27mu-manylinux2010_x86_64.whl", hash = "sha256:ac3fc38fe0a91e1b75f1399eaf02c6664998717beebca12def837d3bbb676678"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:142ab888c12ac47bb86ab364dab25a562a40a1a49f4dca33484aaae447b37cc4"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:b970ac9e909867b577907dda086086775aa0f6a9686a4d221e198ec062b85819"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:60450254e68af6a1082d8cbe315d6b629c190e2d7c2ec605c4a13f23c6067f17"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-manylinux2010_i686.whl", hash = "sha256:cd6e0c7b2d3fdaa11311b2322524ee3496e96c0de02e5a0dbebbfc638726e574"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-manylinux2010_x86_64.whl", hash = "sha256:dc5e90eb1a9586ab8381a97f7ac5bb3fa263c5eeee259188ea0efb400cdc1446"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-win32.whl", hash = "sha256:14b9411a43934aa78cfd7376477566a20087699ac5ac3930aad3ccf28b251093"},
+    {file = "clickhouse_driver-0.1.3-cp35-cp35m-win_amd64.whl", hash = "sha256:89dc4aa55c3548a5bb8e2c21f4f34c5586366dea0da26e77230e29c44d43ce6c"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-macosx_10_6_intel.whl", hash = "sha256:6debc4f90fefe23a2f780e95bb1b93703d11c911242aff35ee3bd89fe3ec9267"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:a27cb41a9c1357fba0f0004728be87890d9bc0bf8a5018e7aa5394aeaa9f1f72"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:dc913b0006bb15df43ff918a32d902ddfce8cd3e7d9078959ffee9af7be324d5"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-manylinux2010_i686.whl", hash = "sha256:a72e246d244e01cb2ad9aa74092463fe61df1d0aaf7c798823355992921344f4"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:9fd4c8f391fb005d75f1f9b6a556c0b726659c3dd1ad3b5dfdbc0d14f40c312e"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-win32.whl", hash = "sha256:c45a3bbaae82a8506f5b84eada4c79cf0b71f6d650c60095ea5bc67bac5a0f15"},
+    {file = "clickhouse_driver-0.1.3-cp36-cp36m-win_amd64.whl", hash = "sha256:1f7db2583ddcc070318b2cb97fede37124b6dc4b00ca6519cd349c208a031e7a"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-macosx_10_6_intel.whl", hash = "sha256:80d8ec08d944a80b13157b95f773b83added286b1ba554fdb54ad88eea05f5bd"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:a7af7f7eddcb778275c30b096a6c8457dd229c02c8e6e62256a407f7abb148b5"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:b1b91c6ad6753df26761233cf0b8923e3a4fff7fb465ad0075a0f02ea3d53145"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-manylinux2010_i686.whl", hash = "sha256:6cef6f59882805dbc8f070b3c11b8ba8fb4eaa5e916c21fefe0d2e97f6f76126"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:d5625127921ccdfeeece55dc18867f6db64ca14455a1a758903d9101dc36f677"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-win32.whl", hash = "sha256:b136ac3d33d774c07ca008e35b2fe71ad36c31b6229a119767f96960e60d25f3"},
+    {file = "clickhouse_driver-0.1.3-cp37-cp37m-win_amd64.whl", hash = "sha256:3e5c6c643ae6e144d211f518bf6239b8f8941dd8f9a6ef5bc1fb1253895f380b"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:473bd99226e651c0f182100d1bfdb196efdc44099f866d27a1f266dd373eb96d"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-manylinux1_i686.whl", hash = "sha256:b673c474b1271a4c95ac6531877da3b3c55abad8a91114a0391815759d086d39"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:2d0145812ac4a283b659b2ae2b5b526bd25f933814e404eb618d9e1ca2327a75"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-manylinux2010_i686.whl", hash = "sha256:33bb965effacc35bec899d6e2e84c12e9e5d726b526c1a67e96b417def71a12d"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:02d620542460ff149e508f5055b110cd7894767d4221d580aa7f66a2f50d30f3"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-win32.whl", hash = "sha256:3073be94a50556f221c79b5d3fcd9e44508bfb07bd2e7783a593c3cd30ebd300"},
+    {file = "clickhouse_driver-0.1.3-cp38-cp38-win_amd64.whl", hash = "sha256:7b00fcd1b312257130180ffb49cddbe5dc09dccd3b31c9a8b0258a001d373deb"},
+]
+kafka-python = [
+    {file = "kafka-python-2.0.1.tar.gz", hash = "sha256:e59ad42dec8c7d54e3fbba0c1f8b54c44d92a3392d88242962d0c29803f2f6f8"},
+    {file = "kafka_python-2.0.1-py2.py3-none-any.whl", hash = "sha256:513431184ecd08e706ca53421ff23e269fc052374084b45b49640419564dd704"},
+]
+mysql-replication = [
+    {file = "mysql-replication-0.21.tar.gz", hash = "sha256:116efdc1d932ecd39ff9c2a5c735d2105c9861c9e747b04ddcfc7f1849dd5afe"},
+]
+mysqlclient = [
+    {file = "mysqlclient-1.4.6-cp36-cp36m-win_amd64.whl", hash = "sha256:4c82187dd6ab3607150fbb1fa5ef4643118f3da122b8ba31c3149ddd9cf0cb39"},
+    {file = "mysqlclient-1.4.6-cp37-cp37m-win_amd64.whl", hash = "sha256:9e6080a7aee4cc6a06b58b59239f20f1d259c1d2fddf68ddeed242d2311c7087"},
+    {file = "mysqlclient-1.4.6-cp38-cp38-win_amd64.whl", hash = "sha256:f646f8d17d02be0872291f258cce3813497bc7888cd4712a577fd1e719b2f213"},
+    {file = "mysqlclient-1.4.6.tar.gz", hash = "sha256:f3fdaa9a38752a3b214a6fe79d7cae3653731a53e577821f9187e67cbecb2e16"},
+]
+pymysql = [
+    {file = "PyMySQL-0.9.3-py2.py3-none-any.whl", hash = "sha256:3943fbbbc1e902f41daf7f9165519f140c4451c179380677e6a848587042561a"},
+    {file = "PyMySQL-0.9.3.tar.gz", hash = "sha256:d8c059dcd81dedb85a9f034d5e22dcb4442c0b201908bede99e306d65ea7c8e7"},
+]
+python-dotenv = [
+    {file = "python-dotenv-0.12.0.tar.gz", hash = "sha256:92b3123fb2d58a284f76cc92bfe4ee6c502c32ded73e8b051c4f6afc8b6751ed"},
+    {file = "python_dotenv-0.12.0-py2.py3-none-any.whl", hash = "sha256:81822227f771e0cab235a2939f0f265954ac4763cafd806d845801c863bf372f"},
+]
+pytz = [
+    {file = "pytz-2019.3-py2.py3-none-any.whl", hash = "sha256:1c557d7d0e871de1f5ccd5833f60fb2550652da6be2693c1e02300743d21500d"},
+    {file = "pytz-2019.3.tar.gz", hash = "sha256:b02c06db6cf09c12dd25137e563b31700d3b80fcc4ad23abb7a315f2789819be"},
+]
+redis = [
+    {file = "redis-3.4.1-py2.py3-none-any.whl", hash = "sha256:b205cffd05ebfd0a468db74f0eedbff8df1a7bfc47521516ade4692991bb0833"},
+    {file = "redis-3.4.1.tar.gz", hash = "sha256:0dcfb335921b88a850d461dc255ff4708294943322bd55de6cfd68972490ca1f"},
+]
+sentry-sdk = [
+    {file = "sentry-sdk-0.14.2.tar.gz", hash = "sha256:480eee754e60bcae983787a9a13bc8f155a111aef199afaa4f289d6a76aa622a"},
+    {file = "sentry_sdk-0.14.2-py2.py3-none-any.whl", hash = "sha256:a920387dc3ee252a66679d0afecd34479fb6fc52c2bc20763793ed69e5b0dcc0"},
+]
+taskipy = [
+    {file = "taskipy-1.2.0-py3-none-any.whl", hash = "sha256:e372409ef3d199fa0b9302eeab956a4f5857d881ed6e93db96714cbf4885f1db"},
+    {file = "taskipy-1.2.0.tar.gz", hash = "sha256:28e365c5b552a5f5b5e2793e5138a37215997869eac508288cdf27ed4fef799e"},
+]
+toml = [
+    {file = "toml-0.10.0-py2.7.egg", hash = "sha256:f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"},
+    {file = "toml-0.10.0-py2.py3-none-any.whl", hash = "sha256:235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e"},
+    {file = "toml-0.10.0.tar.gz", hash = "sha256:229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c"},
+]
+tzlocal = [
+    {file = "tzlocal-2.0.0-py2.py3-none-any.whl", hash = "sha256:11c9f16e0a633b4b60e1eede97d8a46340d042e67b670b290ca526576e039048"},
+    {file = "tzlocal-2.0.0.tar.gz", hash = "sha256:949b9dd5ba4be17190a80c0268167d7e6c92c62b30026cf9764caf3e308e5590"},
+]
+urllib3 = [
+    {file = "urllib3-1.25.8-py2.py3-none-any.whl", hash = "sha256:2f3db8b19923a873b3e5256dc9c2dedfa883e33d87c690d9c7913e1f40673cdc"},
+    {file = "urllib3-1.25.8.tar.gz", hash = "sha256:87716c2d2a7121198ebcb7ce7cccf6ce5e9ba539041cfbaeecfb641dc0bf6acc"},
+]

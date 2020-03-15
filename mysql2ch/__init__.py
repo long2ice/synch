@@ -1,57 +1,59 @@
-import datetime
-import json
 import logging
 import logging.handlers
 import sys
 
-from mysql2ch.config import Config
+import settings
+from mysql2ch.pos import RedisLogPos
+from mysql2ch.reader import MysqlReader
+from mysql2ch.writer import ClickHouseWriter
 
 
-class DateEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.strftime('%Y-%m-%d %H:%M:%S')
-        elif isinstance(obj, datetime.date):
-            return obj.strftime("%Y-%m-%d")
-        else:
-            return json.JSONEncoder.default(self, obj)
+def partitioner(key_bytes, all_partitions, available_partitions):
+    """
+    custom partitioner depend on settings
+    :param key_bytes:
+    :param all_partitions:
+    :param available_partitions:
+    :return:
+    """
+    key = key_bytes.decode()
+    values = settings.PARTITIONS.values()
+    assert len(set(values)) == len(values), 'partition must be unique'
+    return all_partitions[settings.PARTITIONS.get(key)]
 
 
-def init_logging(log_file, debug):
-    logger = logging.getLogger("mysql2ch")
+def init_logging(debug):
+    logger = logging.getLogger('mysql2ch')
     if debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-
-    fh = logging.handlers.TimedRotatingFileHandler(log_file, when='midnight', interval=1, backupCount=3)
-    fh.suffix = "%Y-%m-%d"
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter(
-        fmt="[%(asctime)s] [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s",
-        datefmt="%a %d %b %Y %H:%M:%S"
-    ))
-
     sh = logging.StreamHandler(sys.stdout)
     sh.setLevel(logging.DEBUG)
     sh.setFormatter(logging.Formatter(
-        fmt="[%(asctime)s] [%(levelname)s]- %(message)s",
-        datefmt="%H:%M:%S"
+        fmt='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
     ))
-
-    failure_alert = Config.get('failure_alert')
-    eh = logging.handlers.SMTPHandler(
-        mailhost=failure_alert.get('mail_host'),
-        fromaddr=failure_alert.get('mail_send_from'),
-        toaddrs=[failure_alert.get('mail_send_to')],
-        subject='mysql2ch错误通知',
-        credentials=(failure_alert.get('mail_user'), failure_alert.get('mail_password')),
-    )
-    eh.setLevel(logging.ERROR)
-
-    logger.addHandler(fh)
     logger.addHandler(sh)
-    logger.addHandler(eh)
 
 
-__version__ = '0.0.3'
+writer = ClickHouseWriter(
+    host=settings.CLICKHOUSE_HOST,
+    port=settings.CLICKHOUSE_PORT,
+    password=settings.CLICKHOUSE_PASSWORD,
+    user=settings.CLICKHOUSE_USER
+)
+reader = MysqlReader(
+    host=settings.MYSQL_HOST,
+    port=settings.MYSQL_PORT,
+    password=settings.MYSQL_PASSWORD,
+    user=settings.MYSQL_USER
+)
+
+pos_handler = RedisLogPos(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    password=settings.REDIS_PASSWORD,
+    db=settings.REDIS_DB,
+    server_id=settings.MYSQL_SERVER_ID
+)
