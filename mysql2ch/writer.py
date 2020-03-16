@@ -6,7 +6,7 @@ import re
 
 import clickhouse_driver
 
-from mysql2ch.reader import MysqlReader
+from .reader import MysqlReader
 
 logger = logging.getLogger('mysql2ch.writer')
 
@@ -25,9 +25,12 @@ class ClickHouseWriter:
     def __init__(self, host, port, user, password):
         self._client = clickhouse_driver.Client(host=host, port=port, user=user, password=password)
 
-    def execute(self, sql, *args, **kwargs):
-        logger.debug(sql)
-        return self._client.execute(sql, *args, **kwargs)
+    def execute(self, sql, params=None, *args, **kwargs):
+        log_sql = sql
+        if params:
+            log_sql = f'{sql} {params}'
+        logger.debug(log_sql)
+        return self._client.execute(sql, params=params, *args, **kwargs)
 
     def fix_table_column_type(self, reader: MysqlReader, database, table):
         """
@@ -37,6 +40,7 @@ class ClickHouseWriter:
         sql = f"select COLUMN_NAME, COLUMN_TYPE from information_schema.COLUMNS where TABLE_NAME = '{table}' and COLUMN_TYPE like '%decimal%'and TABLE_SCHEMA = '{database}'"
         cursor = reader.conn.cursor()
         cursor.execute(sql)
+        logger.debug(sql)
         ret = cursor.fetchall()
         cursor.close()
         for item in ret:
@@ -158,7 +162,7 @@ class ClickHouseWriter:
                 mutation_data.append(tmp)
             last_data = json.dumps(mutation_data, indent=4, cls=DateEncoder)
             message = "mutations error failed num {0}. delete error please check: {1}".format(mutations_failed_num,
-                                                                                          last_data)
+                                                                                              last_data)
             logger.error(message)
 
         # 处理同一条记录update多次的情况

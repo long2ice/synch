@@ -31,7 +31,7 @@ REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 REDIS_DB = os.getenv('REDIS_DB')
-LOG_POS_PREFIX = os.getenv('REDIS_DB') or 'mysql2ch'
+LOG_POS_PREFIX = os.getenv('LOG_POS_PREFIX') or 'mysql2ch'
 
 CLICKHOUSE_HOST = os.getenv('CLICKHOUSE_HOST')
 CLICKHOUSE_PORT = os.getenv('CLICKHOUSE_PORT')

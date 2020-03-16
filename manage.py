@@ -1,8 +1,8 @@
 import argparse
 import logging
 
+from mysql2ch import init_logging
 import settings
-from mysql2ch import init_logging, pos_handler
 from mysql2ch.consumer import consume
 from mysql2ch.producer import produce
 from mysql2ch.replication import etl_full

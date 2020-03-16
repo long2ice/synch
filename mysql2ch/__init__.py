@@ -1,11 +1,10 @@
 import logging
-import logging.handlers
 import sys
 
 import settings
-from mysql2ch.pos import RedisLogPos
-from mysql2ch.reader import MysqlReader
-from mysql2ch.writer import ClickHouseWriter
+from .pos import RedisLogPos
+from .reader import MysqlReader
+from .writer import ClickHouseWriter
 
 
 def partitioner(key_bytes, all_partitions, available_partitions):

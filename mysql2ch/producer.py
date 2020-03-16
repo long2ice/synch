@@ -3,8 +3,8 @@ import logging
 
 from kafka import KafkaProducer
 
+from . import pos_handler, reader, partitioner
 import settings
-from mysql2ch import pos_handler, reader, partitioner
 
 logger = logging.getLogger('mysql2ch.producer')
 
@@ -26,7 +26,7 @@ def produce(args):
                 only_tables=settings.TABLES,
                 only_schemas=settings.SCHEMAS,
                 log_file=log_file,
-                log_pos=log_pos,
+                log_pos=int(log_pos),
                 server_id=int(settings.MYSQL_SERVER_ID)
         ):
             try:

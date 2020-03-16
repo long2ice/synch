@@ -1,7 +1,7 @@
 import logging
 
+from . import reader, writer
 import settings
-from mysql2ch import reader, writer
 
 logger = logging.getLogger('mysql2ch.replication')
 

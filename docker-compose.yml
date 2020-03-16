@@ -1,16 +1,24 @@
 version: '3'
 services:
   producer:
-    build: .
     env_file:
       - .env
     depends_on:
       - redis
     image: mysql2ch
-    command: python manage.py produce
+    command: pypy3 manage.py produce
+  consumer.test.test:
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - producer
+    image: mysql2ch
+    command: pypy3 manage.py consume --schema test --table test
   redis:
     hostname: redis
     image: redis:latest
     volumes:
-      - ./redis/data:/data
-      - /etc/localtime:/etc/localtime
+      - redis:/data
+volumes:
+  redis:

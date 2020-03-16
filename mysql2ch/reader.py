@@ -53,7 +53,7 @@ class MysqlReader:
 
     # binglog接收函数
     def binlog_reading(self, server_id, only_tables, only_schemas, log_file, log_pos):
-        logger.info('start sync %s' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        logger.info('start sync at %s' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         logger.info(f'mysql binlog: {log_file}:{log_pos}')
         stream = BinLogStreamReader(connection_settings=dict(
             host=self.host, port=self.port, user=self.user, passwd=self.password

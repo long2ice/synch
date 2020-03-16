@@ -67,4 +67,4 @@ class RedisLogPos(LogPos):
 
     def get_log_pos(self):
         log_position = self.redis.hgetall(self.key)
-        return log_position.get('log_file'), int(log_position.get('log_pos'))
+        return log_position.get('log_file'), log_position.get('log_pos')

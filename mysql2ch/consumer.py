@@ -6,8 +6,8 @@ from kafka import TopicPartition
 from kafka.consumer import KafkaConsumer
 from kafka.consumer.fetcher import ConsumerRecord
 
+from . import writer, reader
 import settings
-from mysql2ch import writer, reader
 
 logger = logging.getLogger('mysql2ch.consumer')
 
@@ -42,6 +42,11 @@ def consume(args):
                 data_dict.setdefault(table + schema + action + action_core, []).append(items)
             for k, v in data_dict.items():
                 tmp_data.append(v)
-            writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
-            event_list = []
-            consumer.commit()
+            result = writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
+            if result:
+                event_list = []
+                consumer.commit()
+                logger.debug('commit success!')
+            else:
+                logger.error('insert event error!')
+                exit()
