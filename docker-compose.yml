@@ -1,0 +1,16 @@
+version: '3'
+services:
+  producer:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    image: mysql2ch
+    command: python manage.py produce
+  redis:
+    hostname: redis
+    image: redis:latest
+    volumes:
+      - ./redis/data:/data
+      - /etc/localtime:/etc/localtime

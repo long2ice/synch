@@ -16,7 +16,7 @@ def consume(args):
     schema = args.schema
     table = args.table
     assert schema in settings.SCHEMAS, 'schema must in settings.SCHEMAS'
-    assert table in settings.TABLES, 'schema must in settings.TABLES'
+    assert table in settings.TABLES, 'table must in settings.TABLES'
     consumer = KafkaConsumer(
         bootstrap_servers=settings.KAFKA_SERVER,
         value_deserializer=json.loads,
@@ -42,7 +42,6 @@ def consume(args):
                 data_dict.setdefault(table + schema + action + action_core, []).append(items)
             for k, v in data_dict.items():
                 tmp_data.append(v)
-            writer.insert_event(event_list, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, pk, schema)
-
+            writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
             event_list = []
             consumer.commit()

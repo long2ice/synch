@@ -55,5 +55,8 @@ pos_handler = RedisLogPos(
     port=settings.REDIS_PORT,
     password=settings.REDIS_PASSWORD,
     db=settings.REDIS_DB,
+    log_pos_prefix=settings.LOG_POS_PREFIX,
     server_id=settings.MYSQL_SERVER_ID
 )
+
+__version__ = '0.1.0'

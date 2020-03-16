@@ -82,4 +82,4 @@ class MysqlReader:
                     event['event_unixtime'] = int(time.time() * 10 ** 6)
                     event['action_core'] = '1'
 
-                yield binlog_event.schema, binlog_event.table, event, log_file, log_pos
+                yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos

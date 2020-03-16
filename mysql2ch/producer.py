@@ -2,7 +2,6 @@ import json
 import logging
 
 from kafka import KafkaProducer
-from kafka.errors import KafkaTimeoutError
 
 import settings
 from mysql2ch import pos_handler, reader, partitioner
@@ -19,6 +18,9 @@ producer = KafkaProducer(
 
 def produce(args):
     log_file, log_pos = pos_handler.get_log_pos()
+    if not (log_file and log_pos):
+        log_file = settings.INIT_BINLOG_FILE
+        log_pos = settings.INIT_BINLOG_POS
     try:
         for schema, table, event, file, pos in reader.binlog_reading(
                 only_tables=settings.TABLES,
@@ -34,8 +36,9 @@ def produce(args):
                     value=event,
                     key=key,
                 )
-                logger.debug(f'send event success: key:{key},event:{event}')
-                # pos_handler.set_log_pos_slave(file, pos)
+                logger.info(f'send to kafka success: key:{key},event:{event}')
+                pos_handler.set_log_pos_slave(file, pos)
+                logger.debug(f'success set binlog pos:{file}:{pos}')
             except Exception as e:
                 logger.error(f'kafka send error: {e}')
                 exit()

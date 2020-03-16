@@ -23,11 +23,11 @@ class DateEncoder(json.JSONEncoder):
 
 class ClickHouseWriter:
     def __init__(self, host, port, user, password):
-        self.client = clickhouse_driver.Client(host=host, port=port, user=user, password=password)
+        self._client = clickhouse_driver.Client(host=host, port=port, user=user, password=password)
 
-    def execute(self, sql):
+    def execute(self, sql, *args, **kwargs):
         logger.debug(sql)
-        return self.client.execute(sql)
+        return self._client.execute(sql, *args, **kwargs)
 
     def fix_table_column_type(self, reader: MysqlReader, database, table):
         """
@@ -48,15 +48,13 @@ class ClickHouseWriter:
     def get_ch_column_type(self, db, table):
         column_type_dic = {}
         sql = "select name,type from system.columns where database='{0}' and table='{1}'".format(db, table)
-        for d in self.client.execute(sql):
+        for d in self.execute(sql):
             column_type_dic[d[0]] = d[1]
         return column_type_dic
 
-    def insert_update(self, tmp_data, pk):
+    def insert_update(self, tmp_data, schema, table, pk):
         insert_data = []
         exec_sql = {}
-        table = tmp_data[0]['table']
-        schema = tmp_data[0]['schema']
         column_type = self.get_ch_column_type(schema, table)
         for data in tmp_data:
             for key, value in data['values'].items():
@@ -117,7 +115,7 @@ class ClickHouseWriter:
                 if k not in pk:
                     del last_del_tmp[k]
         else:
-            message = "delete {0}.{1} 但是mysql里面没有定义主键...".format(schema, table)
+            message = "delete {0}.{1} but no pk...".format(schema, table)
             logger.warning(message)
         last_del = last_del_tmp.copy()
         for k, v in last_del_tmp.items():
@@ -143,7 +141,7 @@ class ClickHouseWriter:
         return del_sql
 
     # 把解析以后的binlog内容拼接成sql入库到ch里面
-    def insert_event(self, event_list, skip_dmls_all, skip_delete_tb_name, pk, schema):
+    def insert_event(self, tmp_data, skip_dmls_all, skip_delete_tb_name, schema, table, pk):
         # 检查mutations是否有失败的(ch后台异步的update和delete变更)
         mutation_list = ['mutation_failed', 'table', 'create_time']
         fail_list = []
@@ -159,27 +157,22 @@ class ClickHouseWriter:
                 tmp = dict(zip(mutation_list, d))
                 mutation_data.append(tmp)
             last_data = json.dumps(mutation_data, indent=4, cls=DateEncoder)
-            message = "mutations error failed num {0}. delete有失败.请进行检查. 详细信息: {1}".format(mutations_failed_num,
+            message = "mutations error failed num {0}. delete error please check: {1}".format(mutations_failed_num,
                                                                                           last_data)
             logger.error(message)
 
-        # 字段大小写问题的处理
-        for data in event_list:
-            for key, value in data['values'].items():
-                data['values'][key] = data['values'].pop(key)
-
         # 处理同一条记录update多次的情况
         new_data = []
-        for tmp_data in event_list:
-            if tmp_data['action'] == 'insert':
-                new_data.append(self.keep_new_update(tmp_data, pk))
+        for data in tmp_data:
+            if data[0]['action'] == 'insert':
+                new_data.append(self.keep_new_update(data, pk))
             else:
-                new_data.append(tmp_data)
+                new_data.append(data)
 
         tmp_data_dic = {}
         event_table = []
         for data in new_data:
-            name = '{0}.{1}.{2}'.format(data[0]['schema'], data[0]['table'], data[0]['action'])
+            name = '{0}.{1}.{2}'.format(schema, table, data[0]['action'])
             tmp_data_dic[name] = data
             event_table.append(name)
 
@@ -216,42 +209,34 @@ class ClickHouseWriter:
                 skip_dml_table_name = "{0}.{1}".format(schema, table)
 
                 del_sql = self.event_primary_key(schema, table, tmp_data, pk)
-                logger.debug(f"DELETE 数据删除SQL: {del_sql}")
                 try:
                     if 'delete' in skip_dmls_all:
                         return True
                     elif skip_dml_table_name in skip_delete_tb_name:
                         return True
                     else:
-                        self.client.execute(del_sql)
-
+                        self.execute(del_sql)
                 except Exception as error:
-                    message = "执行出错SQL:  " + del_sql
+                    message = f"exec sql error,sql:{del_sql},error:{error}"
                     logger.error(message)
-                    logger.error(error)
                     return False
 
             elif tmp_data[0]['action'] == 'insert':
-                schema, table, sql = self.insert_update(tmp_data, pk)
+                schema, table, sql = self.insert_update(tmp_data, schema, table, pk)
                 try:
-                    if self.client.execute(sql['query_sql'])[0][0] >= 1:
-                        self.client.execute(sql['del_sql'])
+                    if self.execute(sql['query_sql'])[0][0] >= 1:
+                        self.execute(sql['del_sql'])
                 except Exception as error:
-                    message = "在插入数据之前删除数据,执行出错SQL:  " + sql['del_sql']
+                    message = f"delete before insert error,sql: {sql['del_sql']},error:{error}"
                     logger.error(message)
-                    logger.error(error)
                     return False
-
-                message = "INSERT 数据插入SQL: %s %s " % (sql['insert_sql'], str(sql['insert_data']))
-                logger.debug(message)
                 try:
-                    self.client.execute(sql['insert_sql'], sql['insert_data'], types_check=True)
+                    self.execute(sql['insert_sql'], sql['insert_data'], types_check=True)
                     num = len(sql['insert_data'])
-                    logger.info(f'{schema}.{table}：成功插入 {num} 条数据！')
+                    logger.info(f'{schema}.{table}：success insert {num} rows！')
                 except Exception as error:
-                    message = "插入数据执行出错SQL:  " + sql['insert_sql'] + str(sql['insert_data'])
+                    message = f"insert sql: {sql['insert_sql']}{sql['insert_data']},error: {error}"
                     logger.error(message)
-                    logger.error(error)
                     return False
         return True
 
@@ -306,18 +291,16 @@ class ClickHouseWriter:
         if len(table_action) == 2:
             delete = tmp_data_dic[table_action[0]]
             insert = tmp_data_dic[table_action[1]]
-            tb_name = table_action[0].split(".")
-            name = "{0}.{1}".format(tb_name[0], tb_name[1])
             delete_list = []
             for i in delete:
-                delete_list.append((i['values'][pk[0]], i['sequence_number']))
+                delete_list.append((i['values'][pk[0]], i['event_unixtime']))
 
             insert2 = []
             for i in insert:
                 pk_id = i['values'][pk[0]]
-                sequence_number = i['sequence_number']
+                event_unixtime = i['event_unixtime']
                 insert2.append(i)
                 for x, y in delete_list:
-                    if pk_id == x and sequence_number < y:
+                    if pk_id == x and event_unixtime < y:
                         insert2.remove(i)
             tmp_data_dic[table_action[1]] = insert2
