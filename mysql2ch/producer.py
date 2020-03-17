@@ -1,4 +1,4 @@
-import json
+import ujson
 import logging
 
 from kafka import KafkaProducer
@@ -10,7 +10,7 @@ logger = logging.getLogger('mysql2ch.producer')
 
 producer = KafkaProducer(
     bootstrap_servers=settings.KAFKA_SERVER,
-    value_serializer=lambda x: json.dumps(x).encode(),
+    value_serializer=lambda x: ujson.dumps(x).encode(),
     key_serializer=lambda x: x.encode(),
     partitioner=partitioner
 )
