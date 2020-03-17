@@ -5,7 +5,7 @@ services:
       - .env
     depends_on:
       - redis
-    image: mysql2ch
+    image: long2ice/mysql2ch
     command: pypy3 manage.py produce
   consumer.test.test:
     env_file:
@@ -13,7 +13,7 @@ services:
     depends_on:
       - redis
       - producer
-    image: mysql2ch
+    image: long2ice/mysql2ch
     command: pypy3 manage.py consume --schema test --table test
   redis:
     hostname: redis

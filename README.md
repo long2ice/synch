@@ -1,5 +1,7 @@
 # mysql2ch
 
+![](https://img.shields.io/docker/cloud/build/long2ice/mysql2ch)
+![](https://img.shields.io/github/license/long2ice/mysql2ch)
 ## Introduction
 
 mysql2ch is used to sync data from MySQL to ClickHouse.
