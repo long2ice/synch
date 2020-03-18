@@ -13,6 +13,7 @@ mysqlclient = "*"
 python-dotenv = "*"
 sentry-sdk = "*"
 kafka-python = "*"
+python-dateutil = "*"
 
 [tool.taskipy.tasks]
 export = "poetry export -f requirements.txt --without-hashes > requirements.txt"

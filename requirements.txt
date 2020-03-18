@@ -4,9 +4,11 @@ kafka-python==2.0.1
 mysql-replication==0.21
 mysqlclient==1.4.6
 pymysql==0.9.3
+python-dateutil==2.8.1
 python-dotenv==0.12.0
 pytz==2019.3
 redis==3.4.1
 sentry-sdk==0.14.2
+six==1.14.0
 tzlocal==2.0.0
 urllib3==1.25.8
