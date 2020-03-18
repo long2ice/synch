@@ -8,6 +8,7 @@ from kafka.consumer.fetcher import ConsumerRecord
 
 from . import writer, reader
 import settings
+from .common import object_hook
 
 logger = logging.getLogger('mysql2ch.consumer')
 
@@ -20,7 +21,7 @@ def consume(args):
     group_id = f'{schema}.{table}'
     consumer = KafkaConsumer(
         bootstrap_servers=settings.KAFKA_SERVER,
-        value_deserializer=json.loads,
+        value_deserializer=lambda x: json.loads(x, object_hook=object_hook),
         key_deserializer=lambda x: x.decode() if x else None,
         enable_auto_commit=False,
         group_id=group_id,
