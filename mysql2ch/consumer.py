@@ -31,7 +31,8 @@ def consume(args):
     for msg in consumer:  # type:ConsumerRecord
         event = msg.value
         event_list.append(event)
-        if len(event_list) == settings.INSERT_NUMS or (
+        len_event = len(event_list)
+        if len_event == settings.INSERT_NUMS or (
                 (int(time.time() * 10 ** 6) - event_list[0][
                     'event_unixtime']) / 10 ** 6 >= settings.INSERT_INTERVAL > 0):
             data_dict = {}
@@ -46,7 +47,7 @@ def consume(args):
             if result:
                 event_list = []
                 consumer.commit()
-                logger.debug('commit success!')
+                logger.info(f'commit success {len_event} events!')
             else:
                 logger.error('insert event error!')
                 exit()
