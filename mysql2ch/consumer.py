@@ -1,4 +1,4 @@
-import ujson
+import json
 import logging
 import time
 
@@ -19,7 +19,7 @@ def consume(args):
     assert table in settings.TABLES, 'table must in settings.TABLES'
     consumer = KafkaConsumer(
         bootstrap_servers=settings.KAFKA_SERVER,
-        value_deserializer=ujson.loads,
+        value_deserializer=json.loads,
         key_deserializer=lambda x: x.decode(),
         enable_auto_commit=False,
         group_id=f'{schema}.{table}'
