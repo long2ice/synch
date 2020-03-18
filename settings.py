@@ -56,7 +56,7 @@ INSERT_NUMS = int(os.getenv('INSERT_NUMS') or 20000)
 INSERT_INTERVAL = int(os.getenv('INSERT_INTERVAL') or 60)
 
 KAFKA_SERVER = os.getenv('KAFKA_SERVER')
-KAFKA_TOPIC = os.getenv('KAFKA_TOPIC')
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC') or 'mysql2ch'
 # kafka partition mapping,partition must be unique
 PARTITIONS = parse_partitions(os.getenv('PARTITIONS'))
 

@@ -17,18 +17,23 @@ def consume(args):
     table = args.table
     assert schema in settings.SCHEMAS, 'schema must in settings.SCHEMAS'
     assert table in settings.TABLES, 'table must in settings.TABLES'
+    group_id = f'{schema}.{table}'
     consumer = KafkaConsumer(
         bootstrap_servers=settings.KAFKA_SERVER,
         value_deserializer=json.loads,
-        key_deserializer=lambda x: x.decode(),
+        key_deserializer=lambda x: x.decode() if x else None,
         enable_auto_commit=False,
-        group_id=f'{schema}.{table}'
+        group_id=group_id,
+        auto_offset_reset='earliest',
     )
-    consumer.assign(
-        [TopicPartition(topic=settings.KAFKA_TOPIC, partition=settings.PARTITIONS.get(f'{schema}.{table}'))])
+    topic = settings.KAFKA_TOPIC
+    partition = settings.PARTITIONS.get(group_id)
+    consumer.assign([TopicPartition(topic, partition)])
     event_list = []
+    logger.info(f'success consume topic:{topic},partition:{partition},schema:{schema},table:{table}')
     pk = reader.get_primary_key(schema, table)
     for msg in consumer:  # type:ConsumerRecord
+        logger.debug(f'kafka msg:{msg}')
         event = msg.value
         event_list.append(event)
         len_event = len(event_list)
