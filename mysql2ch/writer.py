@@ -6,7 +6,7 @@ import re
 
 import clickhouse_driver
 
-from .common import DateEncoder
+from .common import JsonEncoder
 from .reader import MysqlReader
 
 logger = logging.getLogger('mysql2ch.writer')
@@ -151,7 +151,7 @@ class ClickHouseWriter:
             for d in fail_list:
                 tmp = dict(zip(mutation_list, d))
                 mutation_data.append(tmp)
-            last_data = json.dumps(mutation_data, indent=4, cls=DateEncoder)
+            last_data = json.dumps(mutation_data, indent=4, cls=JsonEncoder)
             message = "mutations error failed num {0}. delete error please check: {1}".format(mutations_failed_num,
                                                                                               last_data)
             logger.error(message)
