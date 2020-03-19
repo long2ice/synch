@@ -15,6 +15,21 @@ mysql2ch is used to sync data from MySQL to ClickHouse.
 
 ## Usage
 
+### Full data etl
+```shell script
+$ python manage.py etl -h
+
+usage: manage.py etl [-h] --schema SCHEMA --tables TABLES [--debug]
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --schema SCHEMA  Schema to full etl.
+  --tables TABLES  Tables to full etl,multiple tables split with comma.
+  --debug          Display SQL information.
+
+```
+
+### Continuous Sync
 1. ``cp .env.example .env`` and edit it.
 2. edit ``docker-compose.yml``,which will read ``.env``,add your own consumer.One consumer consume one kafka partition.
 3. ``docker-compose up -d``.
