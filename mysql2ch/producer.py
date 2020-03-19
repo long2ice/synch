@@ -23,7 +23,8 @@ def produce(args):
         log_file = settings.INIT_BINLOG_FILE
         log_pos = settings.INIT_BINLOG_POS
     try:
-        logger.info(f'start produce,binlog:{log_file}:{log_pos}')
+        logger.info(f'start producer success!')
+        count = 0
         for schema, table, event, file, pos in reader.binlog_reading(
                 only_tables=settings.TABLES,
                 only_schemas=settings.SCHEMAS,
@@ -37,7 +38,11 @@ def produce(args):
                 value=event,
                 key=key,
             )
-            logger.debug(f'send to kafka success: key:{key},event:{event}')
+            if count == settings.INSERT_INTERVAL:
+                count = 0
+                logger.info(f'success send {settings.INSERT_INTERVAL} events!')
+            logger.info(f'send to kafka success: key:{key},event:{event}')
+            count += 1
             pos_handler.set_log_pos_slave(file, pos)
             logger.debug(f'success set binlog pos:{file}:{pos}')
     except KeyboardInterrupt:
