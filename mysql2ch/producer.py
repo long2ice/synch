@@ -30,19 +30,15 @@ def produce(args):
                 log_pos=int(log_pos),
                 server_id=int(settings.MYSQL_SERVER_ID)
         ):
-            try:
-                key = f'{schema}.{table}'
-                producer.send(
-                    topic=settings.KAFKA_TOPIC,
-                    value=event,
-                    key=key,
-                )
-                logger.info(f'send to kafka success: key:{key},event:{event}')
-                pos_handler.set_log_pos_slave(file, pos)
-                logger.debug(f'success set binlog pos:{file}:{pos}')
-            except Exception as e:
-                logger.error(f'kafka send error: {e}')
-                exit()
+            key = f'{schema}.{table}'
+            producer.send(
+                topic=settings.KAFKA_TOPIC,
+                value=event,
+                key=key,
+            )
+            logger.info(f'send to kafka success: key:{key},event:{event}')
+            pos_handler.set_log_pos_slave(file, pos)
+            logger.debug(f'success set binlog pos:{file}:{pos}')
     except KeyboardInterrupt:
         log_file, log_pos = pos_handler.get_log_pos()
         message = f'KeyboardInterrupt,current position: {log_file}:{log_pos}'
