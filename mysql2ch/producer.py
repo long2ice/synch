@@ -41,7 +41,7 @@ def produce(args):
             if count == settings.INSERT_INTERVAL:
                 count = 0
                 logger.info(f'success send {settings.INSERT_INTERVAL} events!')
-            logger.info(f'send to kafka success: key:{key},event:{event}')
+            logger.debug(f'send to kafka success: key:{key},event:{event}')
             count += 1
             pos_handler.set_log_pos_slave(file, pos)
             logger.debug(f'success set binlog pos:{file}:{pos}')
