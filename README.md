@@ -31,7 +31,7 @@ optional arguments:
 
 ### Continuous Sync
 1. ``cp .env.example .env`` and edit it.
-2. edit ``docker-compose.yml``,which will read ``.env``,add your own consumer.One consumer consume one kafka partition.
+2. edit ``docker-compose.yml``,which will read ``.env``,add your own consumer services in ``docker-compose.yml``.One consumer consume one kafka partition.
 3. ``docker-compose up -d``.
 
 ## Optional
@@ -40,6 +40,7 @@ optional arguments:
 
 ## Example
 
+### .env
 ```dotenv
 # if True,will display sql information
 DEBUG=True
@@ -82,4 +83,34 @@ INIT_BINLOG_POS=155
 INSERT_NUMS=20000
 # how many seconds to submit
 INSERT_INTERVAL=60
+```
+
+### docker-compose.yml
+```yaml
+version: '3'
+services:
+  producer:
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    image: long2ice/mysql2ch:latest
+    command: pypy3 manage.py produce
+  # add more service if you need.
+  consumer.test.test:
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - producer
+    image: long2ice/mysql2ch:latest
+    # consume binlog of test.test
+    command: pypy3 manage.py consume --schema test --table test
+  redis:
+    hostname: redis
+    image: redis:latest
+    volumes:
+      - redis:/data
+volumes:
+  redis:
 ```
