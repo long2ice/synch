@@ -1,6 +1,6 @@
 import logging
 import sys
-
+import random
 import settings
 from .pos import RedisLogPos
 from .reader import MysqlReader
@@ -18,7 +18,10 @@ def partitioner(key_bytes, all_partitions, available_partitions):
     key = key_bytes.decode()
     values = settings.PARTITIONS.values()
     assert len(set(values)) == len(values), 'partition must be unique'
-    return all_partitions[settings.PARTITIONS.get(key)]
+    partition = settings.PARTITIONS.get(key)
+    if partition:
+        return all_partitions[partition]
+    return random.choice(all_partitions)
 
 
 def init_logging(debug):
