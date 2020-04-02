@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 import sentry_sdk
+from sentry_sdk.integrations.redis import RedisIntegration
 
 
 def parse_partitions(partitions):
@@ -17,7 +18,8 @@ def parse_partitions(partitions):
 load_dotenv()
 sentry_sdk.init(
     os.getenv('SENTRY_DSN'),
-    environment=os.getenv('ENVIRONMENT', 'development')
+    environment=os.getenv('ENVIRONMENT', 'development'),
+    integrations=[RedisIntegration()]
 )
 DEBUG = os.getenv('DEBUG') == 'True'
 
