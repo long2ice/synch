@@ -46,9 +46,10 @@ def consume(args):
             for items in event_list:
                 action = items['action']
                 action_core = items['action_core']
-                data_dict.setdefault(table + schema + action + action_core, []).append(items)
+                data_dict.setdefault(table + schema + action + action_core, []).append(
+                    dict(items, schema=schema, table=table))
             for k, v in data_dict.items():
-                tmp_data.append(dict(v, schema=schema, table=table))
+                tmp_data.append(v)
             result = writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
             if result:
                 event_list = []
