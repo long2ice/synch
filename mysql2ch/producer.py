@@ -25,6 +25,7 @@ def produce(args):
     try:
         logger.info(f'start producer success!')
         count = 0
+        all_schema_tables = settings.PARTITIONS.keys()
         for schema, table, event, file, pos in reader.binlog_reading(
                 only_tables=settings.TABLES,
                 only_schemas=settings.SCHEMAS,
@@ -33,6 +34,8 @@ def produce(args):
                 server_id=int(settings.MYSQL_SERVER_ID)
         ):
             key = f'{schema}.{table}'
+            if key not in all_schema_tables:
+                continue
             producer.send(
                 topic=settings.KAFKA_TOPIC,
                 value=event,

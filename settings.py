@@ -10,7 +10,7 @@ def parse_partitions(partitions):
     for x in ret_list:
         if x:
             a = x.split('=')
-            ret[a[0]] = int(a[1])
+            ret[a[0].strip()] = int(a[1].strip())
     return ret
 
 

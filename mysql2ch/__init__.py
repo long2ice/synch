@@ -19,9 +19,7 @@ def partitioner(key_bytes, all_partitions, available_partitions):
     values = settings.PARTITIONS.values()
     assert len(set(values)) == len(values), 'partition must be unique'
     partition = settings.PARTITIONS.get(key)
-    if partition:
-        return all_partitions[partition]
-    return random.choice(all_partitions)
+    return all_partitions[partition]
 
 
 def init_logging(debug):
