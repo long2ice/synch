@@ -48,7 +48,7 @@ def consume(args):
                 action_core = items['action_core']
                 data_dict.setdefault(table + schema + action + action_core, []).append(items)
             for k, v in data_dict.items():
-                tmp_data.append(v)
+                tmp_data.append(dict(v, schema=schema, table=table))
             result = writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
             if result:
                 event_list = []
