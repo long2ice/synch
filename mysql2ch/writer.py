@@ -288,7 +288,7 @@ class ClickHouseWriter:
             insert = tmp_data_dic[table_action[1]]
             delete_list = []
             for i in delete:
-                delete_list.append((i['values'][pk[0]], i['event_unixtime']))
+                delete_list.append((i['values'][pk], i['event_unixtime']))
 
             insert2 = []
             for i in insert:
