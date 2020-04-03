@@ -292,7 +292,7 @@ class ClickHouseWriter:
 
             insert2 = []
             for i in insert:
-                pk_id = i['values'][pk[0]]
+                pk_id = i['values'][pk]
                 event_unixtime = i['event_unixtime']
                 insert2.append(i)
                 for x, y in delete_list:
