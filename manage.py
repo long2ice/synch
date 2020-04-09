@@ -16,7 +16,8 @@ logger = logging.getLogger('mysql2ch.manage')
 def make_etl(args):
     schema = args.schema
     tables = args.tables
-    etl_full(schema, tables)
+    renew = args.renew
+    etl_full(schema, tables, renew)
 
 
 def cli():
@@ -24,7 +25,8 @@ def cli():
     parser_etl = subparsers.add_parser('etl')
     parser_etl.add_argument('--schema', required=True, help='Schema to full etl.')
     parser_etl.add_argument('--tables', required=True, help='Tables to full etl,multiple tables split with comma.')
-    parser_etl.add_argument('--debug', default=False, action='store_true', help='Display SQL information.')
+    parser_etl.add_argument('--renew', default=False, action='store_true',
+                            help='Etl after try to drop the target tables.')
     parser_etl.set_defaults(func=make_etl)
 
     parser_producer = subparsers.add_parser('produce')
