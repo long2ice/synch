@@ -70,4 +70,3 @@ def consume(args):
                 logger.info(f'commit success {len_event} events!')
             else:
                 logger.error('insert event error!')
-                exit()
