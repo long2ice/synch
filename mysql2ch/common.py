@@ -10,6 +10,21 @@ CONVERTERS = {
 }
 
 
+def complex_decode(xs):
+    if isinstance(xs, dict):
+        ret = {}
+        for k in xs:
+            ret[k.decode()] = complex_decode(xs[k])
+        return ret
+    elif isinstance(xs, list):
+        ret = []
+        for x in xs:
+            ret.append(complex_decode(x))
+        return ret
+    else:
+        return xs
+
+
 class JsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):

@@ -26,4 +26,4 @@ def etl_full(schema, tables, renew=False):
                 except Exception as e:
                     logger.error(f'etl error:{schema}.{table},{e}')
             except Exception as e:
-                logger.error(f'etl error:{schema}.{table},{e}')
+                logger.error(f'etl error with renew:{schema}.{table},{e}')

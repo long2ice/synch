@@ -1,7 +1,7 @@
 certifi==2020.4.5.1
 clickhouse-driver==0.1.3
 kafka-python==2.0.1
--e git+https://github.com/long2ice/python-mysql-replication.git@3922dbe9ac662cece37ee092aea3a1ea5d8832d9#egg=mysql-replication
+mysql-replication==0.21
 mysqlclient==1.4.6
 pymysql==0.9.3
 python-dateutil==2.8.1

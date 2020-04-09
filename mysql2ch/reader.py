@@ -7,6 +7,8 @@ from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
 
+from mysql2ch.common import complex_decode
+
 logger = logging.getLogger('mysql2ch.reader')
 
 
@@ -81,5 +83,5 @@ class MysqlReader:
                     event['values'] = row['values']
                     event['event_unixtime'] = int(time.time() * 10 ** 6)
                     event['action_core'] = '1'
-
+                event['values'] = complex_decode(event['values'])
                 yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos
