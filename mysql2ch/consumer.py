@@ -16,6 +16,7 @@ logger = logging.getLogger('mysql2ch.consumer')
 def consume(args):
     schema = args.schema
     table = args.table
+    skip_error = args.skip_error
     assert schema in settings.SCHEMAS, 'schema must in settings.SCHEMAS'
     assert table in settings.TABLES, 'table must in settings.TABLES'
     group_id = f'{schema}.{table}'
@@ -63,10 +64,11 @@ def consume(args):
             for k, v in data_dict.items():
                 tmp_data.append(v)
             result = writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
-            if result:
+            if result or (not result and skip_error):
                 event_list = []
                 is_insert = False
                 consumer.commit()
                 logger.info(f'commit success {len_event} events!')
             else:
                 logger.error('insert event error!')
+                exit()
