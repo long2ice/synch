@@ -21,6 +21,8 @@ def complex_decode(xs):
         for x in xs:
             ret.append(complex_decode(x))
         return ret
+    elif isinstance(xs, bytes):
+        return xs.decode()
     else:
         return xs
 
