@@ -6,7 +6,7 @@ authors = ["long2ice <long2ice@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-mysql-replication = "*"
+mysql-replication = {git = "https://github.com/long2ice/python-mysql-replication.git"}
 clickhouse-driver = "*"
 redis = "*"
 mysqlclient = "*"

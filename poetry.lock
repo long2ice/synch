@@ -4,7 +4,7 @@ description = "Python package for providing Mozilla's CA Bundle."
 name = "certifi"
 optional = false
 python-versions = "*"
-version = "2019.11.28"
+version = "2020.4.5.1"
 
 [[package]]
 category = "main"
@@ -41,6 +41,10 @@ version = "0.21"
 [package.dependencies]
 pymysql = "*"
 
+[package.source]
+reference = "3922dbe9ac662cece37ee092aea3a1ea5d8832d9"
+type = "git"
+url = "https://github.com/long2ice/python-mysql-replication.git"
 [[package]]
 category = "main"
 description = "Python interface to MySQL"
@@ -179,13 +183,13 @@ secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "cer
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [metadata]
-content-hash = "357abd5fcb4e8e7dc491156a2761dd7366c68bb67611b16982a2b266921fafc6"
+content-hash = "89734bcbaf4225261b0a01c299aecee67c9b5b046670c0702ce319624910bf4e"
 python-versions = "^3.6"
 
 [metadata.files]
 certifi = [
-    {file = "certifi-2019.11.28-py2.py3-none-any.whl", hash = "sha256:017c25db2a153ce562900032d5bc68e9f191e44e9a0f762f373977de9df1fbb3"},
-    {file = "certifi-2019.11.28.tar.gz", hash = "sha256:25b64c7da4cd7479594d035c08c2d809eb4aab3a26e5a990ea98cc450c320f1f"},
+    {file = "certifi-2020.4.5.1-py2.py3-none-any.whl", hash = "sha256:1d987a998c75633c40847cc966fcf5904906c920a7f17ef374f5aa4282abd304"},
+    {file = "certifi-2020.4.5.1.tar.gz", hash = "sha256:51fcb31174be6e6664c5f69e3e1691a2d72a1a12e90f872cbdb1567eb47b6519"},
 ]
 clickhouse-driver = [
     {file = "clickhouse-driver-0.1.3.tar.gz", hash = "sha256:1a9a0815bddc0082d2155c1803c4ae79b1fbe28ae276fe9703650208acbc5ec3"},
@@ -231,9 +235,7 @@ kafka-python = [
     {file = "kafka-python-2.0.1.tar.gz", hash = "sha256:e59ad42dec8c7d54e3fbba0c1f8b54c44d92a3392d88242962d0c29803f2f6f8"},
     {file = "kafka_python-2.0.1-py2.py3-none-any.whl", hash = "sha256:513431184ecd08e706ca53421ff23e269fc052374084b45b49640419564dd704"},
 ]
-mysql-replication = [
-    {file = "mysql-replication-0.21.tar.gz", hash = "sha256:116efdc1d932ecd39ff9c2a5c735d2105c9861c9e747b04ddcfc7f1849dd5afe"},
-]
+mysql-replication = []
 mysqlclient = [
     {file = "mysqlclient-1.4.6-cp36-cp36m-win_amd64.whl", hash = "sha256:4c82187dd6ab3607150fbb1fa5ef4643118f3da122b8ba31c3149ddd9cf0cb39"},
     {file = "mysqlclient-1.4.6-cp37-cp37m-win_amd64.whl", hash = "sha256:9e6080a7aee4cc6a06b58b59239f20f1d259c1d2fddf68ddeed242d2311c7087"},
