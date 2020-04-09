@@ -83,5 +83,8 @@ class MysqlReader:
                     event['values'] = row['values']
                     event['event_unixtime'] = int(time.time() * 10 ** 6)
                     event['action_core'] = '1'
-                event['values'] = complex_decode(event['values'])
+                values = event['values']
+                for k, v in values.items():
+                    values[k] = complex_decode(v)
+                event['values'] = values
                 yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos
