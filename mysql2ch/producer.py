@@ -1,7 +1,8 @@
 import json
 import logging
 
-from kafka import KafkaProducer
+from kafka import KafkaProducer, KafkaAdminClient
+from kafka.admin import NewPartitions
 
 from . import pos_handler, reader, partitioner
 import settings
@@ -17,7 +18,21 @@ producer = KafkaProducer(
 )
 
 
+def init_partitions():
+    client = KafkaAdminClient(
+        bootstrap_servers=settings.KAFKA_SERVER,
+    )
+    try:
+        client.create_partitions(topic_partitions={
+            settings.KAFKA_TOPIC: NewPartitions(total_count=len(settings.PARTITIONS.keys()))
+        })
+    except Exception as e:
+        logger.warning(f'init_partitions error:{e}')
+
+
 def produce(args):
+    init_partitions()
+
     log_file, log_pos = pos_handler.get_log_pos()
     if not (log_file and log_pos):
         log_file = settings.INIT_BINLOG_FILE

@@ -1,6 +1,6 @@
 import logging
 import sys
-import random
+
 import settings
 from .pos import RedisLogPos
 from .reader import MysqlReader
