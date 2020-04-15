@@ -19,13 +19,13 @@ mysql2ch is used to sync data from MySQL to ClickHouse.
 ```shell script
 $ python manage.py etl -h
 
-usage: manage.py etl [-h] --schema SCHEMA --tables TABLES [--debug]
+usage: manage.py etl [-h] --schema SCHEMA --tables TABLES [--renew]
 
 optional arguments:
   -h, --help       show this help message and exit
   --schema SCHEMA  Schema to full etl.
   --tables TABLES  Tables to full etl,multiple tables split with comma.
-  --debug          Display SQL information.
+  --renew          Etl after try to drop the target tables.
 
 ```
 
