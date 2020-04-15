@@ -70,20 +70,22 @@ def consume(args):
                     data_dict.setdefault(table, {}).setdefault(table + schema + action + action_core, []).append(item)
             for table, v in data_dict.items():
                 tmp_data = []
+                events_num = 0
                 for k1, v1 in v.items():
+                    events_num += len(v1)
                     tmp_data.append(v1)
                 result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
                 if result:
                     event_list = {}
                     is_insert = False
-                    len_event = last_time = 0
+                    events_num = len_event = last_time = 0
 
                     meta = consumer.partitions_for_topic(topic)
                     options = {TopicPartition(topic, settings.PARTITIONS.get(f'{schema}.{table}')): OffsetAndMetadata(
                         msg.offset + 1, meta)}
                     consumer.commit(options)
 
-                    logger.info(f'commit success {len(tmp_data)} events!')
+                    logger.info(f'commit success {events_num} events!')
                 else:
                     logger.error('insert event error!')
                     exit()
