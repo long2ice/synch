@@ -1,13 +1,12 @@
 import json
 import logging
-import time
 
-from kafka import TopicPartition
+from kafka import TopicPartition, OffsetAndMetadata
 from kafka.consumer import KafkaConsumer
 from kafka.consumer.fetcher import ConsumerRecord
 
-from . import writer, reader
 import settings
+from . import writer, reader
 from .common import object_hook
 
 logger = logging.getLogger('mysql2ch.consumer')
@@ -16,7 +15,6 @@ logger = logging.getLogger('mysql2ch.consumer')
 def consume(args):
     schema = args.schema
     tables = args.tables
-    skip_error = args.skip_error
     assert schema in settings.SCHEMAS, f'schema {schema} must in settings.SCHEMAS'
     topic = settings.KAFKA_TOPIC
     tables_pk = {}
@@ -40,9 +38,10 @@ def consume(args):
     )
     consumer.assign(partitions)
 
-    event_list = []
+    event_list = {}
     is_insert = False
     last_time = 0
+    len_event = 0
     logger.info(f'success consume topic:{topic},partitions:{partitions},schema:{schema},tables:{tables}')
 
     for msg in consumer:  # type:ConsumerRecord
@@ -51,8 +50,9 @@ def consume(args):
         event_unixtime = event['event_unixtime'] / 10 ** 6
         table = event['table']
         schema = event['schema']
-        event_list.append(event)
-        len_event = len(event_list)
+        event_list.setdefault(table, []).append(event)
+        len_event += 1
+
         if last_time == 0:
             last_time = event_unixtime
 
@@ -63,21 +63,27 @@ def consume(args):
                 is_insert = True
         if is_insert:
             data_dict = {}
-            tmp_data = []
-            for items in event_list:
-                action = items['action']
-                action_core = items['action_core']
-                data_dict.setdefault(table + schema + action + action_core, []).append(
-                    dict(items, schema=schema, table=table))
-            for k, v in data_dict.items():
-                tmp_data.append(v)
-            result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
-            if result or (not result and skip_error):
-                event_list = []
-                is_insert = False
-                last_time = 0
-                consumer.commit()
-                logger.info(f'commit success {len_event} events!')
-            else:
-                logger.error('insert event error!')
-                exit()
+            for table, items in event_list.items():
+                for item in items:
+                    action = item['action']
+                    action_core = item['action_core']
+                    data_dict.setdefault(table, {}).setdefault(table + schema + action + action_core, []).append(item)
+            for table, v in data_dict.items():
+                tmp_data = []
+                for k1, v1 in v.items():
+                    tmp_data.append(v1)
+                result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
+                if result:
+                    event_list = {}
+                    is_insert = False
+                    len_event = last_time = 0
+
+                    meta = consumer.partitions_for_topic(topic)
+                    options = {TopicPartition(topic, settings.PARTITIONS.get(f'{schema}.{table}')): OffsetAndMetadata(
+                        msg.offset + 1, meta)}
+                    consumer.commit(options)
+
+                    logger.info(f'commit success {len(tmp_data)} events!')
+                else:
+                    logger.error('insert event error!')
+                    exit()

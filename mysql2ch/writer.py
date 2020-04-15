@@ -199,9 +199,6 @@ class ClickHouseWriter:
         # 正式把处理完成的数据插入clickhouse
         for tmp_data in new_event:
             if tmp_data[0]['action'] == 'delete':
-                table = tmp_data[0]['table']
-                schema = tmp_data[0]['schema']
-
                 del_sql = self.event_primary_key(schema, table, tmp_data, pk)
                 try:
                     self.execute(del_sql)
