@@ -7,6 +7,7 @@ from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
 
+import settings
 from mysql2ch.common import complex_decode
 
 logger = logging.getLogger('mysql2ch.reader')
@@ -64,6 +65,7 @@ class MysqlReader:
             only_events=self.only_events, log_file=log_file, log_pos=log_pos,
             fail_on_table_metadata_unavailable=True, slave_heartbeat=10)
         for binlog_event in stream:
+            skip_dml_table_name = f"{binlog_event.schema}.{binlog_event.table}"
             for row in binlog_event.rows:
                 event = {}
                 if isinstance(binlog_event, WriteRowsEvent):
@@ -73,12 +75,16 @@ class MysqlReader:
                     event['action_core'] = '2'
 
                 elif isinstance(binlog_event, UpdateRowsEvent):
+                    if 'update' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_UPDATE_TB_NAME:
+                        continue
                     event['action'] = 'insert'
                     event['values'] = row['after_values']
                     event['event_unixtime'] = int(time.time() * 10 ** 6)
                     event['action_core'] = '2'
 
                 elif isinstance(binlog_event, DeleteRowsEvent):
+                    if 'delete' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_DELETE_TB_NAME:
+                        continue
                     event['action'] = 'delete'
                     event['values'] = row['values']
                     event['event_unixtime'] = int(time.time() * 10 ** 6)

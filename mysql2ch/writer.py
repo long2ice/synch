@@ -136,7 +136,7 @@ class ClickHouseWriter:
         return del_sql
 
     # 把解析以后的binlog内容拼接成sql入库到ch里面
-    def insert_event(self, tmp_data, skip_dmls_all, skip_delete_tb_name, schema, table, pk):
+    def insert_event(self, tmp_data, schema, table, pk):
         # 检查mutations是否有失败的(ch后台异步的update和delete变更)
         mutation_list = ['mutation_failed', 'table', 'create_time']
         fail_list = []
@@ -201,16 +201,10 @@ class ClickHouseWriter:
             if tmp_data[0]['action'] == 'delete':
                 table = tmp_data[0]['table']
                 schema = tmp_data[0]['schema']
-                skip_dml_table_name = "{0}.{1}".format(schema, table)
 
                 del_sql = self.event_primary_key(schema, table, tmp_data, pk)
                 try:
-                    if 'delete' in skip_dmls_all:
-                        return True
-                    elif skip_dml_table_name in skip_delete_tb_name:
-                        return True
-                    else:
-                        self.execute(del_sql)
+                    self.execute(del_sql)
                 except Exception as error:
                     message = f"exec sql error,sql:{del_sql},error:{error}"
                     logger.error(message)

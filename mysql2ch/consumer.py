@@ -63,7 +63,7 @@ def consume(args):
                     dict(items, schema=schema, table=table))
             for k, v in data_dict.items():
                 tmp_data.append(v)
-            result = writer.insert_event(tmp_data, settings.SKIP_TYPE, settings.SKIP_DELETE_TB_NAME, schema, table, pk)
+            result = writer.insert_event(tmp_data, schema, table, pk)
             if result or (not result and skip_error):
                 event_list = []
                 is_insert = False
