@@ -15,11 +15,21 @@ logger = logging.getLogger('mysql2ch.consumer')
 
 def consume(args):
     schema = args.schema
-    table = args.table
+    tables = args.tables
     skip_error = args.skip_error
-    assert schema in settings.SCHEMAS, 'schema must in settings.SCHEMAS'
-    assert table in settings.TABLES, 'table must in settings.TABLES'
-    group_id = f'{schema}.{table}'
+    assert schema in settings.SCHEMAS, f'schema {schema} must in settings.SCHEMAS'
+    topic = settings.KAFKA_TOPIC
+    tables_pk = {}
+    partitions = []
+    for table in tables.split(','):
+        assert table in settings.TABLES, f'table {table} must in settings.TABLES'
+
+        partition = settings.PARTITIONS.get(f'{schema}.{table}')
+        tp = TopicPartition(topic, partition)
+        partitions.append(tp)
+        tables_pk[table] = reader.get_primary_key(schema, table)
+
+    group_id = f'{schema}.{tables}'
     consumer = KafkaConsumer(
         bootstrap_servers=settings.KAFKA_SERVER,
         value_deserializer=lambda x: json.loads(x, object_hook=object_hook),
@@ -28,22 +38,19 @@ def consume(args):
         group_id=group_id,
         auto_offset_reset='earliest',
     )
-    topic = settings.KAFKA_TOPIC
-    partition = settings.PARTITIONS.get(group_id)
-    tp = TopicPartition(topic, partition)
-    consumer.assign([tp])
+    consumer.assign(partitions)
 
     event_list = []
     is_insert = False
     last_time = 0
-    logger.info(f'success consume topic:{topic},partition:{partition},schema:{schema},table:{table}')
-
-    pk = reader.get_primary_key(schema, table)
+    logger.info(f'success consume topic:{topic},partitions:{partitions},schema:{schema},tables:{tables}')
 
     for msg in consumer:  # type:ConsumerRecord
         logger.debug(f'kafka msg:{msg}')
         event = msg.value
         event_unixtime = event['event_unixtime'] / 10 ** 6
+        table = event['table']
+        schema = event['schema']
         event_list.append(event)
         len_event = len(event_list)
         if last_time == 0:
@@ -64,7 +71,7 @@ def consume(args):
                     dict(items, schema=schema, table=table))
             for k, v in data_dict.items():
                 tmp_data.append(v)
-            result = writer.insert_event(tmp_data, schema, table, pk)
+            result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
             if result or (not result and skip_error):
                 event_list = []
                 is_insert = False

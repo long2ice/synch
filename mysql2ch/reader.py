@@ -65,9 +65,11 @@ class MysqlReader:
             only_events=self.only_events, log_file=log_file, log_pos=log_pos,
             fail_on_table_metadata_unavailable=True, slave_heartbeat=10)
         for binlog_event in stream:
-            skip_dml_table_name = f"{binlog_event.schema}.{binlog_event.table}"
+            schema = binlog_event.schema
+            table = binlog_event.table
+            skip_dml_table_name = f"{schema}.{table}"
             for row in binlog_event.rows:
-                event = {}
+                event = {'table': table, 'schema': schema}
                 if isinstance(binlog_event, WriteRowsEvent):
                     event['action'] = 'insert'
                     event['values'] = row['values']

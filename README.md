@@ -105,7 +105,7 @@ services:
       - producer
     image: long2ice/mysql2ch:latest
     # consume binlog of test.test
-    command: pypy3 manage.py consume --schema test --table test
+    command: pypy3 manage.py consume --schema test --tables test
   redis:
     hostname: redis
     image: redis:latest

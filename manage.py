@@ -34,7 +34,7 @@ def cli():
 
     parser_consumer = subparsers.add_parser('consume')
     parser_consumer.add_argument('--schema', required=True, help='Schema to consume.')
-    parser_consumer.add_argument('--table', required=True, help='Table to consume.')
+    parser_consumer.add_argument('--tables', required=True, help='Tables to consume,multiple tables split with comma.')
     parser_consumer.add_argument('--skip-error', action='store_true', default=False, help='Skip error rows.')
     parser_consumer.set_defaults(func=consume)
 
