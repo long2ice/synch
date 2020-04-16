@@ -34,6 +34,8 @@ optional arguments:
 2. edit ``docker-compose.yml``,which will read ``.env``,add your own consumer services in ``docker-compose.yml``.One consumer consume one kafka partition.
 3. ``docker-compose up -d``.
 
+> Note: when one service consume multiple partitions,consumer commit maybe incorrect when insert error.
+
 ## Optional
 
 * [sentry]( https://github.com/getsentry/sentry ),error reporting,worked if set ``SENTRY_DSN`` in ``.env``.

@@ -77,15 +77,10 @@ def consume(args):
                 result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
                 if result:
                     logger.info(f'commit success {events_num} events!')
-
-                    event_list = {}
-                    is_insert = False
-                    len_event = last_time = 0
-                    meta = consumer.partitions_for_topic(topic)
-                    options = {TopicPartition(topic, settings.PARTITIONS.get(f'{schema}.{table}')): OffsetAndMetadata(
-                        msg.offset + 1, meta)}
-                    consumer.commit(options)
-
                 else:
                     logger.error('insert event error!')
                     exit()
+            event_list = {}
+            is_insert = False
+            len_event = last_time = 0
+            consumer.commit()
