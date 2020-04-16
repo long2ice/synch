@@ -63,6 +63,7 @@ def consume(args):
                 is_insert = True
         if is_insert:
             data_dict = {}
+            events_num = 0
             for table, items in event_list.items():
                 for item in items:
                     action = item['action']
@@ -70,17 +71,16 @@ def consume(args):
                     data_dict.setdefault(table, {}).setdefault(table + schema + action + action_core, []).append(item)
             for table, v in data_dict.items():
                 tmp_data = []
-                events_num = 0
                 for k1, v1 in v.items():
                     events_num += len(v1)
                     tmp_data.append(v1)
                 result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
-                if result:
-                    logger.info(f'commit success {events_num} events!')
-                else:
+                if not result:
                     logger.error('insert event error!')
                     exit()
+
+            consumer.commit()
+            logger.info(f'commit success {events_num} events!')
             event_list = {}
             is_insert = False
             len_event = last_time = 0
-            consumer.commit()
