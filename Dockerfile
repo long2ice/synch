@@ -4,3 +4,4 @@ WORKDIR /src
 COPY requirements.txt /src
 RUN pypy3 -m pip install -r requirements.txt
 COPY . /src
+RUN pypy3 setup.py install
