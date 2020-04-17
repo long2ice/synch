@@ -30,9 +30,9 @@ Full data etl
 
 .. code-block:: shell
 
-    $ python manage.py etl -h
+    $ mysql2ch etl -h
 
-    usage: manage.py etl [-h] --schema SCHEMA --tables TABLES [--renew]
+    usage: mysql2ch etl [-h] --schema SCHEMA --tables TABLES [--renew]
 
     optional arguments:
       -h, --help       show this help message and exit
