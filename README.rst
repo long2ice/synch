@@ -5,7 +5,7 @@ mysql2ch
 .. image:: https://img.shields.io/pypi/v/mysql2ch.svg?style=flat
    :target: https://pypi.python.org/pypi/mysql2ch
 .. image:: https://img.shields.io/docker/cloud/build/long2ice/mysql2ch
-   :target: https://travis-ci.com/long2ice/mysql2ch
+   :target: https://hub.docker.com/repository/docker/long2ice/mysql2ch
 .. image:: https://img.shields.io/github/license/long2ice/mysql2ch
    :target: https://github.com/long2ice/mysql2ch
 
