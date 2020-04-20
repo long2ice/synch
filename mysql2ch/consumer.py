@@ -75,13 +75,18 @@ def consume(args):
                 for k1, v1 in v.items():
                     events_num += len(v1)
                     tmp_data.append(v1)
-                result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
-                if not result:
-                    logger.error('insert event error!')
+                try:
+                    result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
+                    if not result:
+                        logger.error('insert event error!')
+                        if skip_error:
+                            continue
+                        exit()
+                except Exception as e:
+                    logger.error(f'insert event error!,error:{e}')
                     if skip_error:
                         continue
                     exit()
-
             consumer.commit()
             logger.info(f'commit success {events_num} events!')
             event_list = {}
