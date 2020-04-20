@@ -1,5 +1,9 @@
 import argparse
 import logging
+import os
+import sys
+
+sys.path.extend([os.getcwd()])
 
 from mysql2ch import init_logging
 import settings
