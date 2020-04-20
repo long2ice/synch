@@ -79,14 +79,12 @@ def consume(args):
                     result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
                     if not result:
                         logger.error('insert event error!')
-                        if skip_error:
-                            continue
-                        exit()
+                        if not skip_error:
+                            exit()
                 except Exception as e:
                     logger.error(f'insert event error!,error:{e}')
-                    if skip_error:
-                        continue
-                    exit()
+                    if not skip_error:
+                        exit()
             consumer.commit()
             logger.info(f'commit success {events_num} events!')
             event_list = {}
