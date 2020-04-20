@@ -5,7 +5,7 @@ from kafka import KafkaProducer, KafkaAdminClient
 from kafka.admin import NewPartitions
 
 from . import pos_handler, reader, partitioner
-import settings
+from mysql2ch import settings
 from .common import JsonEncoder
 
 logger = logging.getLogger('mysql2ch.producer')

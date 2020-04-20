@@ -7,7 +7,7 @@ from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
 
-import settings
+from mysql2ch import settings
 from mysql2ch.common import complex_decode
 
 logger = logging.getLogger('mysql2ch.reader')

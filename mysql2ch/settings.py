@@ -15,7 +15,8 @@ def parse_partitions(partitions):
     return ret
 
 
-load_dotenv()
+load_dotenv('.env')
+
 sentry_sdk.init(
     os.getenv('SENTRY_DSN'),
     environment=os.getenv('ENVIRONMENT', 'development'),

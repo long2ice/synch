@@ -1,7 +1,7 @@
 import logging
 import sys
 
-import settings
+from mysql2ch import settings
 from .pos import RedisLogPos
 from .reader import MysqlReader
 from .writer import ClickHouseWriter

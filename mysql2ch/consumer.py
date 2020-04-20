@@ -1,11 +1,11 @@
 import json
 import logging
 
-from kafka import TopicPartition, OffsetAndMetadata
+from kafka import TopicPartition
 from kafka.consumer import KafkaConsumer
 from kafka.consumer.fetcher import ConsumerRecord
 
-import settings
+from mysql2ch import settings
 from . import writer, reader
 from .common import object_hook
 

@@ -1,12 +1,7 @@
 import argparse
 import logging
-import os
-import sys
-
-sys.path.extend([os.getcwd()])
-
 from mysql2ch import init_logging
-import settings
+from mysql2ch import settings
 from mysql2ch.consumer import consume
 from mysql2ch.producer import produce
 from mysql2ch.replication import etl_full
