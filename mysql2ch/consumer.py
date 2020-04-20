@@ -15,6 +15,7 @@ logger = logging.getLogger('mysql2ch.consumer')
 def consume(args):
     schema = args.schema
     tables = args.tables
+    skip_error = args.skip_error
     assert schema in settings.SCHEMAS, f'schema {schema} must in settings.SCHEMAS'
     topic = settings.KAFKA_TOPIC
     tables_pk = {}
@@ -77,6 +78,8 @@ def consume(args):
                 result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
                 if not result:
                     logger.error('insert event error!')
+                    if skip_error:
+                        continue
                     exit()
 
             consumer.commit()
