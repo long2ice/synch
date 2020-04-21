@@ -21,45 +21,24 @@ mysql2ch is used to sync data from MySQL to ClickHouse.
 Requirements
 ============
 
-* `kafka <https://kafka.apache.org/>`_
-* ``docker`` & ``docker-compose``
+* `kafka <https://kafka.apache.org>`_,message queue to store mysql binlog event.
+* `redis <https://redis.io>`_,cache mysql binlog file and position.
+
+Install
+=======
+
+.. code-block:: shell
+
+    $ pip install mysql2ch
+
+.. note::
+
+    Use pypy3 to speed up.
 
 Usage
 =====
 
-Full data etl
-~~~~~~~~~~~~~
-
-.. code-block:: shell
-
-    $ mysql2ch etl -h
-
-    usage: mysql2ch etl [-h] --schema SCHEMA --tables TABLES [--renew]
-
-    optional arguments:
-      -h, --help       show this help message and exit
-      --schema SCHEMA  Schema to full etl.
-      --tables TABLES  Tables to full etl,multiple tables split with comma.
-      --renew          Etl after try to drop the target tables.
-
-
-Continuous Sync
-~~~~~~~~~~~~~~~
-
-1. ``cp .env.example .env`` and edit it.
-2. edit ``docker-compose.yml``,which will read ``.env``,add your own consumer services in ``docker-compose.yml``.One consumer consume one kafka partition.
-3. ``docker-compose up -d``.
-
-.. note::
-    When one service consume multiple partitions,consumer commit maybe incorrect when insert error.
-
-Optional
-========
-
-`Sentry <https://github.com/getsentry/sentry>`_,error reporting,worked if set ``SENTRY_DSN`` in ``.env``.
-
-Example
-=======
+Make a ``.env`` file in execute dir or set system environment variable:
 
 .env
 ~~~~
@@ -103,8 +82,50 @@ Example
     # how many seconds to submit
     INSERT_INTERVAL=60
 
-docker-compose.yml
-~~~~~~~~~~~~~~~~~~
+Full data etl
+~~~~~~~~~~~~~
+
+.. code-block:: shell
+
+    $ mysql2ch etl -h
+
+    usage: mysql2ch etl [-h] --schema SCHEMA --tables TABLES [--renew]
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      --schema SCHEMA  Schema to full etl.
+      --tables TABLES  Tables to full etl,multiple tables split with comma.
+      --renew          Etl after try to drop the target tables.
+
+
+Produce
+~~~~~~~
+
+.. code-block:: shell
+
+    $ mysql2ch produce
+
+Consume
+~~~~~~~
+
+.. code-block:: shell
+
+    $ mysql2ch consume -h
+
+    usage: mysql2ch consume [-h] --schema SCHEMA --tables TABLES [--skip-error]
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      --schema SCHEMA  Schema to consume.
+      --tables TABLES  Tables to consume,multiple tables split with comma.
+      --skip-error     Skip error rows.
+
+
+.. note::
+    When one service consume multiple partitions,consumer commit maybe incorrect when insert error.
+
+Use docker-compose(recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml
 
@@ -134,3 +155,13 @@ docker-compose.yml
           - redis:/data
     volumes:
       redis:
+
+Optional
+========
+
+`Sentry <https://github.com/getsentry/sentry>`_,error reporting,worked if set ``SENTRY_DSN`` in ``.env``.
+
+License
+=======
+
+This project is licensed under the `MIT <https://github.com/long2ice/mysql2ch/blob/master/LICENSE>`_ License.
