@@ -1,12 +1,11 @@
 import json
 import logging
 
-from kafka import KafkaProducer, KafkaAdminClient
-from kafka.admin import NewPartitions
+from kafka import KafkaProducer
 
-from . import pos_handler, reader, partitioner
 from mysql2ch import settings
-from .common import JsonEncoder
+from . import pos_handler, reader, partitioner
+from .common import JsonEncoder, init_partitions
 
 logger = logging.getLogger('mysql2ch.producer')
 
@@ -16,18 +15,6 @@ producer = KafkaProducer(
     key_serializer=lambda x: x.encode(),
     partitioner=partitioner
 )
-
-
-def init_partitions():
-    client = KafkaAdminClient(
-        bootstrap_servers=settings.KAFKA_SERVER,
-    )
-    try:
-        client.create_partitions(topic_partitions={
-            settings.KAFKA_TOPIC: NewPartitions(total_count=len(settings.PARTITIONS.keys()))
-        })
-    except Exception as e:
-        logger.warning(f'init_partitions error:{e}')
 
 
 def produce(args):

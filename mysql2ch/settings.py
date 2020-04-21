@@ -15,6 +15,18 @@ def parse_partitions(partitions):
     return ret
 
 
+def parse_schema_table(partitions):
+    ret_list = partitions.split(';')
+    schemas = set()
+    tables = set()
+    for x in ret_list:
+        if x:
+            a = x.split('=')
+            schemas.add(a[0].strip())
+            tables.add(a[1].strip())
+    return schemas, tables
+
+
 load_dotenv('.env')
 
 sentry_sdk.init(
@@ -41,10 +53,7 @@ CLICKHOUSE_PORT = os.getenv('CLICKHOUSE_PORT')
 CLICKHOUSE_PASSWORD = os.getenv('CLICKHOUSE_PASSWORD')
 CLICKHOUSE_USER = os.getenv('CLICKHOUSE_USER')
 
-# only these schemas to replication
-SCHEMAS = os.getenv('SCHEMAS').split(',')
-# only these tables to replication
-TABLES = os.getenv('TABLES').split(',')
+SCHEMAS, TABLES = parse_schema_table(os.getenv('PARTITIONS'))
 
 # which table to skip delete or update
 SKIP_DELETE_TB_NAME = (os.getenv('SKIP_DELETE_TB_NAME') or '').split(',')

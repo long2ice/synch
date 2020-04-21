@@ -1,7 +1,16 @@
 import datetime
 import json
+import logging
+
 import dateutil.parser
 from decimal import Decimal
+
+from kafka import KafkaAdminClient
+from kafka.admin import NewPartitions
+
+from mysql2ch import settings
+
+logger = logging.getLogger('mysql2ch.common')
 
 CONVERTERS = {
     'date': dateutil.parser.parse,
@@ -48,3 +57,15 @@ def object_hook(obj):
         return CONVERTERS[_spec_type](obj['val'])
     else:
         raise TypeError('Unknown {}'.format(_spec_type))
+
+
+def init_partitions():
+    client = KafkaAdminClient(
+        bootstrap_servers=settings.KAFKA_SERVER,
+    )
+    try:
+        client.create_partitions(topic_partitions={
+            settings.KAFKA_TOPIC: NewPartitions(total_count=len(settings.PARTITIONS.keys()))
+        })
+    except Exception as e:
+        logger.warning(f'init_partitions error:{e}')

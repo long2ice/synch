@@ -59,4 +59,4 @@ pos_handler = RedisLogPos(
     server_id=settings.MYSQL_SERVER_ID
 )
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'

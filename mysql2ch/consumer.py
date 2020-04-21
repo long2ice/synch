@@ -16,13 +16,10 @@ def consume(args):
     schema = args.schema
     tables = args.tables
     skip_error = args.skip_error
-    assert schema in settings.SCHEMAS, f'schema {schema} must in settings.SCHEMAS'
     topic = settings.KAFKA_TOPIC
     tables_pk = {}
     partitions = []
     for table in tables.split(','):
-        assert table in settings.TABLES, f'table {table} must in settings.TABLES'
-
         partition = settings.PARTITIONS.get(f'{schema}.{table}')
         tp = TopicPartition(topic, partition)
         partitions.append(tp)

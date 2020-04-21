@@ -89,11 +89,6 @@ Example
     KAFKA_SERVER=127.0.0.1:9092
     KAFKA_TOPIC=mysql2ch
 
-    # only these schemas to replication,multiple split with comma.
-    SCHEMAS=test
-    # only these tables to replication,multiple split with comma.
-    TABLES=test
-
     # kafka partitions mapping,which means binlog of test.test will produce to 0 partition.
     PARTITIONS=test.test=0;test.test2=1;
 
