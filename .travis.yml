@@ -10,3 +10,7 @@ deploy:
     secure: YGhFir+WdioDliOHRsB4NaJaEk8CYTIawM6xTr7KMiz1A/ySNs+YppeKrYl0Pc0RFEOTujF9Zaa8YfLs7003iSpx2o+lh6CHdKr1LAPMlVcBkfMWKfX66cVj2u2d3QQutwjTD09SFrj/f9tsRlwEHd6uZYQN/bFGA6akT+orrPw5TY/6cMKD+DlIK9iV37IPT16q9Y/kQEUyYU1yEjr4zZAaPRh6MkihJrn3APNB12XiI1GGh8OBEUJMoID8L+d80Du+791NmS2hDFMh5Jk+YfyJgEN1w1YweKebgjAWJz/x8f7DY7S67jfaXYkr+o0JOv/usPAB2EAajGDGLKLkhJT1K284OEzKgsbV6c/AilD+cfljSvOWqFM+SVXEqZoBJBRaIQhNoYVhqVkg7WKQGE5GsEorzP1yMBnwt/pBqwLk5YrnYIIz+dljzl0CTkn6sHT2TrNQNdJmoNiuj6Q7oATYnL4rlEGuc3hfBB2xqry9NmKRm34ZEuKKuqHHyH3aEuNYodcbSk6e0OyjgE71MeLazlyZRrVltyVE+mV38m8wJOTPxiUMUVsiljz2R9fhoLSPpxufL0svg/6GyKsmGQlTpwa5m8m3MK+ryAP7C1WWVQkWAFaPjGKf/12jCWXnQh3lGhK/q70ly5MWQ0cWvZKHlBs85wYJ1VkA8CCn3NY=
   skip_existing: true
   skip_cleanup: true
+  on:
+    python: 3.8
+    tags: true
+    branch: master

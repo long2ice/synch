@@ -2,6 +2,8 @@
 mysql2ch
 ========
 
+.. image:: https://travis-ci.com/long2ice/mysql2ch.svg?branch=master
+   :target: https://travis-ci.com/long2ice/mysql2ch
 .. image:: https://img.shields.io/pypi/v/mysql2ch.svg?style=flat
    :target: https://pypi.python.org/pypi/mysql2ch
 .. image:: https://img.shields.io/docker/cloud/build/long2ice/mysql2ch
