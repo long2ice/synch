@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Publish package to PyPI
+name: pypi
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -25,7 +25,8 @@ jobs:
       run: |
         python setup.py sdist
     # Runs a single command using the runners shell
-    - name: pypi-publish
+    - name: Pypi Publish
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
