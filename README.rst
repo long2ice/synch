@@ -6,8 +6,6 @@ mysql2ch
    :target: https://pypi.python.org/pypi/mysql2ch
 .. image:: https://img.shields.io/docker/cloud/build/long2ice/mysql2ch
    :target: https://hub.docker.com/repository/docker/long2ice/mysql2ch
-.. image:: https://img.shields.io/github/workflow/status/long2ice/mysql2ch/pypi
-   :alt: GitHub Workflow Status
 .. image:: https://img.shields.io/github/license/long2ice/mysql2ch
    :target: https://github.com/long2ice/mysql2ch
 
