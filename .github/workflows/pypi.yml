@@ -21,7 +21,9 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
+    - name: Build dists
+      run: |
+        python setup.py sdist
     # Runs a single command using the runners shell
     - name: pypi-publish
       uses: pypa/gh-action-pypi-publish@master
