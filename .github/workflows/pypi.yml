@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Publish package to TestPyPI
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -24,4 +24,7 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: pypi-publish
-      uses: pypa/gh-action-pypi-publish@v1.1.0
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
