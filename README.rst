@@ -83,6 +83,8 @@ Make a ``.env`` file in execute dir or set system environment variable:
 Full data etl
 ~~~~~~~~~~~~~
 
+Maybe you need make full data etl before continuous sync data from MySQL to ClickHouse or redo data etl with ``--renew``.
+
 .. code-block:: shell
 
     $ mysql2ch etl -h
@@ -99,12 +101,16 @@ Full data etl
 Produce
 ~~~~~~~
 
+Listen all MySQL binlog and produce to kafka.
+
 .. code-block:: shell
 
     $ mysql2ch produce
 
 Consume
 ~~~~~~~
+
+Consume message from kafka and insert to ClickHouse,and you can skip error with ``--skip-error``.
 
 .. code-block:: shell
 
