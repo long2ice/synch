@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 
 def version():
-    ver_str_line = open('mysql2ch/__init__.py', 'rt').read()
+    ver_str_line = open('mysql2ch/version.py', 'rt').read()
     mob = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", ver_str_line, re.M)
     if not mob:
         raise RuntimeError("Unable to find version string")
