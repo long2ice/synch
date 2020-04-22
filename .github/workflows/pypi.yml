@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build dists
         run: |
-          python setup.py sdist
+          python3 setup.py sdist
       - name: Pypi Publish
         uses: pypa/gh-action-pypi-publish@master
         with:
