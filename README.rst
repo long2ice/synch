@@ -116,16 +116,16 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
 
     $ mysql2ch consume -h
 
-    usage: mysql2ch consume [-h] --schema SCHEMA --tables TABLES [--skip-error] --group-id GROUP_ID
+    usage: mysql2ch consume [-h] --schema SCHEMA --tables TABLES [--skip-error] --group-id GROUP_ID [--auto-offset-reset AUTO_OFFSET_RESET]
 
     optional arguments:
-      -h, --help           show this help message and exit
-      --schema SCHEMA      Schema to consume.
-      --tables TABLES      Tables to consume,multiple tables split with comma.
-      --skip-error         Skip error rows.
-      --group-id GROUP_ID  Kafka consumer group id.
-
-
+      -h, --help            show this help message and exit
+      --schema SCHEMA       Schema to consume.
+      --tables TABLES       Tables to consume,multiple tables split with comma.
+      --skip-error          Skip error rows.
+      --group-id GROUP_ID   Kafka consumer group id.
+      --auto-offset-reset AUTO_OFFSET_RESET
+                            Kafka auto offset reset.
 
 .. note::
     When one service consume multiple partitions,consumer commit maybe incorrect when insert error.

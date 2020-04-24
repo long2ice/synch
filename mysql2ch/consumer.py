@@ -17,6 +17,7 @@ def consume(args):
     tables = args.tables
     group_id = args.group_id
     skip_error = args.skip_error
+    auto_offset_reset = args.auto_offset_reset
     topic = settings.KAFKA_TOPIC
     tables_pk = {}
     partitions = []
@@ -32,7 +33,7 @@ def consume(args):
         key_deserializer=lambda x: x.decode() if x else None,
         enable_auto_commit=False,
         group_id=group_id,
-        auto_offset_reset='earliest',
+        auto_offset_reset=auto_offset_reset,
     )
     consumer.assign(partitions)
 

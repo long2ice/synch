@@ -36,6 +36,8 @@ def cli():
     parser_consumer.add_argument('--tables', required=True, help='Tables to consume,multiple tables split with comma.')
     parser_consumer.add_argument('--skip-error', action='store_true', default=False, help='Skip error rows.')
     parser_consumer.add_argument('--group-id', required=True, help='Kafka consumer group id.')
+    parser_consumer.add_argument('--auto-offset-reset', required=False, default='earliest',
+                                 help='Kafka auto offset reset,default earliest.')
     parser_consumer.set_defaults(func=consume)
 
     parse_args = parser.parse_args()
