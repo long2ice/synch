@@ -14,7 +14,7 @@ services:
       - redis
       - producer
     image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test --tables test
+    command: mysql2ch consume --schema test --tables test --group-id test
   redis:
     hostname: redis
     image: redis:latest
