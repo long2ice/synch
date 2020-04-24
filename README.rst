@@ -116,13 +116,15 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
 
     $ mysql2ch consume -h
 
-    usage: mysql2ch consume [-h] --schema SCHEMA --tables TABLES [--skip-error]
+    usage: mysql2ch consume [-h] --schema SCHEMA --tables TABLES [--skip-error] --group-id GROUP_ID
 
     optional arguments:
-      -h, --help       show this help message and exit
-      --schema SCHEMA  Schema to consume.
-      --tables TABLES  Tables to consume,multiple tables split with comma.
-      --skip-error     Skip error rows.
+      -h, --help           show this help message and exit
+      --schema SCHEMA      Schema to consume.
+      --tables TABLES      Tables to consume,multiple tables split with comma.
+      --skip-error         Skip error rows.
+      --group-id GROUP_ID  Kafka consumer group id.
+
 
 
 .. note::

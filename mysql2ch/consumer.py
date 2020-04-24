@@ -15,6 +15,7 @@ logger = logging.getLogger('mysql2ch.consumer')
 def consume(args):
     schema = args.schema
     tables = args.tables
+    group_id = args.group_id
     skip_error = args.skip_error
     topic = settings.KAFKA_TOPIC
     tables_pk = {}
@@ -25,7 +26,6 @@ def consume(args):
         partitions.append(tp)
         tables_pk[table] = reader.get_primary_key(schema, table)
 
-    group_id = f'{schema}.{tables}'
     consumer = KafkaConsumer(
         bootstrap_servers=settings.KAFKA_SERVER,
         value_deserializer=lambda x: json.loads(x, object_hook=object_hook),
