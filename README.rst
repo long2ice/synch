@@ -8,6 +8,8 @@ mysql2ch
    :target: https://hub.docker.com/repository/docker/long2ice/mysql2ch
 .. image:: https://img.shields.io/github/license/long2ice/mysql2ch
    :target: https://github.com/long2ice/mysql2ch
+.. image:: https://github.com/long2ice/mysql2ch/workflows/pypi/badge.svg
+   :target: https://github.com/long2ice/mysql2ch/actions?query=workflow:pypi
 
 Introduction
 ============
