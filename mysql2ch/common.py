@@ -69,3 +69,20 @@ def init_partitions():
         })
     except Exception as e:
         logger.warning(f'init_partitions error:{e}')
+
+
+def parse_mysql_ddl_2_ch(schema: str, query: str):
+    """
+    parse ddl query
+    :param schema:
+    :param query:
+    :return:
+    """
+    query = query.replace('not null', '').replace('null', '')
+    query_list = list(query)
+    space = 'table '
+    query_list.insert(query.index(space) + len(space), f'{schema}.')
+    if 'add' in query:
+        space = 'add '
+        query_list.insert(query.index(space) + len(space), ' column')
+    return ''.join(query_list)

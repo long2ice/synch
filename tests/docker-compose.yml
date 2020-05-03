@@ -30,22 +30,27 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - JMX_PORT=23456
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://192.168.123.51:9092
     depends_on:
       - zookeeper
   producer:
+    env_file:
+      - ../.env
     depends_on:
       - redis
     image: long2ice/mysql2ch
+    build: ../
     command: mysql2ch produce
     volumes:
       - ./settings.py:/src/settings.py
-  consumer.test.test:
+  consumer.test:
+    env_file:
+      - ../.env
     depends_on:
       - redis
       - producer
     image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test --tables test --group-id test
+    command: mysql2ch consume --schema test
     volumes:
       - ./settings.py:/src/settings.py
   redis:

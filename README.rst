@@ -18,6 +18,13 @@ mysql2ch is used to sync data from MySQL to ClickHouse.
 
 .. image:: https://github.com/long2ice/mysql2ch/raw/master/images/mysql2ch.png
 
+Features
+========
+
+* Full data etl and continuous sync.
+* Support DDL sync,current support ``add column`` and ``drop column``.
+* Rich configurable items.
+
 Requirements
 ============
 
@@ -70,8 +77,9 @@ Make a ``.env`` file in execute dir or set system environment variable:
     KAFKA_SERVER=127.0.0.1:9092
     KAFKA_TOPIC=mysql2ch
 
-    # kafka partitions mapping,which means binlog of test.test will produce to 0 partition.
-    PARTITIONS=test.test=0;test.test2=1;
+    # kafka partitions mapping,which means binlog of ``test`` will produce to 0 partition.
+    SCHEMA_TABLE=test.test;
+    PARTITIONS=test=0;
 
     # init binlog file and position,should set first,after will read from redis.
     INIT_BINLOG_FILE=binlog.000474
@@ -123,9 +131,7 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
     optional arguments:
       -h, --help            show this help message and exit
       --schema SCHEMA       Schema to consume.
-      --tables TABLES       Tables to consume,multiple tables split with comma.
       --skip-error          Skip error rows.
-      --group-id GROUP_ID   Kafka consumer group id.
       --auto-offset-reset AUTO_OFFSET_RESET
                             Kafka auto offset reset.
 
@@ -147,15 +153,15 @@ Use docker-compose(recommended)
         image: long2ice/mysql2ch:latest
         command: mysql2ch produce
       # add more service if you need.
-      consumer.test.test:
+      consumer.test:
         env_file:
           - .env
         depends_on:
           - redis
           - producer
         image: long2ice/mysql2ch:latest
-        # consume binlog of test.test
-        command: mysql2ch consume --schema test --tables test
+        # consume binlog of test
+        command: mysql2ch consume --schema test
       redis:
         hostname: redis
         image: redis:latest

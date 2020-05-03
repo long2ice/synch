@@ -6,15 +6,16 @@ import MySQLdb
 from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
+from pymysqlreplication.event import QueryEvent
 
 from mysql2ch import settings
-from mysql2ch.common import complex_decode
+from mysql2ch.common import complex_decode, parse_mysql_ddl_2_ch
 
 logger = logging.getLogger('mysql2ch.reader')
 
 
 class MysqlReader:
-    only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent)
+    only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
 
     def __init__(self, host='127.0.0.1', port=3306, user='root', password=None):
         self.password = password
@@ -65,34 +66,49 @@ class MysqlReader:
             only_events=self.only_events, log_file=log_file, log_pos=log_pos,
             fail_on_table_metadata_unavailable=True, slave_heartbeat=10)
         for binlog_event in stream:
-            schema = binlog_event.schema
-            table = binlog_event.table
-            skip_dml_table_name = f"{schema}.{table}"
-            for row in binlog_event.rows:
-                event = {'table': table, 'schema': schema}
-                if isinstance(binlog_event, WriteRowsEvent):
-                    event['action'] = 'insert'
-                    event['values'] = row['values']
-                    event['event_unixtime'] = int(time.time() * 10 ** 6)
-                    event['action_core'] = '2'
+            if isinstance(binlog_event, QueryEvent):
+                schema = binlog_event.schema.decode()
+                query = binlog_event.query
+                if 'alter' not in query:
+                    continue
+                event = {
+                    'table': None,
+                    'schema': schema,
+                    'action': 'query',
+                    'values': {'query': parse_mysql_ddl_2_ch(schema, query)},
+                    'event_unixtime': int(time.time() * 10 ** 6),
+                    'action_core': '0'
+                }
+                yield schema, None, event, stream.log_file, stream.log_pos
+            else:
+                schema = binlog_event.schema
+                table = binlog_event.table
+                skip_dml_table_name = f"{schema}.{table}"
+                for row in binlog_event.rows:
+                    event = {'table': table, 'schema': schema}
+                    if isinstance(binlog_event, WriteRowsEvent):
+                        event['action'] = 'insert'
+                        event['values'] = row['values']
+                        event['event_unixtime'] = int(time.time() * 10 ** 6)
+                        event['action_core'] = '2'
 
-                elif isinstance(binlog_event, UpdateRowsEvent):
-                    if 'update' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_UPDATE_TB_NAME:
-                        continue
-                    event['action'] = 'insert'
-                    event['values'] = row['after_values']
-                    event['event_unixtime'] = int(time.time() * 10 ** 6)
-                    event['action_core'] = '2'
+                    elif isinstance(binlog_event, UpdateRowsEvent):
+                        if 'update' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_UPDATE_TB_NAME:
+                            continue
+                        event['action'] = 'insert'
+                        event['values'] = row['after_values']
+                        event['event_unixtime'] = int(time.time() * 10 ** 6)
+                        event['action_core'] = '2'
 
-                elif isinstance(binlog_event, DeleteRowsEvent):
-                    if 'delete' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_DELETE_TB_NAME:
-                        continue
-                    event['action'] = 'delete'
-                    event['values'] = row['values']
-                    event['event_unixtime'] = int(time.time() * 10 ** 6)
-                    event['action_core'] = '1'
-                values = event['values']
-                for k, v in values.items():
-                    values[k] = complex_decode(v)
-                event['values'] = values
-                yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos
+                    elif isinstance(binlog_event, DeleteRowsEvent):
+                        if 'delete' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_DELETE_TB_NAME:
+                            continue
+                        event['action'] = 'delete'
+                        event['values'] = row['values']
+                        event['event_unixtime'] = int(time.time() * 10 ** 6)
+                        event['action_core'] = '1'
+                    values = event['values']
+                    for k, v in values.items():
+                        values[k] = complex_decode(v)
+                    event['values'] = values
+                    yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos

@@ -14,15 +14,14 @@ logger = logging.getLogger('mysql2ch.consumer')
 
 def consume(args):
     schema = args.schema
-    tables = args.tables
-    group_id = args.group_id
     skip_error = args.skip_error
     auto_offset_reset = args.auto_offset_reset
     topic = settings.KAFKA_TOPIC
     tables_pk = {}
+    tables = settings.SCHEMAS.get(schema)
     partitions = []
-    for table in tables.split(','):
-        partition = settings.PARTITIONS.get(f'{schema}.{table}')
+    for table in tables:
+        partition = settings.PARTITIONS.get(schema)
         tp = TopicPartition(topic, partition)
         partitions.append(tp)
         tables_pk[table] = reader.get_primary_key(schema, table)
@@ -32,7 +31,7 @@ def consume(args):
         value_deserializer=lambda x: json.loads(x, object_hook=object_hook),
         key_deserializer=lambda x: x.decode() if x else None,
         enable_auto_commit=False,
-        group_id=group_id,
+        group_id=schema,
         auto_offset_reset=auto_offset_reset,
     )
     consumer.assign(partitions)
@@ -49,8 +48,16 @@ def consume(args):
         event_unixtime = event['event_unixtime'] / 10 ** 6
         table = event['table']
         schema = event['schema']
-        event_list.setdefault(table, []).append(event)
-        len_event += 1
+        action = event['action']
+
+        if action == 'query':
+            do_query = True
+            query = event['values']['query']
+        else:
+            do_query = False
+            query = None
+            event_list.setdefault(table, []).append(event)
+            len_event += 1
 
         if last_time == 0:
             last_time = event_unixtime
@@ -60,7 +67,7 @@ def consume(args):
         else:
             if event_unixtime - last_time >= settings.INSERT_INTERVAL > 0:
                 is_insert = True
-        if is_insert:
+        if is_insert or do_query:
             data_dict = {}
             events_num = 0
             for table, items in event_list.items():
@@ -81,6 +88,14 @@ def consume(args):
                             exit()
                 except Exception as e:
                     logger.error(f'insert event error!,error:{e}')
+                    if not skip_error:
+                        exit()
+            if do_query:
+                try:
+                    logger.info(f'execute query:{query}')
+                    writer.execute(query)
+                except Exception as e:
+                    logger.error(f'execute query error!,error:{e}')
                     if not skip_error:
                         exit()
             consumer.commit()

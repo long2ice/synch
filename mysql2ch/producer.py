@@ -35,18 +35,17 @@ def produce(args):
                 log_pos=int(log_pos),
                 server_id=int(settings.MYSQL_SERVER_ID)
         ):
-            key = f'{schema}.{table}'
-            if key not in all_schema_tables:
+            if table and schema not in all_schema_tables:
                 continue
             producer.send(
                 topic=settings.KAFKA_TOPIC,
                 value=event,
-                key=key,
+                key=schema,
             )
             if count == settings.INSERT_INTERVAL:
                 count = 0
                 logger.info(f'success send {settings.INSERT_INTERVAL} events!')
-            logger.debug(f'send to kafka success: key:{key},event:{event}')
+            logger.debug(f'send to kafka success: key:{schema},event:{event}')
             count += 1
             pos_handler.set_log_pos_slave(file, pos)
             logger.debug(f'success set binlog pos:{file}:{pos}')

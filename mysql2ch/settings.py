@@ -17,13 +17,14 @@ def parse_partitions(partitions):
 
 def parse_schema_table(partitions):
     ret_list = partitions.split(';')
-    schemas = set()
+    schemas = {}
     tables = set()
     for x in ret_list:
         if x:
-            a = x.split('=')[0].split('.')
-            schemas.add(a[0].strip())
-            tables.add(a[1].strip())
+            a = x.split('.')
+            table = a[1].strip()
+            tables.add(table)
+            schemas.setdefault(a[0].strip(), set()).add(table)
     return schemas, tables
 
 
@@ -53,7 +54,8 @@ CLICKHOUSE_PORT = os.getenv('CLICKHOUSE_PORT')
 CLICKHOUSE_PASSWORD = os.getenv('CLICKHOUSE_PASSWORD')
 CLICKHOUSE_USER = os.getenv('CLICKHOUSE_USER')
 
-SCHEMAS, TABLES = parse_schema_table(os.getenv('PARTITIONS'))
+SCHEMAS, TABLES = parse_schema_table(os.getenv('SCHEMA_TABLE'))
+
 # which table to skip delete or update
 SKIP_DELETE_TB_NAME = (os.getenv('SKIP_DELETE_TB_NAME') or '').split(',')
 SKIP_UPDATE_TB_NAME = (os.getenv('SKIP_UPDATE_TB_NAME') or '').split(',')
