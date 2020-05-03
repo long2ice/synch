@@ -24,6 +24,7 @@ Features
 * Full data etl and continuous sync.
 * Support DDL and DML sync,current support ``add column`` and ``drop column`` of DDL, and full support of DML.
 * Rich configurable items.
+* Consumer and producer monitor ui.
 
 Requirements
 ============
@@ -54,6 +55,12 @@ Make a ``.env`` file in execute dir or set system environment variable:
 
     # if True,will display sql information
     DEBUG=True
+
+    # monitor ui
+    UI_ENABLE=True
+    UI_REDIS_DB=1
+    UI_MAX_NUM=60
+
     # sentry need
     ENVIRONMENT=development
 
@@ -138,6 +145,20 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
 .. note::
     When one service consume multiple partitions,consumer commit maybe incorrect when insert error.
 
+Monitor UI
+~~~~~~~~~~
+
+.. code-block:: shell
+
+    $ mysql2ch ui -h
+
+    usage: mysql2ch ui [-h] [--host HOST] [-p PORT]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --host HOST           Listen host.
+      -p PORT, --port PORT  Listen port.
+
 Use docker-compose(recommended)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -167,6 +188,15 @@ Use docker-compose(recommended)
         image: redis:latest
         volumes:
           - redis:/data
+      ui:
+        env_file:
+          - .env
+        depends_on:
+          - redis
+          - producer
+          - consumer
+        image: long2ice/mysql2ch
+        command: mysql2ch ui
     volumes:
       redis:
 

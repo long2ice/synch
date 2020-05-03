@@ -7,14 +7,23 @@ services:
       - redis
     image: long2ice/mysql2ch
     command: mysql2ch produce
-  consumer.test.test:
+  consumer.test:
     env_file:
       - .env
     depends_on:
       - redis
       - producer
     image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test --tables test --group-id test
+    command: mysql2ch consume --schema test
+  ui:
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - producer
+      - consumer
+    image: long2ice/mysql2ch
+    command: mysql2ch ui
   redis:
     hostname: redis
     image: redis:latest
