@@ -16,7 +16,7 @@ logger = logging.getLogger('mysql2ch.reader')
 class MysqlReader:
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent)
 
-    def __init__(self, host, port, user, password):
+    def __init__(self, host='127.0.0.1', port=3306, user='root', password=None):
         self.password = password
         self.user = user
         self.port = int(port)
