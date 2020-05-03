@@ -22,7 +22,7 @@ Features
 ========
 
 * Full data etl and continuous sync.
-* Support DDL sync,current support ``add column`` and ``drop column``.
+* Support DDL and DML sync,current support ``add column`` and ``drop column`` of DDL,``delete`` and ``update`` of DML.
 * Rich configurable items.
 
 Requirements
