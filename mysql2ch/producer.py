@@ -5,19 +5,18 @@ from kafka import KafkaProducer
 
 from mysql2ch import settings
 from . import pos_handler, reader, partitioner
-from .common import JsonEncoder, init_partitions
+from .common import JsonEncoder, init_partitions, insert_into_redis
 
 logger = logging.getLogger('mysql2ch.producer')
 
-producer = KafkaProducer(
-    bootstrap_servers=settings.KAFKA_SERVER,
-    value_serializer=lambda x: json.dumps(x, cls=JsonEncoder).encode(),
-    key_serializer=lambda x: x.encode(),
-    partitioner=partitioner
-)
-
 
 def produce(args):
+    producer = KafkaProducer(
+        bootstrap_servers=settings.KAFKA_SERVER,
+        value_serializer=lambda x: json.dumps(x, cls=JsonEncoder).encode(),
+        key_serializer=lambda x: x.encode(),
+        partitioner=partitioner
+    )
     init_partitions()
 
     log_file, log_pos = pos_handler.get_log_pos()
@@ -42,6 +41,8 @@ def produce(args):
                 value=event,
                 key=schema,
             )
+            if settings.UI_ENABLE:
+                insert_into_redis('producer', schema, table, 1)
             if count == settings.INSERT_INTERVAL:
                 count = 0
                 logger.info(f'success send {settings.INSERT_INTERVAL} events!')

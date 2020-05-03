@@ -37,6 +37,10 @@ sentry_sdk.init(
 )
 DEBUG = os.getenv('DEBUG') == 'True'
 
+UI_ENABLE = os.getenv('UI_ENABLE') == 'True'
+UI_REDIS_DB = os.getenv('UI_REDIS_DB', 1)
+UI_MAX_NUM = int(os.getenv('UI_MAX_NUM', 60))
+
 MYSQL_HOST = os.getenv('MYSQL_HOST')
 MYSQL_PORT = os.getenv('MYSQL_PORT')
 MYSQL_USER = os.getenv('MYSQL_USER')
@@ -47,7 +51,7 @@ REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 REDIS_DB = os.getenv('REDIS_DB')
-LOG_POS_PREFIX = os.getenv('LOG_POS_PREFIX') or 'mysql2ch'
+LOG_POS_PREFIX = os.getenv('LOG_POS_PREFIX', 'mysql2ch')
 
 CLICKHOUSE_HOST = os.getenv('CLICKHOUSE_HOST')
 CLICKHOUSE_PORT = os.getenv('CLICKHOUSE_PORT')
@@ -57,16 +61,16 @@ CLICKHOUSE_USER = os.getenv('CLICKHOUSE_USER')
 SCHEMAS, TABLES = parse_schema_table(os.getenv('SCHEMA_TABLE'))
 
 # which table to skip delete or update
-SKIP_DELETE_TB_NAME = (os.getenv('SKIP_DELETE_TB_NAME') or '').split(',')
-SKIP_UPDATE_TB_NAME = (os.getenv('SKIP_UPDATE_TB_NAME') or '').split(',')
+SKIP_DELETE_TB_NAME = (os.getenv('SKIP_DELETE_TB_NAME', '')).split(',')
+SKIP_UPDATE_TB_NAME = (os.getenv('SKIP_UPDATE_TB_NAME', '')).split(',')
 
 # skip delete or update
-SKIP_TYPE = (os.getenv('SKIP_TYPE') or '').split(',')
+SKIP_TYPE = os.getenv('SKIP_TYPE', '').split(',')
 
 # how many num to submit
-INSERT_NUMS = int(os.getenv('INSERT_NUMS') or 20000)
+INSERT_NUMS = int(os.getenv('INSERT_NUMS', 20000))
 # how many seconds to submit
-INSERT_INTERVAL = int(os.getenv('INSERT_INTERVAL') or 60)
+INSERT_INTERVAL = int(os.getenv('INSERT_INTERVAL', 60))
 
 KAFKA_SERVER = os.getenv('KAFKA_SERVER')
 KAFKA_TOPIC = os.getenv('KAFKA_TOPIC')

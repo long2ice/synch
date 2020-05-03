@@ -5,6 +5,7 @@ import logging
 import dateutil.parser
 from decimal import Decimal
 
+import redis
 from kafka import KafkaAdminClient
 from kafka.admin import NewPartitions
 
@@ -86,3 +87,26 @@ def parse_mysql_ddl_2_ch(schema: str, query: str):
         space = 'add '
         query_list.insert(query.index(space) + len(space), ' column')
     return ''.join(query_list)
+
+
+if settings.UI_ENABLE:
+    pool = redis.ConnectionPool(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.UI_REDIS_DB,
+                                password=settings.REDIS_PASSWORD, decode_responses=True)
+    redis_ins = redis.StrictRedis(connection_pool=pool)
+
+
+def insert_into_redis(prefix, schema: str, table: str, num: int):
+    """
+    insert producer or consumer num
+    :param prefix:
+    :param schema:
+    :param table:
+    :param num:
+    :return:
+    """
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    key = f'ui:{prefix}:{now}'
+    exists = redis_ins.exists(key)
+    redis_ins.hincrby(key, f'{schema}:{table}', num)
+    if not exists:
+        redis_ins.expire(key, settings.UI_MAX_NUM * 60)

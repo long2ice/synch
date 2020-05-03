@@ -7,7 +7,7 @@ from kafka.consumer.fetcher import ConsumerRecord
 
 from mysql2ch import settings
 from . import writer, reader
-from .common import object_hook
+from .common import object_hook, insert_into_redis
 
 logger = logging.getLogger('mysql2ch.consumer')
 
@@ -86,6 +86,10 @@ def consume(args):
                         logger.error('insert event error!')
                         if not skip_error:
                             exit()
+
+                    if settings.UI_ENABLE:
+                        insert_into_redis('consumer', schema, table, len(v1))
+
                 except Exception as e:
                     logger.error(f'insert event error!,error:{e}')
                     if not skip_error:

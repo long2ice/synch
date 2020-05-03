@@ -1,6 +1,6 @@
 import argparse
 import logging
-from mysql2ch import init_logging
+from mysql2ch import init_logging, ui
 from mysql2ch import settings
 from mysql2ch.consumer import consume
 from mysql2ch.producer import produce
@@ -37,6 +37,11 @@ def cli():
     parser_consumer.add_argument('--auto-offset-reset', required=False, default='earliest',
                                  help='Kafka auto offset reset,default earliest.')
     parser_consumer.set_defaults(func=consume)
+
+    parser_ui = subparsers.add_parser('ui')
+    parser_ui.add_argument('--host', required=False, help='Listen host.', type=str, default='127.0.0.1')
+    parser_ui.add_argument('-p', '--port', required=False, help='Listen port.', type=int, default=5000)
+    parser_ui.set_defaults(func=ui.run_app)
 
     parse_args = parser.parse_args()
     parse_args.func(parse_args)
