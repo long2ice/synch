@@ -14,7 +14,7 @@ mysql2ch
 Introduction
 ============
 
-mysql2ch is used to sync data from MySQL to ClickHouse.
+mysql2ch to sync data from MySQL to ClickHouse.
 
 .. image:: https://github.com/long2ice/mysql2ch/raw/master/images/mysql2ch.png
 
@@ -22,7 +22,7 @@ Features
 ========
 
 * Full data etl and continuous sync.
-* Support DDL and DML sync,current support ``add column`` and ``drop column`` of DDL, and full support of DML.
+* Support DDL and DML sync,current support ``add column`` and ``drop column`` of DDL, and full support of DML also.
 * Rich configurable items.
 * Consumer and producer monitor ui.
 
@@ -30,7 +30,7 @@ Requirements
 ============
 
 * `kafka <https://kafka.apache.org>`_,message queue to store mysql binlog event.
-* `redis <https://redis.io>`_,cache mysql binlog file and position.
+* `redis <https://redis.io>`_,cache mysql binlog file and position and store monitor data.
 
 Install
 =======
@@ -38,10 +38,6 @@ Install
 .. code-block:: shell
 
     $ pip install mysql2ch
-
-.. note::
-
-    Use pypy3 to speed up.
 
 Usage
 =====
@@ -106,7 +102,7 @@ Maybe you need make full data etl before continuous sync data from MySQL to Clic
 
     $ mysql2ch etl -h
 
-    usage: mysql2ch etl [-h] --schema SCHEMA --tables TABLES [--renew]
+    usage: mysql2ch etl [-h] --schema SCHEMA [--tables TABLES] [--renew]
 
     optional arguments:
       -h, --help       show this help message and exit
@@ -133,17 +129,14 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
 
     $ mysql2ch consume -h
 
-    usage: mysql2ch consume [-h] --schema SCHEMA --tables TABLES [--skip-error] --group-id GROUP_ID [--auto-offset-reset AUTO_OFFSET_RESET]
+    usage: mysql2ch consume [-h] --schema SCHEMA [--skip-error] [--auto-offset-reset AUTO_OFFSET_RESET]
 
     optional arguments:
       -h, --help            show this help message and exit
       --schema SCHEMA       Schema to consume.
       --skip-error          Skip error rows.
       --auto-offset-reset AUTO_OFFSET_RESET
-                            Kafka auto offset reset.
-
-.. note::
-    When one service consume multiple partitions,consumer commit maybe incorrect when insert error.
+                            Kafka auto offset reset,default earliest.
 
 Monitor UI
 ~~~~~~~~~~
@@ -191,6 +184,8 @@ Use docker-compose(recommended)
       ui:
         env_file:
           - .env
+        ports:
+          - 5000:5000
         depends_on:
           - redis
           - producer

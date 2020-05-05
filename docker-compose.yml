@@ -22,6 +22,8 @@ services:
       - redis
       - producer
       - consumer
+    ports:
+    - 5000:5000
     image: long2ice/mysql2ch
     command: mysql2ch ui
   redis:
