@@ -48,54 +48,10 @@ Usage
 
 Make a ``.env`` file in execute dir or set system environment variable:
 
-.env
-~~~~
+Create .env
+~~~~~~~~~~~
 
-.. code-block:: ini
-
-    # if True,will display sql information
-    DEBUG=True
-
-    # monitor ui
-    UI_ENABLE=True
-    UI_REDIS_DB=1
-    UI_MAX_NUM=60
-
-    # sentry need
-    ENVIRONMENT=development
-
-    MYSQL_HOST=127.0.0.1
-    MYSQL_PORT=3306
-    MYSQL_USER=root
-    MYSQL_PASSWORD=123456
-    MYSQL_SERVER_ID=101
-
-    REDIS_HOST=127.0.0.1
-    REDIS_PORT=6379
-    REDIS_DB=0
-
-    CLICKHOUSE_HOST=127.0.0.1
-    CLICKHOUSE_PORT=9002
-    CLICKHOUSE_PASSWORD=
-    CLICKHOUSE_USER=default
-
-    SENTRY_DSN=https://3450e192063d47aea7b9733d3d52585f@sentry.test.com/1
-
-    KAFKA_SERVER=127.0.0.1:9092
-    KAFKA_TOPIC=mysql2ch
-
-    # kafka partitions mapping,which means binlog of ``test`` will produce to 0 partition.
-    SCHEMA_TABLE=test.test;
-    PARTITIONS=test=0;
-
-    # init binlog file and position,should set first,after will read from redis.
-    INIT_BINLOG_FILE=binlog.000474
-    INIT_BINLOG_POS=155
-
-    # how many num to submit
-    INSERT_NUMS=20000
-    # how many seconds to submit
-    INSERT_INTERVAL=60
+Example `.env <https://github.com/long2ice/mysql2ch/blob/master/.env.example>`_.
 
 Full data etl
 ~~~~~~~~~~~~~
@@ -159,45 +115,7 @@ Monitor UI
 Use docker-compose(recommended)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: yaml
-
-    version: '3'
-    services:
-      producer:
-        env_file:
-          - .env
-        depends_on:
-          - redis
-        image: long2ice/mysql2ch:latest
-        command: mysql2ch produce
-      # add more service if you need.
-      consumer.test:
-        env_file:
-          - .env
-        depends_on:
-          - redis
-          - producer
-        image: long2ice/mysql2ch:latest
-        # consume binlog of test
-        command: mysql2ch consume --schema test
-      redis:
-        hostname: redis
-        image: redis:latest
-        volumes:
-          - redis:/data
-      ui:
-        env_file:
-          - .env
-        ports:
-          - 5000:5000
-        depends_on:
-          - redis
-          - producer
-          - consumer
-        image: long2ice/mysql2ch
-        command: mysql2ch ui
-    volumes:
-      redis:
+Example `docker-compose.yml <https://github.com/long2ice/mysql2ch/blob/master/docker-compose.yml>`_.
 
 Optional
 ========

@@ -1,10 +1,50 @@
 version: '3'
 services:
+  zookeeper:
+    image: bitnami/zookeeper:3
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper:/bitnami
+  kafka:
+    image: bitnami/kafka:2
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "23456:23456"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - JMX_PORT=23456
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka:/bitnami
+  kafka-manager:
+    image: hlebalbau/kafka-manager
+    ports:
+      - "9000:9000"
+    depends_on:
+      - kafka
+      - zookeeper
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      KAFKA_MANAGER_AUTH_ENABLED: "true"
+      KAFKA_MANAGER_USERNAME: admin
+      KAFKA_MANAGER_PASSWORD: 123456
+    command: -Dpidfile.path=/dev/null
   producer:
     env_file:
       - .env
     depends_on:
       - redis
+      - kafka
+      - zookeeper
     image: long2ice/mysql2ch
     command: mysql2ch produce
   consumer.test:
@@ -12,7 +52,8 @@ services:
       - .env
     depends_on:
       - redis
-      - producer
+      - kafka
+      - zookeeper
     image: long2ice/mysql2ch
     command: mysql2ch consume --schema test
   ui:
@@ -23,7 +64,7 @@ services:
       - producer
       - consumer
     ports:
-    - 5000:5000
+      - 5000:5000
     image: long2ice/mysql2ch
     command: mysql2ch ui
   redis:
@@ -33,3 +74,5 @@ services:
       - redis:/data
 volumes:
   redis:
+  kafka:
+  zookeeper:
