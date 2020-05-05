@@ -14,7 +14,7 @@ mysql2ch
 Introduction
 ============
 
-mysql2ch to sync data from MySQL to ClickHouse.
+mysql2ch to sync data from MySQL to ClickHouse, support full and increment.
 
 .. image:: https://github.com/long2ice/mysql2ch/raw/master/images/mysql2ch.png
 
