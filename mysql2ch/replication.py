@@ -7,7 +7,10 @@ logger = logging.getLogger('mysql2ch.replication')
 
 
 def etl_full(schema, tables, renew=False):
-    tables = tables.split(',')
+    if not tables:
+        tables = settings.SCHEMAS.get(schema)
+    else:
+        tables = tables.split(',')
     for table in tables:
         pk = reader.get_primary_key(schema, table)
         if renew:

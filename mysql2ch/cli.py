@@ -23,7 +23,8 @@ def cli():
     subparsers = parser.add_subparsers(title='subcommands')
     parser_etl = subparsers.add_parser('etl')
     parser_etl.add_argument('--schema', required=True, help='Schema to full etl.')
-    parser_etl.add_argument('--tables', required=True, help='Tables to full etl,multiple tables split with comma.')
+    parser_etl.add_argument('--tables', required=False,
+                            help='Tables to full etl,multiple tables split with comma,default read from environment.')
     parser_etl.add_argument('--renew', default=False, action='store_true',
                             help='Etl after try to drop the target tables.')
     parser_etl.set_defaults(func=make_etl)
