@@ -11,6 +11,10 @@ mysql2ch
 .. image:: https://github.com/long2ice/mysql2ch/workflows/pypi/badge.svg
    :target: https://github.com/long2ice/mysql2ch/actions?query=workflow:pypi
 
+
+`中文文档 <https://blog.long2ice.cn/2020/05/mysql2ch%E4%B8%80%E4%B8%AA%E5%90%8C%E6%AD%A5mysql%E6%95%B0%E6%8D%AE%E5%88%B0clickhouse%E7%9A%84%E9%A1%B9%E7%9B%AE/>`_
+
+
 Introduction
 ============
 
