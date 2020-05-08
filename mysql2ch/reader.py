@@ -5,10 +5,9 @@ import time
 import MySQLdb
 from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
-from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
 from pymysqlreplication.event import QueryEvent
+from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
 
-from mysql2ch import settings
 from mysql2ch.common import complex_decode, parse_mysql_ddl_2_ch
 
 logger = logging.getLogger('mysql2ch.reader')
@@ -55,16 +54,24 @@ class MysqlReader:
         result = self.execute(sql)
         return result[0]['count']
 
-    # binglog接收函数
-    def binlog_reading(self, server_id, only_tables, only_schemas, log_file, log_pos):
+    def binlog_reading(self, server_id, only_tables, only_schemas, log_file, log_pos, skip_dmls, skip_update_tables,
+                       skip_delete_tables):
         logger.info('start sync at %s' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         logger.info(f'mysql binlog: {log_file}:{log_pos}')
-        stream = BinLogStreamReader(connection_settings=dict(
-            host=self.host, port=self.port, user=self.user, passwd=self.password
-        ), resume_stream=True, blocking=True,
-            server_id=int(server_id), only_tables=only_tables, only_schemas=only_schemas,
-            only_events=self.only_events, log_file=log_file, log_pos=log_pos,
-            fail_on_table_metadata_unavailable=True, slave_heartbeat=10)
+        stream = BinLogStreamReader(
+            connection_settings=dict(
+                host=self.host, port=self.port, user=self.user, passwd=self.password
+            ), resume_stream=True,
+            blocking=True,
+            server_id=server_id,
+            only_tables=only_tables,
+            only_schemas=only_schemas,
+            only_events=self.only_events,
+            log_file=log_file,
+            log_pos=log_pos,
+            fail_on_table_metadata_unavailable=True,
+            slave_heartbeat=10
+        )
         for binlog_event in stream:
             if isinstance(binlog_event, QueryEvent):
                 schema = binlog_event.schema.decode()
@@ -93,7 +100,7 @@ class MysqlReader:
                         event['action_core'] = '2'
 
                     elif isinstance(binlog_event, UpdateRowsEvent):
-                        if 'update' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_UPDATE_TB_NAME:
+                        if 'update' in skip_dmls or skip_dml_table_name in skip_update_tables:
                             continue
                         event['action'] = 'insert'
                         event['values'] = row['after_values']
@@ -101,7 +108,7 @@ class MysqlReader:
                         event['action_core'] = '2'
 
                     elif isinstance(binlog_event, DeleteRowsEvent):
-                        if 'delete' in settings.SKIP_TYPE or skip_dml_table_name in settings.SKIP_DELETE_TB_NAME:
+                        if 'delete' in skip_dmls or skip_dml_table_name in skip_delete_tables:
                             continue
                         event['action'] = 'delete'
                         event['values'] = row['values']

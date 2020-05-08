@@ -1,0 +1,43 @@
+{
+  "debug": true,
+  "environment": "development",
+  "mysql_host": "127.0.0.1",
+  "mysql_port": 3306,
+  "mysql_user": "root",
+  "mysql_password": "123456",
+  "mysql_server_id": 21,
+  "redis_host": "127.0.0.1",
+  "redis_port": 6379,
+  "redis_password": null,
+  "redis_db": 0,
+  "clickhouse_host": "127.0.0.1",
+  "clickhouse_port": 9000,
+  "clickhouse_user": "default",
+  "clickhouse_password": "123456",
+  "kafka_server": "127.0.0.1:9092",
+  "kafka_topic": "test",
+  "sentry_dsn": "https://3450e192063d47aea7b9733d3d52585f@sentry.prismslight.com/12",
+  "schema_table": {
+    "test": {
+      "tables": [
+        "test"
+      ],
+      "kafka_partition": 0
+    }
+  },
+  "init_binlog_file": "mysql-bin.000005",
+  "init_binlog_pos": 11090597,
+  "log_pos_prefix": "mysql2ch",
+  "skip_delete_tables": [
+    "test.test2"
+  ],
+  "skip_update_tables": [
+    "test.test2"
+  ],
+  "skip_dmls": [
+    "delete",
+    "update"
+  ],
+  "insert_num": 20000,
+  "insert_interval": 60
+}

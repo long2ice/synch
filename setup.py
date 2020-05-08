@@ -23,7 +23,7 @@ def requirements():
 setup(
     name='mysql2ch',
     version=version(),
-    description='mysql2ch is used to sync data from MySQL to ClickHouse.',
+    description='Sync data from MySQL to ClickHouse, support full and increment ETL.',
     author='long2ice',
     long_description_content_type='text/x-rst',
     long_description=long_description,

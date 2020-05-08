@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "mysql2ch"
 version = "0.1.4"
-description = "A tool replication data from MySQL to ClickHouse"
+description = "Sync data from MySQL to ClickHouse, support full and increment ETL."
 authors = ["long2ice <long2ice@gmail.com>"]
 
 [tool.poetry.dependencies]
@@ -10,11 +10,10 @@ mysql-replication = "*"
 clickhouse-driver = "*"
 redis = "*"
 mysqlclient = "*"
-python-dotenv = "*"
 sentry-sdk = "*"
 kafka-python = "*"
 python-dateutil = "*"
-flask = "*"
+pydantic = "*"
 
 [tool.taskipy.tasks]
 export = "poetry export -f requirements.txt --without-hashes > requirements.txt"

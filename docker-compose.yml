@@ -3,8 +3,6 @@ services:
   zookeeper:
     image: bitnami/zookeeper:3
     hostname: zookeeper
-    ports:
-      - "2181:2181"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     volumes:
@@ -12,9 +10,6 @@ services:
   kafka:
     image: bitnami/kafka:2
     hostname: kafka
-    ports:
-      - "9092:9092"
-      - "23456:23456"
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -39,34 +34,23 @@ services:
       KAFKA_MANAGER_PASSWORD: 123456
     command: -Dpidfile.path=/dev/null
   producer:
-    env_file:
-      - .env
     depends_on:
       - redis
       - kafka
       - zookeeper
     image: long2ice/mysql2ch
-    command: mysql2ch produce
+    command: mysql2ch -c config.json produce
+    volumes:
+      - ./config.json:/src/config.json
   consumer.test:
-    env_file:
-      - .env
     depends_on:
       - redis
       - kafka
       - zookeeper
     image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test
-  ui:
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - producer
-      - consumer
-    ports:
-      - 5000:5000
-    image: long2ice/mysql2ch
-    command: mysql2ch ui
+    command: mysql2ch -c config.json consume --schema test
+    volumes:
+    - ./config.json:/src/config.json
   redis:
     hostname: redis
     image: redis:latest

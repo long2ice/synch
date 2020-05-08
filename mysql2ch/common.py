@@ -1,15 +1,11 @@
 import datetime
 import json
 import logging
-
-import dateutil.parser
 from decimal import Decimal
-
-import redis
+import dateutil.parser
 from kafka import KafkaAdminClient
 from kafka.admin import NewPartitions
-
-from mysql2ch import settings
+from mysql2ch import Settings
 
 logger = logging.getLogger('mysql2ch.common')
 
@@ -60,13 +56,13 @@ def object_hook(obj):
         raise TypeError('Unknown {}'.format(_spec_type))
 
 
-def init_partitions():
+def init_partitions(settings: Settings):
     client = KafkaAdminClient(
-        bootstrap_servers=settings.KAFKA_SERVER,
+        bootstrap_servers=settings.kafka_server,
     )
     try:
         client.create_partitions(topic_partitions={
-            settings.KAFKA_TOPIC: NewPartitions(total_count=len(settings.PARTITIONS.keys()))
+            settings.kafka_topic: NewPartitions(total_count=len(settings.schema_table.keys()))
         })
     except Exception as e:
         logger.warning(f'init_partitions error:{e}')
@@ -87,63 +83,3 @@ def parse_mysql_ddl_2_ch(schema: str, query: str):
         space = 'add '
         query_list.insert(query.index(space) + len(space), ' column')
     return ''.join(query_list)
-
-
-if settings.UI_ENABLE:
-    pool = redis.ConnectionPool(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.UI_REDIS_DB,
-                                password=settings.REDIS_PASSWORD, decode_responses=True)
-    redis_ins = redis.StrictRedis(connection_pool=pool)
-
-
-def insert_into_redis(prefix, schema: str, table: str, num: int):
-    """
-    insert producer or consumer num
-    :param prefix:
-    :param schema:
-    :param table:
-    :param num:
-    :return:
-    """
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-    key = f'ui:{prefix}:{schema}:{table}'
-    exists = redis_ins.exists(key)
-    redis_ins.hincrby(key, f'{now}', num)
-    if not exists:
-        redis_ins.expire(key, settings.UI_MAX_NUM * 60)
-
-
-def get_chart_data(prefix, keys):
-    """
-    get chart data from redis
-    :param prefix:
-    :param keys:
-    :return:
-    """
-    p_x_axis = []
-    p_series_dict = {}
-    p_legend = []
-    p_series = []
-    for key in keys:
-        ret = redis_ins.hgetall(key)
-        legend = key.split(f'{prefix}:')[-1]
-        if legend not in p_legend:
-            p_legend.append(legend)
-        for k, v in ret.items():
-            if k not in p_x_axis:
-                p_x_axis.append(k)
-            p_series_dict[k] = v
-    p_x_axis.sort()
-    for key in keys:
-        ret = redis_ins.hgetall(key)
-        p_series_item = {
-            'name': key.split(f'{prefix}:')[-1],
-            'type': 'line',
-            'data': []
-        }
-        for x_axis in p_x_axis:
-            if x_axis not in ret.keys():
-                p_series_item['data'].append(0)
-            else:
-                p_series_item['data'].append(ret.get(x_axis))
-        p_series.append(p_series_item)
-    return p_x_axis, p_legend, p_series

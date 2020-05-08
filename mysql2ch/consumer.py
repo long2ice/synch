@@ -5,42 +5,46 @@ from kafka import TopicPartition
 from kafka.consumer import KafkaConsumer
 from kafka.consumer.fetcher import ConsumerRecord
 
-from mysql2ch import settings
-from . import writer, reader
-from .common import object_hook, insert_into_redis
+from . import Global
+from .common import object_hook
 
 logger = logging.getLogger('mysql2ch.consumer')
 
 
 def consume(args):
+    settings = Global.settings
+    writer = Global.writer
+    reader = Global.reader
+
     schema = args.schema
     skip_error = args.skip_error
     auto_offset_reset = args.auto_offset_reset
-    topic = settings.KAFKA_TOPIC
+    topic = settings.kafka_topic
     tables_pk = {}
-    tables = settings.SCHEMAS.get(schema)
-    partitions = []
+    schema_table = settings.schema_table.get(schema)
+    tables = schema_table.get('tables')
+
     for table in tables:
-        partition = settings.PARTITIONS.get(schema)
-        tp = TopicPartition(topic, partition)
-        partitions.append(tp)
         tables_pk[table] = reader.get_primary_key(schema, table)
 
     consumer = KafkaConsumer(
-        bootstrap_servers=settings.KAFKA_SERVER,
+        bootstrap_servers=settings.kafka_server,
         value_deserializer=lambda x: json.loads(x, object_hook=object_hook),
         key_deserializer=lambda x: x.decode() if x else None,
         enable_auto_commit=False,
         group_id=schema,
         auto_offset_reset=auto_offset_reset,
     )
-    consumer.assign(partitions)
+    partition = schema_table.get('kafka_partition')
+    consumer.assign([TopicPartition(topic, partition)])
 
     event_list = {}
     is_insert = False
     last_time = 0
     len_event = 0
-    logger.info(f'success consume topic:{topic},partitions:{partitions},schema:{schema},tables:{tables}')
+    logger.info(
+        f'success consume topic:{topic},partitions:{partition},schema:{schema},tables:{tables}'
+    )
 
     for msg in consumer:  # type:ConsumerRecord
         logger.debug(f'kafka msg:{msg}')
@@ -62,10 +66,10 @@ def consume(args):
         if last_time == 0:
             last_time = event_unixtime
 
-        if len_event == settings.INSERT_NUMS:
+        if len_event == settings.insert_num:
             is_insert = True
         else:
-            if event_unixtime - last_time >= settings.INSERT_INTERVAL > 0:
+            if event_unixtime - last_time >= settings.insert_interval > 0:
                 is_insert = True
         if is_insert or do_query:
             data_dict = {}
@@ -86,10 +90,6 @@ def consume(args):
                         logger.error('insert event error!')
                         if not skip_error:
                             exit()
-
-                    if settings.UI_ENABLE:
-                        insert_into_redis('consumer', schema, table, len(v1))
-
                 except Exception as e:
                     logger.error(f'insert event error!,error:{e}')
                     if not skip_error:

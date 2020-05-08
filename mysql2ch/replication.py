@@ -1,29 +1,35 @@
 import logging
 
-from . import reader, writer
-from mysql2ch import settings
+from . import Global
 
 logger = logging.getLogger('mysql2ch.replication')
 
 
+def make_etl(args):
+    schema = args.schema
+    tables = args.tables
+    renew = args.renew
+    etl_full(schema, tables, renew)
+
+
 def etl_full(schema, tables, renew=False):
+    reader = Global.reader
+    writer = Global.writer
+    settings = Global.settings
+
     if not tables:
-        tables = settings.SCHEMAS.get(schema)
+        tables = Global.settings.schema_table.get(schema).get('tables')
     else:
         tables = tables.split(',')
     for table in tables:
         pk = reader.get_primary_key(schema, table)
         if renew:
             drop_sq = f'drop table {schema}.{table}'
-            try:
-                writer.execute(drop_sq)
-                logger.info(f'drop table success:{schema}.{table}')
-            except Exception as e:
-                logger.error(f'etl error with renew:{schema}.{table},{e}')
-        try:
-            sql = f"CREATE TABLE {schema}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{settings.MYSQL_HOST}:{settings.MYSQL_PORT}', '{schema}', '{table}', '{settings.MYSQL_USER}', '{settings.MYSQL_PASSWORD}')"
-            writer.execute(sql)
-            writer.fix_table_column_type(reader, schema, table)
-            logger.info(f'etl success:{schema}.{table}')
-        except Exception as e:
-            logger.error(f'etl error:{schema}.{table},{e}')
+            writer.execute(drop_sq)
+            logger.info(f'drop table success:{schema}.{table}')
+
+        sql = f"CREATE TABLE {schema}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{settings.mysql_host}:{settings.mysql_port}', '{schema}', '{table}', '{settings.mysql_user}', '{settings.mysql_password}')"
+        writer.execute(sql)
+        writer.fix_table_column_type(reader, schema, table)
+        logger.info(f'etl success:{schema}.{table}')
+

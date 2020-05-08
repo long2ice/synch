@@ -18,7 +18,7 @@ mysql2ch
 Introduction
 ============
 
-mysql2ch to sync data from MySQL to ClickHouse, support full and increment.
+Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 .. image:: https://github.com/long2ice/mysql2ch/raw/master/images/mysql2ch.png
 
@@ -28,7 +28,6 @@ Features
 * Full data etl and continuous sync.
 * Support DDL and DML sync,current support ``add column`` and ``drop column`` of DDL, and full support of DML also.
 * Rich configurable items.
-* Consumer and producer monitor ui.
 
 Requirements
 ============
@@ -46,12 +45,10 @@ Install
 Usage
 =====
 
-Make a ``.env`` file in execute dir or set system environment variable:
+Config
+~~~~~~
 
-Create .env
-~~~~~~~~~~~
-
-Example `.env <https://github.com/long2ice/mysql2ch/blob/master/.env.example>`_.
+Example `config.json <https://github.com/long2ice/mysql2ch/blob/master/config.json>`_.
 
 Full data etl
 ~~~~~~~~~~~~~
@@ -78,7 +75,7 @@ Listen all MySQL binlog and produce to kafka.
 
 .. code-block:: shell
 
-    $ mysql2ch produce
+    $ mysql2ch -c config.json produce
 
 Consume
 ~~~~~~~
@@ -98,19 +95,6 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
       --auto-offset-reset AUTO_OFFSET_RESET
                             Kafka auto offset reset,default earliest.
 
-Monitor UI
-~~~~~~~~~~
-
-.. code-block:: shell
-
-    $ mysql2ch ui -h
-
-    usage: mysql2ch ui [-h] [--host HOST] [-p PORT]
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --host HOST           Listen host.
-      -p PORT, --port PORT  Listen port.
 
 Use docker-compose(recommended)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,7 +104,7 @@ Example `docker-compose.yml <https://github.com/long2ice/mysql2ch/blob/master/do
 Optional
 ========
 
-`Sentry <https://github.com/getsentry/sentry>`_,error reporting,worked if set ``SENTRY_DSN`` in ``.env``.
+`Sentry <https://github.com/getsentry/sentry>`_,error reporting,worked if set ``sentry_dsn`` in ``config.json``.
 
 License
 =======

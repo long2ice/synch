@@ -1,10 +1,7 @@
 import logging
 import sys
-
-from mysql2ch import settings
-from .pos import RedisLogPos
-from .reader import MysqlReader
-from .writer import ClickHouseWriter
+from typing import List, Dict, Union, Optional
+from pydantic import BaseSettings, HttpUrl, validator
 
 
 def partitioner(key_bytes, all_partitions, available_partitions):
@@ -16,9 +13,7 @@ def partitioner(key_bytes, all_partitions, available_partitions):
     :return:
     """
     key = key_bytes.decode()
-    values = settings.PARTITIONS.values()
-    assert len(set(values)) == len(values), 'partition must be unique'
-    partition = settings.PARTITIONS.get(key)
+    partition = Global.settings.schema_table.get(key).get('kafka_partition')
     return all_partitions[partition]
 
 
@@ -37,24 +32,44 @@ def init_logging(debug):
     logger.addHandler(sh)
 
 
-writer = ClickHouseWriter(
-    host=settings.CLICKHOUSE_HOST,
-    port=settings.CLICKHOUSE_PORT,
-    password=settings.CLICKHOUSE_PASSWORD,
-    user=settings.CLICKHOUSE_USER
-)
-reader = MysqlReader(
-    host=settings.MYSQL_HOST,
-    port=settings.MYSQL_PORT,
-    password=settings.MYSQL_PASSWORD,
-    user=settings.MYSQL_USER
-)
+class Settings(BaseSettings):
+    debug: bool = True
+    environment: str = 'development'
+    mysql_host: str = '127.0.0.1'
+    mysql_port: int = 3306
+    mysql_user: str = 'root'
+    mysql_password: str = '123456'
+    mysql_server_id: int = 1
+    redis_host: str = '120.0.0.1'
+    redis_port: int = 6379
+    redis_password: str = None
+    redis_db: int = 0
+    clickhouse_host: str = '127.0.0.1'
+    clickhouse_port: int = 9000
+    clickhouse_user: str = 'default'
+    clickhouse_password: str = None
+    kafka_server: str = '127.0.0.1:9092'
+    kafka_topic: str = 'test'
+    sentry_dsn: HttpUrl = 'https://3450e192063d47aea7b9733d3d52585f@sentry.prismslight.com/12'
+    schema_table: Dict[str, Dict[str, Union[List[str], int]]]
+    init_binlog_file: str
+    init_binlog_pos: int
+    log_pos_prefix: str = 'mysql2ch'
+    skip_delete_tables: List[str]
+    skip_update_tables: List[str]
+    skip_dmls: List[str]
+    insert_num: int = 20000
+    insert_interval: int = 60
 
-pos_handler = RedisLogPos(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    password=settings.REDIS_PASSWORD,
-    db=settings.REDIS_DB,
-    log_pos_prefix=settings.LOG_POS_PREFIX,
-    server_id=settings.MYSQL_SERVER_ID
-)
+    @validator('schema_table')
+    def check_kafka_partition(cls, v):
+        partitions = list(map(lambda x: v.get(x).get('kafka_partition'), v))
+        if len(partitions) != len(set(partitions)):
+            raise ValueError('kafka_partition must be unique for schema!')
+        return v
+
+
+class Global:
+    settings: Optional['Settings'] = None
+    reader = None
+    writer = None

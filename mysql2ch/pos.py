@@ -1,6 +1,5 @@
 import abc
 import redis
-import configparser
 
 
 class LogPos:
@@ -16,31 +15,6 @@ class LogPos:
     @abc.abstractmethod
     def get_log_pos(self):
         pass
-
-
-class FileLogPos(LogPos):
-    def __init__(self, log_pos_file):
-        self.file = log_pos_file
-        self.config = configparser.ConfigParser()
-        self.config.read(log_pos_file)
-
-    def set_log_pos_master(self, master_host, master_port, relay_master_log_file, exec_master_log_pos):
-        self.config.set('log_position', 'master_host', master_host)
-        self.config.set('log_position', 'master_port', str(master_port))
-        self.config.set('log_position', 'relay_master_log_file', relay_master_log_file)
-        self.config.set('log_position', 'exec_master_log_pos', str(exec_master_log_pos))
-        with open(self.file, 'w') as f:
-            self.config.write(f)
-
-    def set_log_pos_slave(self, log_file, log_pos):
-        self.config.set('log_position', 'log_file', log_file)
-        self.config.set('log_position', 'log_pos', str(log_pos))
-        with open(self.file, 'w') as f:
-            self.config.write(f)
-
-    def get_log_pos(self):
-        log_position = self.config['log_position']
-        return log_position.get('log_file'), int(log_position.get('log_pos'))
 
 
 class RedisLogPos(LogPos):
