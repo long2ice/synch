@@ -8,8 +8,8 @@ pydantic==1.5.1
 pymysql==0.9.3
 python-dateutil==2.8.1
 pytz==2020.1
-redis==3.5.0
+redis==3.5.1
 sentry-sdk==0.14.3
 six==1.14.0
-tzlocal==2.0.0
+tzlocal==2.1
 urllib3==1.25.9

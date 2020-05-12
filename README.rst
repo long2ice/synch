@@ -67,6 +67,11 @@ Maybe you need make full data etl before continuous sync data from MySQL to Clic
       --tables TABLES  Tables to full etl,multiple tables split with comma.
       --renew          Etl after try to drop the target tables.
 
+Full etl from table ``test.test``:
+
+.. code-block:: shell
+
+    $ mysql2ch -c config.json etl --schema test --tables test
 
 Produce
 ~~~~~~~
@@ -94,6 +99,12 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
       --skip-error          Skip error rows.
       --auto-offset-reset AUTO_OFFSET_RESET
                             Kafka auto offset reset,default earliest.
+
+Consume schema ``test`` and insert into ``ClickHouse``:
+
+.. code-block:: shell
+
+    $ mysql2ch -c config.json consume --schema test
 
 
 Use docker-compose(recommended)
