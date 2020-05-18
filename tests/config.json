@@ -16,7 +16,7 @@
   "clickhouse_password": "",
   "kafka_server": "127.0.0.1:9092",
   "kafka_topic": "test",
-  "sentry_dsn": "https://3450e192063d47aea7b9733d3d52585f@sentry.prismslight.com/12",
+  "sentry_dsn": "https://xxxxxx@sentry.test.com/12",
   "schema_table": {
     "test": {
       "tables": [
@@ -26,7 +26,7 @@
     }
   },
   "init_binlog_file": "binlog.000019",
-  "init_binlog_pos": 5986,
+  "init_binlog_pos": 22647898,
   "skip_delete_tables": [
     "test.test2"
   ],
