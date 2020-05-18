@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     clickhouse_password: str = None
     kafka_server: str = '127.0.0.1:9092'
     kafka_topic: str = 'test'
-    sentry_dsn: HttpUrl = 'https://3450e192063d47aea7b9733d3d52585f@sentry.prismslight.com/12'
+    sentry_dsn: Optional[HttpUrl]
     schema_table: Dict[str, Dict[str, Union[List[str], int]]]
     init_binlog_file: str
     init_binlog_pos: int
