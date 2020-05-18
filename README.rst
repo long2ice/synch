@@ -117,6 +117,56 @@ Optional
 
 `Sentry <https://github.com/getsentry/sentry>`_,error reporting,worked if set ``sentry_dsn`` in ``config.json``.
 
+Config Reference
+================
+debug
+~~~~~
+When set ``True``, will display sql information.
+
+environment
+~~~~~~~~~~~
+``Sentry`` environment.
+
+sentry_dsn
+~~~~~~~~~~
+``Sentry`` dsn, set it if you use it.
+
+schema_table
+~~~~~~~~~~~~
+Sync config, with schema as key, tables list and kafka_partition, one kafka partition transfer one schema's binlog.
+
+init_binlog_file
+~~~~~~~~~~~~~~~~
+Initial mysql binlog file, set first and will read from redis later.
+
+init_binlog_pos
+~~~~~~~~~~~~~~~
+Initial mysql binlog position, set first and will read from redis later.
+
+log_pos_prefix
+~~~~~~~~~~~~~~
+Redis stored prefix.
+
+skip_delete_tables
+~~~~~~~~~~~~~~~~~~
+This tables skip delete of dml.
+
+skip_update_tables
+~~~~~~~~~~~~~~~~~~
+This tables skip update of dml.
+
+skip_dmls
+~~~~~~~~~
+Skip delete or update of dml.
+
+insert_num
+~~~~~~~~~~
+How many events per submit.
+
+insert_interval
+~~~~~~~~~~~~~~~
+How many seconds per submit.
+
 License
 =======
 
