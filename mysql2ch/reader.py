@@ -6,17 +6,18 @@ import MySQLdb
 from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.event import QueryEvent
-from pymysqlreplication.row_event import DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent
+from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
-from mysql2ch.common import complex_decode, parse_mysql_ddl_2_ch
+from mysql2ch.common import complex_decode
+from mysql2ch.convent import SqlConvent
 
-logger = logging.getLogger('mysql2ch.reader')
+logger = logging.getLogger("mysql2ch.reader")
 
 
 class MysqlReader:
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
 
-    def __init__(self, host='127.0.0.1', port=3306, user='root', password=None):
+    def __init__(self, host="127.0.0.1", port=3306, user="root", password=None):
         self.password = password
         self.user = user
         self.port = int(port)
@@ -28,7 +29,7 @@ class MysqlReader:
             passwd=self.password,
             connect_timeout=5,
             cursorclass=DictCursor,
-            charset='utf8'
+            charset="utf8",
         )
 
     def execute(self, sql):
@@ -47,21 +48,31 @@ class MysqlReader:
         """
         pri_sql = f"select COLUMN_NAME from information_schema.COLUMNS where TABLE_SCHEMA='{db}' and TABLE_NAME='{table}' and COLUMN_KEY='PRI'"
         result = self.execute(pri_sql)
-        return result[0]['COLUMN_NAME']
+        return result[0]["COLUMN_NAME"]
 
     def check_table_exists(self, db, table):
         sql = f"select count(*) as count from information_schema.tables where TABLE_SCHEMA='{db}' and TABLE_NAME='{table}'"
         result = self.execute(sql)
-        return result[0]['count']
+        return result[0]["count"]
 
-    def binlog_reading(self, server_id, only_tables, only_schemas, log_file, log_pos, skip_dmls, skip_update_tables,
-                       skip_delete_tables):
-        logger.info('start sync at %s' % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        logger.info(f'mysql binlog: {log_file}:{log_pos}')
+    def binlog_reading(
+        self,
+        server_id,
+        only_tables,
+        only_schemas,
+        log_file,
+        log_pos,
+        skip_dmls,
+        skip_update_tables,
+        skip_delete_tables,
+    ):
+        logger.info("start sync at %s" % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        logger.info(f"mysql binlog: {log_file}:{log_pos}")
         stream = BinLogStreamReader(
             connection_settings=dict(
                 host=self.host, port=self.port, user=self.user, passwd=self.password
-            ), resume_stream=True,
+            ),
+            resume_stream=True,
             blocking=True,
             server_id=server_id,
             only_tables=only_tables,
@@ -70,21 +81,22 @@ class MysqlReader:
             log_file=log_file,
             log_pos=log_pos,
             fail_on_table_metadata_unavailable=True,
-            slave_heartbeat=10
+            slave_heartbeat=10,
         )
         for binlog_event in stream:
             if isinstance(binlog_event, QueryEvent):
                 schema = binlog_event.schema.decode()
-                query = binlog_event.query
-                if 'alter' not in query:
+                query = binlog_event.query.lower()
+                convent_sql = SqlConvent.to_clickhouse(schema, query)
+                if "alter" not in query or not convent_sql:
                     continue
                 event = {
-                    'table': None,
-                    'schema': schema,
-                    'action': 'query',
-                    'values': {'query': parse_mysql_ddl_2_ch(schema, query)},
-                    'event_unixtime': int(time.time() * 10 ** 6),
-                    'action_core': '0'
+                    "table": None,
+                    "schema": schema,
+                    "action": "query",
+                    "values": {"query": convent_sql},
+                    "event_unixtime": int(time.time() * 10 ** 6),
+                    "action_core": "0",
                 }
                 yield schema, None, event, stream.log_file, stream.log_pos
             else:
@@ -92,30 +104,30 @@ class MysqlReader:
                 table = binlog_event.table
                 skip_dml_table_name = f"{schema}.{table}"
                 for row in binlog_event.rows:
-                    event = {'table': table, 'schema': schema}
+                    event = {"table": table, "schema": schema}
                     if isinstance(binlog_event, WriteRowsEvent):
-                        event['action'] = 'insert'
-                        event['values'] = row['values']
-                        event['event_unixtime'] = int(time.time() * 10 ** 6)
-                        event['action_core'] = '2'
+                        event["action"] = "insert"
+                        event["values"] = row["values"]
+                        event["event_unixtime"] = int(time.time() * 10 ** 6)
+                        event["action_core"] = "2"
 
                     elif isinstance(binlog_event, UpdateRowsEvent):
-                        if 'update' in skip_dmls or skip_dml_table_name in skip_update_tables:
+                        if "update" in skip_dmls or skip_dml_table_name in skip_update_tables:
                             continue
-                        event['action'] = 'insert'
-                        event['values'] = row['after_values']
-                        event['event_unixtime'] = int(time.time() * 10 ** 6)
-                        event['action_core'] = '2'
+                        event["action"] = "insert"
+                        event["values"] = row["after_values"]
+                        event["event_unixtime"] = int(time.time() * 10 ** 6)
+                        event["action_core"] = "2"
 
                     elif isinstance(binlog_event, DeleteRowsEvent):
-                        if 'delete' in skip_dmls or skip_dml_table_name in skip_delete_tables:
+                        if "delete" in skip_dmls or skip_dml_table_name in skip_delete_tables:
                             continue
-                        event['action'] = 'delete'
-                        event['values'] = row['values']
-                        event['event_unixtime'] = int(time.time() * 10 ** 6)
-                        event['action_core'] = '1'
-                    values = event['values']
+                        event["action"] = "delete"
+                        event["values"] = row["values"]
+                        event["event_unixtime"] = int(time.time() * 10 ** 6)
+                        event["action_core"] = "1"
+                    values = event["values"]
                     for k, v in values.items():
                         values[k] = complex_decode(v)
-                    event['values'] = values
+                    event["values"] = values
                     yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos
