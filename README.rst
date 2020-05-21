@@ -167,6 +167,12 @@ insert_interval
 ~~~~~~~~~~~~~~~
 How many seconds per submit.
 
+ThanksTo
+========
+Powerful Python IDE `Pycharm <https://www.jetbrains.com/pycharm/?from=mysql2ch>`_ from `Jetbrains <https://www.jetbrains.com/?from=mysql2ch>`_.
+
+.. image:: https://github.com/long2ice/mysql2ch/raw/master/images/jetbrains.svg
+
 License
 =======
 
