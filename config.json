@@ -13,7 +13,7 @@
   "clickhouse_host": "127.0.0.1",
   "clickhouse_port": 9000,
   "clickhouse_user": "default",
-  "clickhouse_password": "123456",
+  "clickhouse_password": "",
   "kafka_server": "127.0.0.1:9092",
   "kafka_topic": "test",
   "sentry_dsn": "https://xxxxxxxx@sentry.test.com/1",

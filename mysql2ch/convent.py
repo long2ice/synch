@@ -45,7 +45,11 @@ class SqlConvent:
                     else:
                         cls._add_token(schema, parsed, token.tokens, token_list)
                 else:
-                    identifier, digits = token.tokens
+                    len_token = len(token.tokens)
+                    if len_token == 3:
+                        identifier, _, digits = token.tokens
+                    else:
+                        identifier, digits = token.tokens
                     if identifier.value == "decimal":
                         token_list.tokens.append(
                             SQLToken(
