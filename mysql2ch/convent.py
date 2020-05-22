@@ -36,7 +36,11 @@ class SqlConvent:
                     token_list.tokens.append(SQLToken(Keyword, cls._type_mapping.get(token.value)))
                 elif isinstance(token, Identifier):
                     if parsed.token_prev(i - 1)[1].value == "table":
-                        token_list.tokens.append(SQLToken(Keyword, f"{schema}.{token.value}"))
+                        value = token.value
+                        table = (
+                            f"{schema}.{token.value}" if len(value.split(".")) == 1 else token.value
+                        )
+                        token_list.tokens.append(SQLToken(Keyword, table))
                     elif len(token.tokens) == 1:
                         real_token = cls._type_mapping.get(token.value)
                         token_list.tokens.append(

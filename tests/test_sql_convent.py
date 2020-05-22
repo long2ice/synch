@@ -9,6 +9,10 @@ class TestSqlConvent(TestCase):
         ret = SqlConvent.to_clickhouse("test", sql)
         self.assertEqual(ret, "alter table test.test add column name String after id")
 
+        sql = "alter table test.test add name varchar(20) not null after id"
+        ret = SqlConvent.to_clickhouse("test", sql)
+        self.assertEqual(ret, "alter table test.test add column name String after id")
+
     def test_add_bool(self):
         sql = "alter table test add name bool not null after id"
         ret = SqlConvent.to_clickhouse("test", sql)

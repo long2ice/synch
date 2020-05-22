@@ -4,12 +4,12 @@ import time
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
-from pymysqlreplication import BinLogStreamReader
-from pymysqlreplication.event import QueryEvent
-from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
 from mysql2ch.common import complex_decode
 from mysql2ch.convent import SqlConvent
+from pymysqlreplication import BinLogStreamReader
+from pymysqlreplication.event import QueryEvent
+from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
 logger = logging.getLogger("mysql2ch.reader")
 
