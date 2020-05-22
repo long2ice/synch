@@ -18,6 +18,8 @@ def consume(args):
     schema = args.schema
     skip_error = args.skip_error
     auto_offset_reset = args.auto_offset_reset
+    offset = args.offset
+
     topic = settings.kafka_topic
     tables_pk = {}
     schema_table = settings.schema_table.get(schema)
@@ -35,8 +37,10 @@ def consume(args):
         auto_offset_reset=auto_offset_reset,
     )
     partition = schema_table.get("kafka_partition")
-    consumer.assign([TopicPartition(topic, partition)])
-
+    topic_partition = TopicPartition(topic, partition)
+    consumer.assign([topic_partition])
+    if offset:
+        consumer.seek(topic_partition, offset)
     event_list = {}
     is_insert = False
     last_time = 0

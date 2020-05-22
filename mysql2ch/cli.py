@@ -66,11 +66,18 @@ def cli():
     parser_consumer.add_argument(
         "--skip-error", action="store_true", default=False, help="Skip error rows."
     )
-    parser_consumer.add_argument(
+    group = parser_consumer.add_mutually_exclusive_group()
+    group.add_argument(
         "--auto-offset-reset",
         required=False,
-        default="earliest",
+        choices=("earliest", "latest"),
         help="Kafka auto offset reset,default earliest.",
+    )
+    group.add_argument(
+        "--offset",
+        required=False,
+        type=int,
+        help="Kafka consume offset, will start consume from specified offset.",
     )
     parser_consumer.set_defaults(run=run, func=consume)
 

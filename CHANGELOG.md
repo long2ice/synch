@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.4.4
+- Support kafka consume offset.
+
 ## 0.4.3
 - Deep support ddl.
 
