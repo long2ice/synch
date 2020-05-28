@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 0.4.5
+- Fix DDL sync.
+
 ## 0.4.4
 - Support kafka consume offset.
 - Fix table convert.

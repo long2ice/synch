@@ -41,10 +41,12 @@ def produce(args):
         logger.info(f"start producer success!")
         count = 0
         tables = []
-        for k, v in settings.schema_table.items():
+        schema_table = settings.schema_table
+        for k, v in schema_table.items():
             tables += v.get("tables")
-        only_schemas = list(settings.schema_table.keys())
+        only_schemas = list(schema_table.keys())
         only_tables = list(set(tables))
+
         for schema, table, event, file, pos in reader.binlog_reading(
             only_tables=only_tables,
             only_schemas=only_schemas,
@@ -55,7 +57,9 @@ def produce(args):
             skip_delete_tables=settings.skip_delete_tables,
             skip_update_tables=settings.skip_update_tables,
         ):
-            if table and table not in settings.schema_table.get(schema).get("tables"):
+            if not schema_table.get(schema) or (
+                table and table not in schema_table.get(schema).get("tables")
+            ):
                 continue
             producer.send(
                 topic=settings.kafka_topic, value=event, key=schema,
