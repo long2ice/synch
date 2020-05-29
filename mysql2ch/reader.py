@@ -1,6 +1,7 @@
 import datetime
 import logging
 import time
+from copy import deepcopy
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
@@ -55,6 +56,12 @@ class MysqlReader:
         result = self.execute(sql)
         return result[0]["count"]
 
+    def convert_values(self, values):
+        cp_values = deepcopy(values)
+        for k, v in values.items():
+            cp_values[k] = complex_decode(v)
+        return cp_values
+
     def binlog_reading(
         self,
         server_id,
@@ -104,30 +111,48 @@ class MysqlReader:
                 table = binlog_event.table
                 skip_dml_table_name = f"{schema}.{table}"
                 for row in binlog_event.rows:
-                    event = {"table": table, "schema": schema}
                     if isinstance(binlog_event, WriteRowsEvent):
-                        event["action"] = "insert"
-                        event["values"] = row["values"]
-                        event["event_unixtime"] = int(time.time() * 10 ** 6)
-                        event["action_core"] = "2"
+                        event = {
+                            "table": table,
+                            "schema": schema,
+                            "action": "insert",
+                            "values": self.convert_values(row["values"]),
+                            "event_unixtime": int(time.time() * 10 ** 6),
+                            "action_core": "2",
+                        }
 
                     elif isinstance(binlog_event, UpdateRowsEvent):
                         if "update" in skip_dmls or skip_dml_table_name in skip_update_tables:
                             continue
-                        event["action"] = "insert"
-                        event["values"] = row["after_values"]
-                        event["event_unixtime"] = int(time.time() * 10 ** 6)
-                        event["action_core"] = "2"
+                        delete_event = {
+                            "table": table,
+                            "schema": schema,
+                            "action": "delete",
+                            "values": self.convert_values(row["before_values"]),
+                            "event_unixtime": int(time.time() * 10 ** 6),
+                            "action_core": "1",
+                        }
+                        yield binlog_event.schema, binlog_event.table, delete_event, stream.log_file, stream.log_pos
+                        event = {
+                            "table": table,
+                            "schema": schema,
+                            "action": "insert",
+                            "values": self.convert_values(row["after_values"]),
+                            "event_unixtime": int(time.time() * 10 ** 6),
+                            "action_core": "2",
+                        }
 
                     elif isinstance(binlog_event, DeleteRowsEvent):
                         if "delete" in skip_dmls or skip_dml_table_name in skip_delete_tables:
                             continue
-                        event["action"] = "delete"
-                        event["values"] = row["values"]
-                        event["event_unixtime"] = int(time.time() * 10 ** 6)
-                        event["action_core"] = "1"
-                    values = event["values"]
-                    for k, v in values.items():
-                        values[k] = complex_decode(v)
-                    event["values"] = values
+                        event = {
+                            "table": table,
+                            "schema": schema,
+                            "action": "delete",
+                            "values": self.convert_values(row["values"]),
+                            "event_unixtime": int(time.time() * 10 ** 6),
+                            "action_core": "1",
+                        }
+                    else:
+                        return
                     yield binlog_event.schema, binlog_event.table, event, stream.log_file, stream.log_pos

@@ -2,6 +2,7 @@
 
 ## 0.4.5
 - Fix DDL sync.
+- Fix PK change error.
 
 ## 0.4.4
 - Support kafka consume offset.

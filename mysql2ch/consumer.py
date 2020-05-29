@@ -58,10 +58,10 @@ def consume(args):
         action = event["action"]
 
         if action == "query":
-            do_query = True
+            alter_table = True
             query = event["values"]["query"]
         else:
-            do_query = False
+            alter_table = False
             query = None
             event_list.setdefault(table, []).append(event)
             len_event += 1
@@ -74,7 +74,7 @@ def consume(args):
         else:
             if event_unixtime - last_time >= settings.insert_interval > 0:
                 is_insert = True
-        if is_insert or do_query:
+        if is_insert or alter_table:
             data_dict = {}
             events_num = 0
             for table, items in event_list.items():
@@ -99,7 +99,7 @@ def consume(args):
                     logger.error(f"insert event error!,error:{e}")
                     if not skip_error:
                         exit()
-            if do_query:
+            if alter_table:
                 try:
                     logger.info(f"execute query:{query}")
                     writer.execute(query)

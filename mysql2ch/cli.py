@@ -70,6 +70,7 @@ def cli():
     group.add_argument(
         "--auto-offset-reset",
         required=False,
+        default="latest",
         choices=("earliest", "latest"),
         help="Kafka auto offset reset,default earliest.",
     )
