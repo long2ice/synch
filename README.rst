@@ -33,7 +33,7 @@ Requirements
 ============
 
 * `kafka <https://kafka.apache.org>`_,message queue to store mysql binlog event.
-* `redis <https://redis.io>`_,cache mysql binlog file and position and store monitor data.
+* `redis <https://redis.io>`_,cache mysql binlog file and position.
 
 Install
 =======
@@ -91,14 +91,15 @@ Consume message from kafka and insert to ClickHouse,and you can skip error with 
 
     $ mysql2ch consume -h
 
-    usage: mysql2ch consume [-h] --schema SCHEMA [--skip-error] [--auto-offset-reset AUTO_OFFSET_RESET]
+    usage: mysql2ch consume [-h] --schema SCHEMA [--skip-error] [--auto-offset-reset {earliest,latest} | --offset OFFSET]
 
     optional arguments:
       -h, --help            show this help message and exit
       --schema SCHEMA       Schema to consume.
       --skip-error          Skip error rows.
-      --auto-offset-reset AUTO_OFFSET_RESET
+      --auto-offset-reset {earliest,latest}
                             Kafka auto offset reset,default earliest.
+      --offset OFFSET       Kafka consume offset, will start consume from specified offset.
 
 Consume schema ``test`` and insert into ``ClickHouse``:
 
