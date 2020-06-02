@@ -39,4 +39,4 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry.scripts]
-aerich = "mysql2ch = mysql2ch.cli:cli"
+mysql2ch = "mysql2ch.cli:cli"

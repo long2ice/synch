@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
       - uses: dschep/install-poetry-action@v1.3
       - name: Pypi Publish
         run: |
