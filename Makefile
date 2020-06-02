@@ -14,13 +14,11 @@ help:
 	@echo  "    test		Runs all tests"
 	@echo  "    style		Auto-formats the code"
 
-deps:
-	@which pip-sync > /dev/null || pip install -q pip-tools
-	@pip install -r requirements-dev.txt
-
 up:
-	CUSTOM_COMPILE_COMMAND="make up" pip-compile -o requirements-dev.txt -U
-	sed -i "s/^-e .*/-e ./" requirements.txt
+	@poetry update
+
+deps:
+	@poetry install
 
 style: deps
 	isort -rc $(checkfiles)
@@ -49,7 +47,8 @@ endif
 test: deps
 	$(py_warn) py.test
 
+build: deps
+	@poetry build
+
 publish: deps
-	rm -fR dist/
-	python setup.py sdist
-	twine upload dist/*
+	@poetry publish
