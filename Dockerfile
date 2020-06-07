@@ -1,7 +1,8 @@
-FROM pypy:3
+FROM python:3.8
 RUN mkdir -p /src
 WORKDIR /src
-COPY requirements.txt /src
-RUN pypy3 -m pip install -r requirements.txt
+COPY poetry.lock pyproject.toml /src/
+ENV POETRY_VIRTUALENVS_CREATE=false
+RUN pip3 install poetry
 COPY . /src
-RUN pypy3 setup.py install
+RUN poetry install
