@@ -1,6 +1,6 @@
 import logging
 
-from mysql2ch.common import Global
+from mysql2ch.factory import Global
 
 logger = logging.getLogger("mysql2ch.replication")
 
