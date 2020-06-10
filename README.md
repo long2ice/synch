@@ -11,7 +11,7 @@
 
 Sync data from MySQL to ClickHouse, support full and increment ETL.
 
-![mysql2ch](https://github.com/long2ice/mysql2ch/raw/master/images/mysql2ch.png)
+![mysql2ch](https://github.com/long2ice/mysql2ch/raw/dev/images/mysql2ch.png)
 
 ## Features
 
@@ -166,17 +166,15 @@ volumes:
 
 [Sentry](https://github.com/getsentry/sentry), error reporting, worked if set `dsn` in config.
 
-## Communication
+## QQ Group
 
-### QQ Group
-
-![qq_group](https://github.com/long2ice/mysql2ch/raw/master/images/qq_group.svg)
+![qq_group](https://github.com/long2ice/mysql2ch/raw/dev/images/qq_group.png)
 
 ## ThanksTo
 
 Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=mysql2ch) from [Jetbrains](https://www.jetbrains.com/?from=mysql2ch).
 
-![jetbrains](https://github.com/long2ice/mysql2ch/raw/master/images/jetbrains.svg)
+![jetbrains](https://github.com/long2ice/mysql2ch/raw/dev/images/jetbrains.svg)
 
 ## License
 
