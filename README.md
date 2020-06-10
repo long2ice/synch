@@ -31,7 +31,7 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 ## Usage
 
-### Config
+### mysql2ch.ini
 
 ```ini
 [sentry]
