@@ -168,7 +168,7 @@ volumes:
 
 ## QQ Group
 
-![qq_group](https://github.com/long2ice/mysql2ch/raw/dev/images/qq_group.png)
+<img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/qq_group.png"/>
 
 ## ThanksTo
 
