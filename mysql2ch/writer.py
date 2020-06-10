@@ -230,14 +230,9 @@ class ClickHouseWriter:
                     message = f"delete before insert error,sql: {sql['del_sql']},error:{error}"
                     logger.error(message)
                     return False
-                try:
-                    self.execute(sql["insert_sql"], sql["insert_data"], types_check=True)
-                    num = len(sql["insert_data"])
-                    logger.info(f"{schema}.{table}：success insert {num} rows！")
-                except Exception as error:
-                    message = f"insert sql: {sql['insert_sql']}{sql['insert_data']},error: {error}"
-                    logger.error(message)
-                    return False
+                self.execute(sql["insert_sql"], sql["insert_data"], types_check=True)
+                num = len(sql["insert_data"])
+                logger.info(f"{schema}.{table}：success insert {num} rows！")
         return True
 
     # 剔除比较旧的更新，保留最新的更新，否则update的时候数据会多出,因为update已经换成delete+insert。如果不这样处理同一时间update两次就会导致数据多出

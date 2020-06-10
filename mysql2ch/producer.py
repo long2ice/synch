@@ -1,7 +1,8 @@
 import logging
 
+from mysql2ch.redis import RedisBroker, RedisLogPos
+
 from .factory import Global
-from .pos import RedisLogPos
 
 logger = logging.getLogger("mysql2ch.producer")
 
@@ -9,16 +10,9 @@ logger = logging.getLogger("mysql2ch.producer")
 def produce(args):
     settings = Global.settings
     reader = Global.reader
-    broker = Global.broker
 
-    pos_handler = RedisLogPos(
-        host=settings.redis_host,
-        port=settings.redis_port,
-        password=settings.redis_password,
-        db=settings.redis_db,
-        log_pos_prefix=settings.redis_prefix,
-        server_id=settings.mysql_server_id,
-    )
+    pos_handler = RedisLogPos(settings)
+    broker = RedisBroker(settings)
 
     log_file, log_pos = pos_handler.get_log_pos()
     if not (log_file and log_pos):
@@ -34,25 +28,22 @@ def produce(args):
         tables = []
         schema_table = settings.schema_table
         for k, v in schema_table.items():
-            tables += v.get("tables")
+            tables += v
         only_schemas = list(schema_table.keys())
         only_tables = list(set(tables))
 
         for schema, table, event, file, pos in reader.binlog_reading(
-                only_tables=only_tables,
-                only_schemas=only_schemas,
-                log_file=log_file,
-                log_pos=log_pos,
-                server_id=settings.mysql_server_id,
-                skip_dmls=settings.skip_dmls,
-                skip_delete_tables=settings.skip_delete_tables,
-                skip_update_tables=settings.skip_update_tables,
+            only_tables=only_tables,
+            only_schemas=only_schemas,
+            log_file=log_file,
+            log_pos=log_pos,
+            server_id=settings.mysql_server_id,
+            skip_dmls=settings.skip_dmls,
+            skip_delete_tables=settings.skip_delete_tables,
+            skip_update_tables=settings.skip_update_tables,
         ):
-            if not schema_table.get(schema) or (
-                    table and table not in schema_table.get(schema).get("tables")
-            ):
+            if not schema_table.get(schema) or (table and table not in schema_table.get(schema)):
                 continue
-
             broker.send(msg=event, schema=schema)
             pos_handler.set_log_pos_slave(file, pos)
 

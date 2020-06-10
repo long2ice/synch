@@ -18,7 +18,7 @@ def etl_full(schema, tables, renew=False):
     settings = Global.settings
 
     if not tables:
-        tables = Global.settings.schema_table.get(schema).get("tables")
+        tables = Global.settings.schema_table.get(schema)
     else:
         tables = tables.split(",")
     for table in tables:

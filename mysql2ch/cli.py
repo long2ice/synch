@@ -22,14 +22,19 @@ def run(args):
         settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
     )
 
-    init_logging(settings.debug)
+    init_logging(args.verbose)
 
     args.func(args)
 
 
 def cli():
-    parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.", )
-    parser.add_argument("-c", "--config", required=True, help="Config json file.")
+    parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.",)
+    parser.add_argument(
+        "-c", "--config", required=False, default="./mysql2ch.ini", help="Config file."
+    )
+    parser.add_argument(
+        "-v", "--verbose", default=False, action="store_true", help="Enable debug mode."
+    )
     subparsers = parser.add_subparsers(title="subcommands")
     parser_etl = subparsers.add_parser("etl")
     parser_etl.add_argument("--schema", required=True, help="Schema to full etl.")
@@ -54,20 +59,7 @@ def cli():
     parser_consumer.add_argument(
         "--skip-error", action="store_true", default=False, help="Skip error rows."
     )
-    group = parser_consumer.add_mutually_exclusive_group()
-    group.add_argument(
-        "--msg-from",
-        required=False,
-        default="latest",
-        choices=("earliest", "latest"),
-        help="Kafka auto offset reset,default earliest.",
-    )
-    group.add_argument(
-        "--offset",
-        required=False,
-        type=int,
-        help="Kafka consume offset, will start consume from specified offset.",
-    )
+    parser_consumer.add_argument("--last-msg-id", required=False, help="Redis stream last msg id.")
     parser_consumer.set_defaults(run=run, func=consume)
 
     parse_args = parser.parse_args()

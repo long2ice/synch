@@ -4,7 +4,15 @@ import logging
 import sys
 from decimal import Decimal
 
+import dateutil.parser
+
 logger = logging.getLogger("mysql2ch.common")
+
+CONVERTERS = {
+    "date": dateutil.parser.parse,
+    "datetime": dateutil.parser.parse,
+    "decimal": Decimal,
+}
 
 
 def init_logging(debug):
@@ -56,3 +64,14 @@ class JsonEncoder(json.JSONEncoder):
             return {"val": str(obj), "_spec_type": "decimal"}
         else:
             return super().default(obj)
+
+
+def object_hook(obj):
+    _spec_type = obj.get("_spec_type")
+    if not _spec_type:
+        return obj
+
+    if _spec_type in CONVERTERS:
+        return CONVERTERS[_spec_type](obj["val"])
+    else:
+        raise TypeError("Unknown {}".format(_spec_type))
