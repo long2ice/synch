@@ -5,7 +5,7 @@ from sqlparse.sql import TokenList
 from sqlparse.tokens import Keyword, Token, Whitespace
 
 
-class SqlConvent:
+class SqlConvert:
     _type_mapping = {
         "date": "Date",
         "datetime": "DateTime",
@@ -31,6 +31,18 @@ class SqlConvent:
                 token_list.tokens.append(token)
                 token_list.tokens.append(SQLToken(Whitespace, " "))
                 token_list.tokens.append(SQLToken(Keyword, "column"))
+            elif token.value == "change":
+                token_list.tokens.append(SQLToken(Keyword, "rename"))
+                token_list.tokens.append(SQLToken(Whitespace, " "))
+                token_list.tokens.append(SQLToken(Keyword, "column"))
+                token_list.tokens.append(SQLToken(Whitespace, " "))
+                tokens = parsed.token_next(i)[1].tokens
+                token_list.tokens.append(tokens[0])
+                token_list.tokens.append(SQLToken(Whitespace, " "))
+                token_list.tokens.append(SQLToken(Keyword, "to"))
+                token_list.tokens.append(SQLToken(Whitespace, " "))
+                token_list.tokens.append(tokens[2])
+                return token_list
             elif isinstance(token, (Function, Identifier)) or token.ttype == Token.Name.Builtin:
                 if token.ttype == Token.Name.Builtin:
                     token_list.tokens.append(SQLToken(Keyword, cls._type_mapping.get(token.value)))

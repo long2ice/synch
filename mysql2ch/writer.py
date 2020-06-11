@@ -40,45 +40,10 @@ class ClickHouseWriter:
             fix_sql = f"alter table {database}.{table} modify column {column_name} {column_type}"
             self.execute(fix_sql)
 
-    def get_ch_column_type(self, db, table):
-        column_type_dic = {}
-        sql = "select name,type from system.columns where database='{0}' and table='{1}'".format(
-            db, table
-        )
-        for d in self.execute(sql):
-            column_type_dic[d[0]] = d[1]
-        return column_type_dic
-
     def insert_update(self, tmp_data, schema, table, pk):
         insert_data = []
         exec_sql = {}
-        column_type = self.get_ch_column_type(schema, table)
         for data in tmp_data:
-            for key, value in data["values"].items():
-                if value == datetime.datetime(1970, 1, 1, 0, 0):
-                    data["values"][key] = datetime.datetime(1970, 1, 2, 14, 1)
-
-                # 处理mysql里面是Null的问题
-                if value is None:
-                    int_list = [
-                        "Int8",
-                        "Int16",
-                        "Int32",
-                        "Int64",
-                        "UInt8",
-                        "UInt16",
-                        "UInt32",
-                        "UInt64",
-                    ]
-                    if column_type[key] == "DateTime":
-                        data["values"][key] = datetime.datetime(1970, 1, 2, 14, 1)
-                    elif column_type[key] == "Date":
-                        data["values"][key] = datetime.date(1970, 1, 2)
-                    elif column_type[key] == "String":
-                        data["values"][key] = ""
-                    elif column_type[key] in int_list:
-                        data["values"][key] = 0
-
             insert_data.append(data["values"])
 
         del_sql = self.event_primary_key(schema, table, tmp_data, pk)

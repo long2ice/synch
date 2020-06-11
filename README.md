@@ -16,12 +16,12 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 ## Features
 
 - Full data etl and real time increment etl.
-- Support DDL and DML sync, current support `add column` and `drop column` of DDL, and full support of DML also.
+- Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support of DML also.
 - Rich configurable items.
 
 ## Requirements
 
-- [redis](https://redis.io), cache mysql binlog file and position and transfe mysql binlog event.
+- [redis](https://redis.io), cache mysql binlog file and position and transfe mysql binlog event, support redis cluster also.
 
 ## Install
 

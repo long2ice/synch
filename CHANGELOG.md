@@ -3,8 +3,10 @@
 ## 0.5
 
 ### 0.5.1
+
 - Add queue_max_len config.
 - Enable redis sentinel.
+- Add support `change column`.
 
 ### 0.5.0
 

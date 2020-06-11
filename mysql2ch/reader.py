@@ -5,12 +5,12 @@ from copy import deepcopy
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
+
+from mysql2ch.common import complex_decode
+from mysql2ch.convert import SqlConvert
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.event import QueryEvent
 from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
-
-from mysql2ch.common import complex_decode
-from mysql2ch.convent import SqlConvent
 
 logger = logging.getLogger("mysql2ch.reader")
 
@@ -94,7 +94,7 @@ class MysqlReader:
             if isinstance(binlog_event, QueryEvent):
                 schema = binlog_event.schema.decode()
                 query = binlog_event.query.lower()
-                convent_sql = SqlConvent.to_clickhouse(schema, query)
+                convent_sql = SqlConvert.to_clickhouse(schema, query)
                 if "alter" not in query or not convent_sql:
                     continue
                 event = {
