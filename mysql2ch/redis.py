@@ -1,5 +1,4 @@
 import json
-from typing import List
 
 import redis
 from redis.sentinel import Sentinel
@@ -36,6 +35,8 @@ class Redis:
 
 
 class RedisBroker(Redis):
+    last_msg_id: str = "0"
+
     def _get_queue(self, schema: str):
         return f"{self.settings.redis_prefix}:schema:{schema}"
 
@@ -48,34 +49,36 @@ class RedisBroker(Redis):
 
     def msgs(self, schema: str, last_msg_id: str = None):
         if not last_msg_id:
-            last_msg_id = self._get_last_msg_id()
+            self.last_msg_id = self._get_last_msg_id(schema)
         while True:
-            for _, msgs in self.slave.xread({self._get_queue(schema): last_msg_id}):
+            for _, msgs in self.slave.xread({self._get_queue(schema): self.last_msg_id}):
                 for msg_id, msg in msgs:
-                    last_msg_id = msg_id
+                    self.last_msg_id = msg_id
                     yield msg_id, json.loads(msg.get("msg"), object_hook=object_hook)
 
-    def _get_last_msg_id(self):
+    def _get_last_msg_id(self, schema: str):
         """
         get last msg id
         :return:
         """
-        return self.slave.get(self._get_last_msg_id_key()) or "0"
+        return (
+            self.last_msg_id
+            if self.last_msg_id != "0"
+            else self.slave.hget(self._get_last_msg_id_key(), schema) or "0"
+        )
 
     def _get_last_msg_id_key(self):
         return f"{self.settings.redis_prefix}:last_msg_id"
 
-    def commit(self, schema: str, msg_ids: List[str]):
+    def commit(
+        self, schema: str,
+    ):
         """
         commit msgs
         :param schema:
-        :param msg_ids:
         :return:
         """
-        p = self.master.pipeline()
-        p.xack(self._get_queue(schema), schema, *msg_ids)
-        p.set(self._get_last_msg_id_key(), msg_ids[-1])
-        p.execute()
+        self.master.hset(self._get_last_msg_id_key(), schema, self.last_msg_id)
 
 
 class RedisLogPos(Redis):

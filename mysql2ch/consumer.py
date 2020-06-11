@@ -10,7 +10,8 @@ def consume(args):
     settings = Global.settings
     writer = Global.writer
     reader = Global.reader
-    broker = RedisBroker(settings)
+
+    broker = RedisBroker()
 
     schema = args.schema
     skip_error = args.skip_error
@@ -25,11 +26,9 @@ def consume(args):
     is_insert = False
     last_time = 0
     len_event = 0
-    msg_ids = []
     try:
         for msg_id, msg in broker.msgs(schema, last_msg_id=args.last_msg_id):
             logger.debug(f"msg_id:{msg_id},msg:{msg}")
-            msg_ids.append(msg_id)
             event = msg
             event_unixtime = event["event_unixtime"] / 10 ** 6
             table = event["table"]
@@ -89,13 +88,12 @@ def consume(args):
                         if not skip_error:
                             exit()
 
-                broker.commit(schema, msg_ids)
+                broker.commit(schema)
                 logger.info(f"commit success {events_num} events!")
 
                 event_list = {}
                 is_insert = False
                 len_event = last_time = 0
-                msg_ids = []
 
     except KeyboardInterrupt:
         message = "KeyboardInterrupt"
