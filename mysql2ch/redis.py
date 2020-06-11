@@ -33,6 +33,10 @@ class Redis:
             )
             cls.master = cls.slave = redis.StrictRedis(connection_pool=pool)
 
+    def close(self):
+        self.master.close()
+        self.slave.close()
+
 
 class RedisBroker(Redis):
     last_msg_id: str = "0"
