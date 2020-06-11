@@ -2,6 +2,9 @@
 
 ## 0.5
 
+### 0.5.1
+- Add queue_max_len config.
+
 ### 0.5.0
 
 - Remove kafka and instead of redis.

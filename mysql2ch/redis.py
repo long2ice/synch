@@ -25,7 +25,11 @@ class RedisBroker(Redis):
         return f"{self.settings.redis_prefix}:schema:{schema}"
 
     def send(self, schema: str, msg: dict):
-        self.redis.xadd(self._get_queue(schema), {"msg": json.dumps(msg, cls=JsonEncoder)})
+        self.redis.xadd(
+            self._get_queue(schema),
+            {"msg": json.dumps(msg, cls=JsonEncoder)},
+            maxlen=self.settings.queue_max_len,
+        )
 
     def msgs(self, schema: str, last_msg_id: str = None):
         if not last_msg_id:

@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     skip_dmls: List[str]
     insert_num: int = 20000
     insert_interval: int = 60
+    queue_max_len: int = 200000
 
     @classmethod
     def parse(cls, path: str) -> "Settings":
@@ -48,7 +49,7 @@ class Settings(BaseSettings):
         redis = parser["redis"]
         mysql = parser["mysql"]
         clickhouse = parser["clickhouse"]
-        sync = parser["sync"]
+        core = parser["core"]
 
         return cls(
             environment=sentry["environment"],
@@ -66,15 +67,16 @@ class Settings(BaseSettings):
             clickhouse_port=int(clickhouse["port"]),
             clickhouse_user=clickhouse["user"],
             clickhouse_password=clickhouse["password"],
-            mysql_server_id=int(sync["mysql_server_id"]),
+            mysql_server_id=int(core["mysql_server_id"]),
             schema_table=cls._get_schema_tables(parser),
-            init_binlog_file=sync["init_binlog_file"],
-            init_binlog_pos=int(sync["init_binlog_pos"]),
-            skip_delete_tables=sync["skip_delete_tables"].split(","),
-            skip_update_tables=sync["skip_update_tables"].split(","),
-            skip_dmls=sync["skip_dmls"].split(","),
-            insert_num=int(sync["insert_num"]),
-            insert_interval=int(sync["insert_interval"]),
+            init_binlog_file=core["init_binlog_file"],
+            init_binlog_pos=int(core["init_binlog_pos"]),
+            skip_delete_tables=core["skip_delete_tables"].split(","),
+            skip_update_tables=core["skip_update_tables"].split(","),
+            skip_dmls=core["skip_dmls"].split(","),
+            insert_num=int(core["insert_num"]),
+            insert_interval=int(core["insert_interval"]),
+            queue_max_len=int(core["queue_max_len"]),
         )
 
     @classmethod

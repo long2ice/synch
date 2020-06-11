@@ -33,7 +33,26 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 ### mysql2ch.ini
 
+mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2ch -c` specify config file.
+
 ```ini
+[core]
+mysql_server_id = 1
+# redis stream max len, will delete redundant ones with FIFO
+queue_max_len = 200000
+init_binlog_file = binlog.000024
+init_binlog_pos = 252563
+# these tables skip delete,multiple separated with comma
+skip_delete_tables =
+# these tables skip update,multiple separated with comma
+skip_update_tables =
+# skip delete or update dmls,multiple separated with comma
+skip_dmls =
+# how many num to submit,recommend set 20000 when production
+insert_num = 1
+# how many seconds to submit,recommend set 60 when production
+insert_interval = 1
+
 [sentry]
 # sentry environment
 environment = development
@@ -64,20 +83,6 @@ port = 9000
 user = default
 password =
 
-[sync]
-mysql_server_id = 1
-init_binlog_file = binlog.000088
-init_binlog_pos = 2238
-# these tables skip delete,multiple separated with comma
-skip_delete_tables =
-# these tables skip update,multiple separated with comma
-skip_update_tables =
-# skip delete or update dmls,multiple separated with comma
-skip_dmls =
-# how many num to submit,recommend set 20000 when production
-insert_num = 1
-# how many seconds to submit,recommend set 60 when production
-insert_interval = 1
 
 ```
 
