@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mysql2ch"
-version = "0.5.0"
+version = "0.5.1"
 description = "Sync data from MySQL to ClickHouse, support full and increment ETL."
 authors = ["long2ice <long2ice@gmail.com>"]
 license = "MIT"
@@ -20,7 +20,7 @@ mysql-replication = "*"
 clickhouse-driver = "*"
 redis = "*"
 mysqlclient = "*"
-sentry-sdk = {version = "*", optional = true}
+sentry-sdk = "*"
 python-dateutil = "*"
 pydantic = "*"
 sqlparse = "*"
