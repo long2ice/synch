@@ -1,13 +1,8 @@
 import configparser
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseSettings
-
-
-class BrokerType(str, Enum):
-    redis = "redis"
-    kafka = "kafka"
 
 
 class Settings(BaseSettings):
@@ -16,20 +11,27 @@ class Settings(BaseSettings):
     """
 
     environment: str = "development"
+
     mysql_host: str = "127.0.0.1"
     mysql_port: int = 3306
     mysql_user: str = "root"
     mysql_password: str = "123456"
     mysql_server_id: int = 1
-    redis_host: str = "120.0.0.1"
+
+    redis_host: str = "127.0.0.1"
     redis_port: int = 6379
     redis_password: str = None
     redis_db: int = 0
     redis_prefix: str = "mysql2ch"
+    redis_sentinel: bool = False
+    redis_sentinel_master: str = "master"
+    redis_sentinel_hosts: Optional[List[Tuple[str, int]]]
+
     clickhouse_host: str = "127.0.0.1"
     clickhouse_port: int = 9000
     clickhouse_user: str = "default"
     clickhouse_password: str = None
+
     sentry_dsn: Optional[str]
     schema_table: Dict[str, List[str]]
     init_binlog_file: str
@@ -63,6 +65,9 @@ class Settings(BaseSettings):
             redis_password=redis["password"],
             redis_db=int(redis["db"]),
             redis_prefix=redis["prefix"],
+            redis_sentinel=redis["sentinel"] == "true",
+            redis_sentinel_hosts=cls._get_sentinel_hosts(redis["sentinel_hosts"]),
+            redis_sentinel_master=redis["sentinel_master"],
             clickhouse_host=clickhouse["host"],
             clickhouse_port=int(clickhouse["port"]),
             clickhouse_user=clickhouse["user"],
@@ -78,6 +83,14 @@ class Settings(BaseSettings):
             insert_interval=int(core["insert_interval"]),
             queue_max_len=int(core["queue_max_len"]),
         )
+
+    @classmethod
+    def _get_sentinel_hosts(cls, sentinel_hosts: str) -> List[Tuple[str, int]]:
+        hosts = []
+        for host in sentinel_hosts.split(","):
+            host_split = host.split(":")
+            hosts.append((host_split[0], int(host_split[1])))
+        return hosts
 
     @classmethod
     def _get_schema_tables(cls, parser: configparser.ConfigParser) -> Dict[str, List[str]]:

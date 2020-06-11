@@ -65,6 +65,11 @@ port = 6379
 password =
 db = 0
 prefix = mysql2ch
+# enable redis sentinel
+sentinel = false
+# redis sentinel hosts,multiple separated with comma
+sentinel_hosts = 127.0.0.1:5000,127.0.0.1:5001,127.0.0.1:5002
+sentinel_master = master
 
 [mysql]
 host = 127.0.0.1
@@ -82,8 +87,6 @@ host = 127.0.0.1
 port = 9000
 user = default
 password =
-
-
 ```
 
 ### Full data etl

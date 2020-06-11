@@ -11,8 +11,8 @@ def produce(args):
     settings = Global.settings
     reader = Global.reader
 
-    pos_handler = RedisLogPos(settings)
-    broker = RedisBroker(settings)
+    pos_handler = RedisLogPos()
+    broker = RedisBroker()
 
     log_file, log_pos = pos_handler.get_log_pos()
     if not (log_file and log_pos):

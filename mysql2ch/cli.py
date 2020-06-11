@@ -8,6 +8,7 @@ from mysql2ch.common import init_logging
 from mysql2ch.consumer import consume
 from mysql2ch.factory import Global
 from mysql2ch.producer import produce
+from mysql2ch.redis import Redis
 from mysql2ch.replication import make_etl
 
 logger = logging.getLogger("mysql2ch.manage")
@@ -16,8 +17,9 @@ logger = logging.getLogger("mysql2ch.manage")
 def run(args):
     config = args.config
     Global.init(config)
-
     settings = Global.settings
+    Redis.init(settings=settings)
+
     sentry_sdk.init(
         settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
     )

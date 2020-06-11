@@ -4,6 +4,7 @@
 
 ### 0.5.1
 - Add queue_max_len config.
+- Enable redis sentinel.
 
 ### 0.5.0
 
