@@ -125,7 +125,7 @@ Full etl from table `test.test`:
 
 ### Produce
 
-Listen all MySQL binlog and produce to kafka.
+Listen all MySQL binlog and produce to broker.
 
 ```shell
 > mysql2ch produce
@@ -133,7 +133,7 @@ Listen all MySQL binlog and produce to kafka.
 
 ### Consume
 
-Consume message from kafka and insert to ClickHouse,and you can skip error with `--skip-error`.
+Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`.
 
 ```shell
 > mysql2ch consume -h
