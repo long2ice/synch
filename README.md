@@ -17,7 +17,8 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 - Full data etl and real time increment etl.
 - Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support of DML also.
-- Rich configurable items.
+- Custom configurable items.
+- Support kafka and redis as broker.
 
 ## Requirements
 
@@ -37,6 +38,8 @@ mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2c
 
 ```ini
 [core]
+# current support redis and kafka
+broker_type = kafka
 mysql_server_id = 1
 # redis stream max len, will delete redundant ones with FIFO
 queue_max_len = 200000
@@ -81,12 +84,20 @@ password = 123456
 [mysql.test]
 # multiple separated with comma
 tables = test
+# kafka partition, need when broker_type=kafka
+kafka_partition = 0
 
 [clickhouse]
 host = 127.0.0.1
 port = 9000
 user = default
 password =
+
+# need when broker_type=kafka
+[kafka]
+# kafka servers,multiple separated with comma
+servers = 127.0.0.1:9092
+topic = mysql2ch
 ```
 
 ### Full data etl
@@ -133,7 +144,7 @@ optional arguments:
   --schema SCHEMA       Schema to consume.
   --skip-error          Skip error rows.
   --last-msg-id LAST_MSG_ID
-                        Redis stream last msg id.
+                        Redis stream last msg id or kafka msg offset, depend on broker_type in config.
 ```
 
 Consume schema `test` and insert into `ClickHouse`:
@@ -144,6 +155,10 @@ Consume schema `test` and insert into `ClickHouse`:
 
 ## Use docker-compose(recommended)
 
+<details>
+<summary><h3>Redis Broker</h3></summary>
+<p>
+
 ```yaml
 version: "3"
 services:
@@ -153,14 +168,14 @@ services:
     image: long2ice/mysql2ch
     command: mysql2ch produce
     volumes:
-      - ./mysql2ch.ini:/src/mysql2ch.ini
+      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
   consumer.test:
     depends_on:
       - redis
     image: long2ice/mysql2ch
     command: mysql2ch consume --schema test
     volumes:
-      - ./mysql2ch.ini:/src/mysql2ch.ini
+      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
   redis:
     hostname: redis
     image: redis:latest
@@ -169,6 +184,75 @@ services:
 volumes:
   redis:
 ```
+
+</details>
+
+<details>
+<summary><h3>Kafka Broker</h3></summary>
+<p>
+
+```yml
+version: "3"
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3
+    hostname: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper:/bitnami
+  kafka:
+    image: bitnami/kafka:2
+    hostname: kafka
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - JMX_PORT=23456
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka:/bitnami
+  kafka-manager:
+    image: hlebalbau/kafka-manager
+    ports:
+      - "9000:9000"
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      KAFKA_MANAGER_AUTH_ENABLED: "false"
+    command: -Dpidfile.path=/dev/null
+  producer:
+    depends_on:
+      - redis
+      - kafka
+      - zookeeper
+    image: long2ice/mysql2ch
+    command: mysql2ch produce
+    volumes:
+      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+  consumer.test:
+    depends_on:
+      - redis
+      - kafka
+      - zookeeper
+    image: long2ice/mysql2ch
+    command: mysql2ch consume --schema test
+    volumes:
+      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+  redis:
+    hostname: redis
+    image: redis:latest
+    volumes:
+      - redis:/data
+volumes:
+  redis:
+  kafka:
+  zookeeper:
+```
+
+</p>
+</details>
 
 ## Optional
 

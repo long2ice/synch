@@ -5,6 +5,7 @@
 ### 0.5.2
 
 - Fix insert interval block.
+- Add kafka broker.
 
 ### 0.5.1
 

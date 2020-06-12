@@ -2,7 +2,7 @@ import logging
 import signal
 from signal import Signals
 
-from mysql2ch.redis import RedisBroker, RedisLogPos
+from mysql2ch.brokers.redis import RedisLogPos
 
 from .factory import Global
 
@@ -13,9 +13,10 @@ def produce(args):
     settings = Global.settings
     reader = Global.reader
 
-    pos_handler = RedisLogPos()
+    broker = args.Broker()
 
-    broker = RedisBroker()
+    RedisLogPos.init(settings)
+    pos_handler = RedisLogPos()
 
     def signal_handler(signum: Signals, handler):
         sig = Signals(signum)

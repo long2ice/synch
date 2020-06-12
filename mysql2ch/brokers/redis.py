@@ -3,17 +3,20 @@ import json
 import redis
 from redis.sentinel import Sentinel
 
+from mysql2ch.brokers import Broker
 from mysql2ch.common import JsonEncoder, object_hook
 from mysql2ch.settings import Settings
 
 
-class Redis:
+class RedisBroker(Broker):
+    last_msg_id: str = "0"
+
     @classmethod
     def init(cls, settings: Settings):
         """
         init setting and create redis instance
         """
-        cls.settings = settings
+        super(RedisBroker, cls).init(settings)
         if settings.redis_sentinel:
             sentinel = Sentinel(sentinels=settings.redis_sentinel_hosts,)
             kwargs = dict(
@@ -37,10 +40,6 @@ class Redis:
         self.master.close()
         self.slave.close()
 
-
-class RedisBroker(Redis):
-    last_msg_id: str = "0"
-
     def _get_queue(self, schema: str):
         return f"{self.settings.redis_prefix}:schema:{schema}"
 
@@ -51,7 +50,7 @@ class RedisBroker(Redis):
             maxlen=self.settings.queue_max_len,
         )
 
-    def msgs(self, schema: str, last_msg_id: str = None, block: int = None):
+    def msgs(self, schema: str, last_msg_id=None, block: int = None):
         if not last_msg_id:
             self.last_msg_id = self._get_last_msg_id(schema)
         while True:
@@ -89,7 +88,7 @@ class RedisBroker(Redis):
         self.master.hset(self._get_last_msg_id_key(), schema, self.last_msg_id)
 
 
-class RedisLogPos(Redis):
+class RedisLogPos(RedisBroker):
     def __init__(self):
         self.server_id = self.settings.mysql_server_id
         self.key = f"{self.settings.redis_prefix}:binlog:{self.server_id}"

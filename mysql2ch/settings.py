@@ -1,8 +1,13 @@
 import configparser
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseSettings
+
+
+class BrokerType(str, Enum):
+    redis = "redis"
+    kafka = "kafka"
 
 
 class Settings(BaseSettings):
@@ -11,6 +16,7 @@ class Settings(BaseSettings):
     """
 
     environment: str = "development"
+    broker_type: BrokerType = "redis"
 
     mysql_host: str = "127.0.0.1"
     mysql_port: int = 3306
@@ -32,6 +38,10 @@ class Settings(BaseSettings):
     clickhouse_user: str = "default"
     clickhouse_password: str = None
 
+    kafka_servers: Set[str] = {"127.0.0.1"}
+    kafka_topic: str = "mysql2ch"
+    kafka_partitions: Optional[Dict[str, int]]
+
     sentry_dsn: Optional[str]
     schema_table: Dict[str, List[str]]
     init_binlog_file: str
@@ -51,37 +61,43 @@ class Settings(BaseSettings):
         redis = parser["redis"]
         mysql = parser["mysql"]
         clickhouse = parser["clickhouse"]
+        kafka = parser["kafka"]
         core = parser["core"]
+        schema_tables, partitions = cls._get_schemas(parser)
 
         return cls(
-            environment=sentry["environment"],
-            sentry_dsn=sentry["dsn"],
-            mysql_host=mysql["host"],
-            mysql_port=int(mysql["port"]),
-            mysql_user=mysql["user"],
-            mysql_password=mysql["password"],
-            redis_host=redis["host"],
-            redis_port=int(redis["port"]),
-            redis_password=redis["password"],
-            redis_db=int(redis["db"]),
-            redis_prefix=redis["prefix"],
-            redis_sentinel=redis["sentinel"] == "true",
-            redis_sentinel_hosts=cls._get_sentinel_hosts(redis["sentinel_hosts"]),
-            redis_sentinel_master=redis["sentinel_master"],
-            clickhouse_host=clickhouse["host"],
-            clickhouse_port=int(clickhouse["port"]),
-            clickhouse_user=clickhouse["user"],
-            clickhouse_password=clickhouse["password"],
-            mysql_server_id=int(core["mysql_server_id"]),
-            schema_table=cls._get_schema_tables(parser),
-            init_binlog_file=core["init_binlog_file"],
-            init_binlog_pos=int(core["init_binlog_pos"]),
-            skip_delete_tables=core["skip_delete_tables"].split(","),
-            skip_update_tables=core["skip_update_tables"].split(","),
-            skip_dmls=core["skip_dmls"].split(","),
-            insert_num=int(core["insert_num"]),
-            insert_interval=int(core["insert_interval"]),
-            queue_max_len=int(core["queue_max_len"]),
+            environment=sentry.get("environment"),
+            sentry_dsn=sentry.get("dsn"),
+            mysql_host=mysql.get("host"),
+            mysql_port=int(mysql.get("port")),
+            mysql_user=mysql.get("user"),
+            mysql_password=mysql.get("password"),
+            redis_host=redis.get("host"),
+            redis_port=int(redis.get("port")),
+            redis_password=redis.get("password"),
+            redis_db=int(redis.get("db")),
+            redis_prefix=redis.get("prefix"),
+            redis_sentinel=redis.get("sentinel") == "true",
+            redis_sentinel_hosts=cls._get_sentinel_hosts(redis.get("sentinel_hosts")),
+            redis_sentinel_master=redis.get("sentinel_master"),
+            kafka_servers=set(kafka.get("servers").split(",")),
+            kafka_topic=kafka.get("topic"),
+            kafka_partitions=partitions,
+            clickhouse_host=clickhouse.get("host"),
+            clickhouse_port=int(clickhouse.get("port")),
+            clickhouse_user=clickhouse.get("user"),
+            clickhouse_password=clickhouse.get("password"),
+            mysql_server_id=int(core.get("mysql_server_id")),
+            schema_table=schema_tables,
+            init_binlog_file=core.get("init_binlog_file"),
+            init_binlog_pos=int(core.get("init_binlog_pos")),
+            skip_delete_tables=core.get("skip_delete_tables").split(","),
+            skip_update_tables=core.get("skip_update_tables").split(","),
+            skip_dmls=core.get("skip_dmls").split(","),
+            insert_num=int(core.get("insert_num")),
+            insert_interval=int(core.get("insert_interval")),
+            queue_max_len=int(core.get("queue_max_len")),
+            broker_type=BrokerType(core.get("broker_type")),
         )
 
     @classmethod
@@ -93,8 +109,13 @@ class Settings(BaseSettings):
         return hosts
 
     @classmethod
-    def _get_schema_tables(cls, parser: configparser.ConfigParser) -> Dict[str, List[str]]:
-        ret = {}
+    def _get_schemas(
+        cls, parser: configparser.ConfigParser
+    ) -> Tuple[Dict[str, List[str]], Dict[str, int]]:
+        schema_tables = {}
+        schema_partitions = {}
         for item in filter(lambda x: x.startswith("mysql."), parser.sections()):
-            ret[item.split("mysql.")[-1]] = parser[item]["tables"].split(",")
-        return ret
+            schema = item.split("mysql.")[-1]
+            schema_tables[schema] = parser.get(item, "tables").split(",")
+            schema_partitions[schema] = parser.getint(item, "kafka_partition")
+        return schema_tables, schema_partitions

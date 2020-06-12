@@ -24,6 +24,7 @@ sentry-sdk = "*"
 python-dateutil = "*"
 pydantic = "*"
 sqlparse = "*"
+kafka-python = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

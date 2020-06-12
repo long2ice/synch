@@ -4,12 +4,14 @@ import logging
 import sentry_sdk
 from sentry_sdk.integrations.redis import RedisIntegration
 
+from mysql2ch.brokers.kafka import KafkaBroker
+from mysql2ch.brokers.redis import RedisBroker
 from mysql2ch.common import init_logging
 from mysql2ch.consumer import consume
 from mysql2ch.factory import Global
 from mysql2ch.producer import produce
-from mysql2ch.redis import Redis
 from mysql2ch.replication import make_etl
+from mysql2ch.settings import BrokerType
 
 logger = logging.getLogger("mysql2ch.manage")
 
@@ -18,8 +20,12 @@ def run(args):
     config = args.config
     Global.init(config)
     settings = Global.settings
-    Redis.init(settings=settings)
-
+    broker_type = settings.broker_type
+    if broker_type == BrokerType.redis.value:
+        args.Broker = RedisBroker
+    elif broker_type == BrokerType.kafka.value:
+        args.Broker = KafkaBroker
+    args.Broker.init(settings)
     sentry_sdk.init(
         settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
     )
@@ -61,7 +67,11 @@ def cli():
     parser_consumer.add_argument(
         "--skip-error", action="store_true", default=False, help="Skip error rows."
     )
-    parser_consumer.add_argument("--last-msg-id", required=False, help="Redis stream last msg id.")
+    parser_consumer.add_argument(
+        "--last-msg-id",
+        required=False,
+        help="Redis stream last msg id or kafka msg offset, depend on broker_type in config.",
+    )
     parser_consumer.set_defaults(run=run, func=consume)
 
     parse_args = parser.parse_args()

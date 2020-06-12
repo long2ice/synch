@@ -3,7 +3,6 @@ import signal
 from signal import Signals
 
 from mysql2ch.factory import Global
-from mysql2ch.redis import RedisBroker
 
 logger = logging.getLogger("mysql2ch.consumer")
 
@@ -12,7 +11,7 @@ def consume(args):
     settings = Global.settings
     writer = Global.writer
     reader = Global.reader
-    broker = RedisBroker()
+    broker = args.Broker()
 
     def signal_handler(signum: Signals, handler):
         sig = Signals(signum)
