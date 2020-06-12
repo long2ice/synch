@@ -22,7 +22,8 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 ## Requirements
 
-- [redis](https://redis.io), cache mysql binlog file and position and transfe mysql binlog event, support redis cluster also.
+- [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
+- [kafka](https://kafka.apache.org), need if you use kafka as broker.
 
 ## Install
 
@@ -156,8 +157,7 @@ Consume schema `test` and insert into `ClickHouse`:
 ## Use docker-compose(recommended)
 
 <details>
-<summary><h3>Redis Broker</h3></summary>
-<p>
+<summary>Redis Broker, lightweight and for low concurrency</summary>
 
 ```yaml
 version: "3"
@@ -188,8 +188,7 @@ volumes:
 </details>
 
 <details>
-<summary><h3>Kafka Broker</h3></summary>
-<p>
+<summary>Kafka Broker, for high concurrency</summary>
 
 ```yml
 version: "3"
@@ -251,7 +250,6 @@ volumes:
   zookeeper:
 ```
 
-</p>
 </details>
 
 ## Optional
