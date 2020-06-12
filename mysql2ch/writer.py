@@ -181,10 +181,12 @@ class ClickHouseWriter:
                 del_sql = self.event_primary_key(schema, table, tmp_data, pk)
                 try:
                     self.execute(del_sql)
+
                 except Exception as error:
                     message = f"exec sql error,sql:{del_sql},error:{error}"
                     logger.error(message)
                     return False
+                logger.info(f"{schema}.{table}：success delete {len(tmp_data)} rows")
 
             elif tmp_data[0]["action"] == "insert":
                 schema, table, sql = self.insert_update(tmp_data, schema, table, pk)

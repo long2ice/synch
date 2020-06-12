@@ -34,36 +34,37 @@ def consume(args):
 
     event_list = {}
     is_insert = False
-    last_time = 0
     len_event = 0
 
     logger.info(f"start consumer for {schema} success")
-
-    for msg_id, msg in broker.msgs(schema, last_msg_id=args.last_msg_id):
-        logger.debug(f"msg_id:{msg_id},msg:{msg}")
-        event = msg
-        event_unixtime = event["event_unixtime"] / 10 ** 6
-        table = event["table"]
-        schema = event["schema"]
-        action = event["action"]
-
-        if action == "query":
-            alter_table = True
-            query = event["values"]["query"]
+    for msg_id, msg in broker.msgs(
+        schema, last_msg_id=args.last_msg_id, block=settings.insert_interval * 1000
+    ):
+        if not msg_id:
+            logger.debug(f"block timeout, len of events:{len_event}")
+            if len_event > 0:
+                is_insert = True
+                alter_table = False
+            else:
+                continue
         else:
-            alter_table = False
-            query = None
-            event_list.setdefault(table, []).append(event)
-            len_event += 1
+            logger.debug(f"msg_id:{msg_id},msg:{msg}")
+            event = msg
+            table = event["table"]
+            schema = event["schema"]
+            action = event["action"]
 
-        if last_time == 0:
-            last_time = event_unixtime
+            if action == "query":
+                alter_table = True
+                query = event["values"]["query"]
+            else:
+                alter_table = False
+                query = None
+                event_list.setdefault(table, []).append(event)
+                len_event += 1
 
         if len_event == settings.insert_num:
             is_insert = True
-        else:
-            if event_unixtime - last_time >= settings.insert_interval > 0:
-                is_insert = True
         if is_insert or alter_table:
             data_dict = {}
             events_num = 0
@@ -93,16 +94,16 @@ def consume(args):
 
             if alter_table:
                 try:
-                    logger.info(f"execute query:{query}")
                     writer.execute(query)
+                    logger.info(f"execute query:{query}")
                 except Exception as e:
                     logger.error(f"execute query error,error:{e}")
                     if not skip_error:
                         exit()
 
             broker.commit(schema)
-            logger.info(f"commit success {events_num} events")
-
             event_list = {}
             is_insert = False
-            len_event = last_time = 0
+            len_event = 0
+
+            logger.info(f"success commit {events_num} events")

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mysql2ch"
-version = "0.5.1"
+version = "0.5.2"
 description = "Sync data from MySQL to ClickHouse, support full and increment ETL."
 authors = ["long2ice <long2ice@gmail.com>"]
 license = "MIT"

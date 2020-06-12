@@ -51,12 +51,16 @@ class RedisBroker(Redis):
             maxlen=self.settings.queue_max_len,
         )
 
-    def msgs(self, schema: str, last_msg_id: str = None):
+    def msgs(self, schema: str, last_msg_id: str = None, block: int = None):
         if not last_msg_id:
             self.last_msg_id = self._get_last_msg_id(schema)
         while True:
-            for _, msgs in self.slave.xread({self._get_queue(schema): self.last_msg_id}):
-                for msg_id, msg in msgs:
+            msgs_item = self.slave.xread({self._get_queue(schema): self.last_msg_id}, block=block)
+            if not msgs_item:
+                yield None, msgs_item
+            else:
+                for msg_item in msgs_item[0][1]:
+                    msg_id, msg = msg_item
                     self.last_msg_id = msg_id
                     yield msg_id, json.loads(msg.get("msg"), object_hook=object_hook)
 

@@ -2,6 +2,10 @@
 
 ## 0.5
 
+### 0.5.2
+
+- Fix insert interval block.
+
 ### 0.5.1
 
 - Add queue_max_len config.
