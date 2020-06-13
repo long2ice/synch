@@ -1,5 +1,6 @@
 import logging
 import signal
+import time
 from signal import Signals
 
 from mysql2ch.brokers.redis import RedisLogPos
@@ -37,7 +38,7 @@ def produce(args):
         log_pos = int(log_pos)
 
     logger.info(f"start producer success")
-    count = 0
+    count = last_time = 0
     tables = []
     schema_table = settings.schema_table
     for k, v in schema_table.items():
@@ -59,10 +60,14 @@ def produce(args):
             continue
         broker.send(msg=event, schema=schema)
         pos_handler.set_log_pos_slave(file, pos)
-
-        if count == settings.insert_interval:
-            count = 0
-            logger.info(f"success send {settings.insert_interval} events")
-        count += 1
         logger.debug(f"send to queue success: key:{schema},event:{event}")
         logger.debug(f"success set binlog pos:{file}:{pos}")
+
+        now = int(time.time())
+        count += 1
+
+        if last_time == 0:
+            last_time = now
+        if now - last_time == settings.insert_interval:
+            last_time = count = 0
+            logger.info(f"success send {count} events in {settings.insert_interval} seconds")

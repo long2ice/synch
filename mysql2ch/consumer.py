@@ -6,18 +6,25 @@ from mysql2ch.factory import Global
 
 logger = logging.getLogger("mysql2ch.consumer")
 
+is_stop = False
+is_insert = False
+
 
 def consume(args):
     settings = Global.settings
     writer = Global.writer
     reader = Global.reader
     broker = args.Broker()
+    global is_stop
+    global is_insert
 
     def signal_handler(signum: Signals, handler):
+        global is_stop
+        global is_insert
         sig = Signals(signum)
-        broker.close()
-        logger.info(f"shutdown consumer on {sig.name}")
-        exit()
+        is_stop = True
+        is_insert = True
+        logger.info(f"shutdown consumer on {sig.name}, wait seconds to finish...")
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -32,7 +39,6 @@ def consume(args):
         tables_pk[table] = reader.get_primary_key(schema, table)
 
     event_list = {}
-    is_insert = False
     len_event = 0
 
     logger.info(f"start consumer for {schema} success")
@@ -40,11 +46,17 @@ def consume(args):
         schema, last_msg_id=args.last_msg_id, block=settings.insert_interval * 1000
     ):
         if not msg_id:
-            logger.debug(f"block timeout, len of events:{len_event}")
+            logger.debug(
+                f"block timeout {settings.insert_interval} seconds, len of events:{len_event}"
+            )
             if len_event > 0:
                 is_insert = True
                 alter_table = False
             else:
+                if is_stop:
+                    logger.info("finish success,bye!")
+                    broker.close()
+                    exit()
                 continue
         else:
             logger.debug(f"msg_id:{msg_id},msg:{msg}")
@@ -101,8 +113,11 @@ def consume(args):
                         exit()
 
             broker.commit(schema)
+            logger.info(f"success commit {events_num} events")
             event_list = {}
             is_insert = False
             len_event = 0
-
-            logger.info(f"success commit {events_num} events")
+            if is_stop:
+                logger.info("finish success,bye!")
+                broker.close()
+                exit()

@@ -6,6 +6,7 @@
 
 - Fix insert interval block.
 - Add kafka broker.
+- Add signal to handle stop.
 
 ### 0.5.1
 
