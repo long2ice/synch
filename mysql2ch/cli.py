@@ -4,6 +4,7 @@ import logging
 import sentry_sdk
 from sentry_sdk.integrations.redis import RedisIntegration
 
+from mysql2ch import __version__
 from mysql2ch.brokers.kafka import KafkaBroker
 from mysql2ch.brokers.redis import RedisBroker
 from mysql2ch.common import init_logging
@@ -42,6 +43,13 @@ def cli():
     )
     parser.add_argument(
         "-v", "--verbose", default=False, action="store_true", help="Enable debug mode."
+    )
+    parser.add_argument(
+        "--version",
+        "-V",
+        action="version",
+        version=f"mysql2ch version, {__version__}",
+        help="show the version",
     )
     subparsers = parser.add_subparsers(title="subcommands")
     parser_etl = subparsers.add_parser("etl")
