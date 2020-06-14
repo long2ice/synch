@@ -1,44 +1,12 @@
 import json
 
-import redis
-from redis.sentinel import Sentinel
-
 from mysql2ch.brokers import Broker
 from mysql2ch.common import JsonEncoder, object_hook
-from mysql2ch.settings import Settings
+from mysql2ch.redis import Redis
 
 
-class RedisBroker(Broker):
+class RedisBroker(Redis, Broker):
     last_msg_id: str = "0"
-
-    @classmethod
-    def init(cls, settings: Settings):
-        """
-        init setting and create redis instance
-        """
-        super(RedisBroker, cls).init(settings)
-        if settings.redis_sentinel:
-            sentinel = Sentinel(sentinels=settings.redis_sentinel_hosts,)
-            kwargs = dict(
-                service_name=settings.redis_sentinel_master,
-                password=settings.redis_password,
-                decode_responses=True,
-            )
-            cls.master = sentinel.master_for(**kwargs)
-            cls.slave = sentinel.slave_for(**kwargs)
-        else:
-            pool = redis.ConnectionPool(
-                host=settings.redis_host,
-                port=settings.redis_port,
-                db=settings.redis_db,
-                password=settings.redis_password,
-                decode_responses=True,
-            )
-            cls.master = cls.slave = redis.StrictRedis(connection_pool=pool)
-
-    def close(self):
-        self.master.close()
-        self.slave.close()
 
     def _get_queue(self, schema: str):
         return f"{self.settings.redis_prefix}:schema:{schema}"
@@ -86,39 +54,3 @@ class RedisBroker(Broker):
         :return:
         """
         self.master.hset(self._get_last_msg_id_key(), schema, self.last_msg_id)
-
-
-class RedisLogPos(RedisBroker):
-    def __init__(self):
-        self.server_id = self.settings.mysql_server_id
-        self.key = f"{self.settings.redis_prefix}:binlog:{self.server_id}"
-
-    def set_log_pos_master(
-        self, master_host, master_port, relay_master_log_file, exec_master_log_pos
-    ):
-        self.master.hmset(
-            self.key,
-            {
-                "master_host": master_host,
-                "master_port": master_port,
-                "relay_master_log_file": relay_master_log_file,
-                "exec_master_log_pos": exec_master_log_pos,
-            },
-        )
-
-    def set_log_pos_slave(self, log_file, log_pos):
-        """
-        set binlog pos
-        :param log_file:
-        :param log_pos:
-        :return:
-        """
-        self.master.hmset(self.key, {"log_pos": log_pos, "log_file": log_file})
-
-    def get_log_pos(self):
-        """
-        get binlog pos
-        :return:
-        """
-        log_position = self.slave.hgetall(self.key)
-        return log_position.get("log_file"), log_position.get("log_pos")

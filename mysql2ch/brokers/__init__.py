@@ -4,6 +4,8 @@ from mysql2ch.settings import Settings
 
 
 class Broker:
+    settings: Settings
+
     @classmethod
     @abc.abstractmethod
     def init(cls, settings: Settings):

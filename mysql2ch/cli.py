@@ -1,23 +1,21 @@
 import argparse
-import logging
+import re
 
 import sentry_sdk
 from sentry_sdk.integrations.redis import RedisIntegration
 
-from mysql2ch import __version__
 from mysql2ch.brokers.kafka import KafkaBroker
 from mysql2ch.brokers.redis import RedisBroker
 from mysql2ch.common import init_logging
 from mysql2ch.consumer import consume
 from mysql2ch.factory import Global
 from mysql2ch.producer import produce
+from mysql2ch.redis import Redis
 from mysql2ch.replication import make_etl
 from mysql2ch.settings import BrokerType
 
-logger = logging.getLogger("mysql2ch.manage")
 
-
-def run(args):
+def init(args):
     config = args.config
     Global.init(config)
     settings = Global.settings
@@ -26,13 +24,25 @@ def run(args):
         args.Broker = RedisBroker
     elif broker_type == BrokerType.kafka.value:
         args.Broker = KafkaBroker
+
+    Redis.init(settings)
     args.Broker.init(settings)
+
     sentry_sdk.init(
         settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
     )
 
     init_logging(args.verbose)
 
+
+def version():
+    with open("pyproject.toml") as f:
+        ret = re.findall('version = "(\d+\.\d+\.\d+)"', f.read())
+        return ret[0]
+
+
+def run(args):
+    init(args)
     args.func(args)
 
 
@@ -48,7 +58,7 @@ def cli():
         "--version",
         "-V",
         action="version",
-        version=f"mysql2ch version, {__version__}",
+        version=f"mysql2ch version, {version()}",
         help="show the version",
     )
     subparsers = parser.add_subparsers(title="subcommands")

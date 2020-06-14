@@ -3,7 +3,7 @@ import signal
 import time
 from signal import Signals
 
-from mysql2ch.brokers.redis import RedisLogPos
+from mysql2ch.redis import RedisLogPos
 
 from .factory import Global
 
@@ -15,8 +15,6 @@ def produce(args):
     reader = Global.reader
 
     broker = args.Broker()
-
-    RedisLogPos.init(settings)
     pos_handler = RedisLogPos()
 
     def signal_handler(signum: Signals, handler):
@@ -68,6 +66,6 @@ def produce(args):
 
         if last_time == 0:
             last_time = now
-        if now - last_time == settings.insert_interval:
-            last_time = count = 0
+        if now - last_time >= settings.insert_interval:
             logger.info(f"success send {count} events in {settings.insert_interval} seconds")
+            last_time = count = 0

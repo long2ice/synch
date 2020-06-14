@@ -16,8 +16,6 @@ class Global:
 
     @classmethod
     def init(cls, config):
-        if cls.settings:
-            return
         cls.settings = Settings.parse(config)
         cls.writer = ClickHouseWriter(
             host=cls.settings.clickhouse_host,
