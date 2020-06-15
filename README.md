@@ -37,6 +37,8 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2ch -c` specify config file.
 
+**Don't delete any section in mysql2ch.ini although you don't need it, just keep default as it.**
+
 ```ini
 [core]
 # current support redis and kafka
@@ -251,6 +253,11 @@ volumes:
 ```
 
 </details>
+
+## Limitions
+
+- mysql2ch don't support composite primary key, you need always keep a primary key or unique key.
+- mysql2ch will not support table mapping or column mapping, it aims to make clickhouse as mirror database for mysql, and with realtime replication.
 
 ## Optional
 
