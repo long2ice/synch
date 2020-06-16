@@ -5,6 +5,8 @@
 ### 0.5.3
 
 - Fix full data etl with composite primary key and skip when no primary key.
+- Move `queue_max_len` to redis section.
+- Add `debug` in `mysql2ch.ini` and remove from cli.
 
 ### 0.5.2
 

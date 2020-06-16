@@ -32,12 +32,12 @@ def init(args):
         settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
     )
 
-    init_logging(args.verbose)
+    init_logging(settings.debug)
 
 
 def version():
     with open("pyproject.toml") as f:
-        ret = re.findall('version = "(\d+\.\d+\.\d+)"', f.read())
+        ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
         return ret[0]
 
 
@@ -50,9 +50,6 @@ def cli():
     parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.",)
     parser.add_argument(
         "-c", "--config", required=False, default="./mysql2ch.ini", help="Config file."
-    )
-    parser.add_argument(
-        "-v", "--verbose", default=False, action="store_true", help="Enable debug mode."
     )
     parser.add_argument(
         "--version",

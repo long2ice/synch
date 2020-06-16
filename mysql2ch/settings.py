@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     settings
     """
 
+    debug: bool = False
     environment: str = "development"
     broker_type: BrokerType = "redis"
 
@@ -77,6 +78,7 @@ class Settings(BaseSettings):
             redis_password=redis.get("password"),
             redis_db=int(redis.get("db")),
             redis_prefix=redis.get("prefix"),
+            queue_max_len=int(redis.get("queue_max_len")),
             redis_sentinel=redis.get("sentinel") == "true",
             redis_sentinel_hosts=cls._get_sentinel_hosts(redis.get("sentinel_hosts")),
             redis_sentinel_master=redis.get("sentinel_master"),
@@ -96,8 +98,8 @@ class Settings(BaseSettings):
             skip_dmls=core.get("skip_dmls").split(","),
             insert_num=int(core.get("insert_num")),
             insert_interval=int(core.get("insert_interval")),
-            queue_max_len=int(core.get("queue_max_len")),
             broker_type=BrokerType(core.get("broker_type")),
+            debug=core.get("debug") == "True",
         )
 
     @classmethod
