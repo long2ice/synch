@@ -89,20 +89,21 @@ def consume(args):
 
             for table, v in data_dict.items():
                 tmp_data = []
+                pk = tables_pk.get(table)
+                if isinstance(pk, tuple):
+                    pk = pk[0]
                 for k1, v1 in v.items():
                     events_num += len(v1)
                     tmp_data.append(v1)
-                try:
-                    result = writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
-                    if not result:
-                        logger.error("insert event error")
-                        if not skip_error:
-                            exit()
-                except Exception as e:
-                    logger.error(f"insert event error,error:{e}")
-                    if not skip_error:
-                        exit()
-
+                if skip_error:
+                    try:
+                        result = writer.insert_event(tmp_data, schema, table, pk)
+                        if not result:
+                            logger.error("insert event error")
+                    except Exception as e:
+                        logger.error(f"insert event error,error:{e}")
+                else:
+                    writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
             if alter_table:
                 try:
                     writer.execute(query)

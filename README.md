@@ -42,17 +42,17 @@ mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2c
 ```ini
 [core]
 # current support redis and kafka
-broker_type = kafka
+broker_type = redis
 mysql_server_id = 1
 # redis stream max len, will delete redundant ones with FIFO
 queue_max_len = 200000
 init_binlog_file = binlog.000024
 init_binlog_pos = 252563
-# these tables skip delete,multiple separated with comma
+# these tables skip delete, multiple separated with comma, format with schema.table
 skip_delete_tables =
-# these tables skip update,multiple separated with comma
+# these tables skip update, multiple separated with comma, format with schema.table
 skip_update_tables =
-# skip delete or update dmls,multiple separated with comma
+# skip delete or update dmls, multiple separated with comma, example: delete,update
 skip_dmls =
 # how many num to submit,recommend set 20000 when production
 insert_num = 1
@@ -83,7 +83,7 @@ port = 3306
 user = root
 password = 123456
 
-# sync schema test from mysql
+# sync schema, format with mysql.schema, each schema for one section.
 [mysql.test]
 # multiple separated with comma
 tables = test

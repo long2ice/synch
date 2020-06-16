@@ -49,6 +49,10 @@ class MysqlReader:
         """
         pri_sql = f"select COLUMN_NAME from information_schema.COLUMNS where TABLE_SCHEMA='{db}' and TABLE_NAME='{table}' and COLUMN_KEY='PRI'"
         result = self.execute(pri_sql)
+        if not result:
+            return None
+        if len(result) > 1:
+            return tuple(map(lambda x: x.get("COLUMN_NAME"), result))
         return result[0]["COLUMN_NAME"]
 
     def check_table_exists(self, db, table):

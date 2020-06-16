@@ -40,6 +40,11 @@ def produce(args):
     tables = []
     schema_table = settings.schema_table
     for k, v in schema_table.items():
+        for table in v:
+            pk = reader.get_primary_key(k, table)
+            if not pk or isinstance(pk, tuple):
+                # skip delete and update when no pk and composite pk
+                settings.skip_delete_tables.add(f"{k}.{table}")
         tables += v
     only_schemas = list(schema_table.keys())
     only_tables = list(set(tables))

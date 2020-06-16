@@ -2,6 +2,10 @@
 
 ## 0.5
 
+### 0.5.3
+
+- Fix full data etl with composite primary key and skip when no primary key.
+
 ### 0.5.2
 
 - Fix insert interval block.

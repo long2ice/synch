@@ -46,8 +46,8 @@ class Settings(BaseSettings):
     schema_table: Dict[str, List[str]]
     init_binlog_file: str
     init_binlog_pos: int
-    skip_delete_tables: List[str]
-    skip_update_tables: List[str]
+    skip_delete_tables: Set[str]
+    skip_update_tables: Set[str]
     skip_dmls: List[str]
     insert_num: int = 20000
     insert_interval: int = 60
@@ -91,8 +91,8 @@ class Settings(BaseSettings):
             schema_table=schema_tables,
             init_binlog_file=core.get("init_binlog_file"),
             init_binlog_pos=int(core.get("init_binlog_pos")),
-            skip_delete_tables=core.get("skip_delete_tables").split(","),
-            skip_update_tables=core.get("skip_update_tables").split(","),
+            skip_delete_tables=set(core.get("skip_delete_tables").split(",")),
+            skip_update_tables=set(core.get("skip_update_tables").split(",")),
             skip_dmls=core.get("skip_dmls").split(","),
             insert_num=int(core.get("insert_num")),
             insert_interval=int(core.get("insert_interval")),
