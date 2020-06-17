@@ -33,6 +33,14 @@ class MysqlReader:
             charset="utf8",
         )
 
+    def get_binlog_pos(self):
+        """
+        get binlog pos from master
+        """
+        sql = "show master status"
+        result = self.execute(sql)[0]
+        return result.get("File"), result.get("Position")
+
     def execute(self, sql):
         logger.debug(sql)
         with self.conn.cursor() as cursor:

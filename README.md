@@ -41,13 +41,15 @@ mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2c
 
 ```ini
 [core]
+# when set True, will display sql information.
+debug = True
 # current support redis and kafka
 broker_type = redis
 mysql_server_id = 1
-# redis stream max len, will delete redundant ones with FIFO
-queue_max_len = 200000
-init_binlog_file = binlog.000024
-init_binlog_pos = 252563
+# optional, read from `show master status` result if empty
+init_binlog_file =
+# optional, read from `show master status` result if empty
+init_binlog_pos =
 # these tables skip delete, multiple separated with comma, format with schema.table
 skip_delete_tables =
 # these tables skip update, multiple separated with comma, format with schema.table
@@ -58,6 +60,8 @@ skip_dmls =
 insert_num = 1
 # how many seconds to submit,recommend set 60 when production
 insert_interval = 1
+# auto do full etl at first when table not exists
+auto_full_etl = True
 
 [sentry]
 # sentry environment
@@ -76,9 +80,11 @@ sentinel = false
 # redis sentinel hosts,multiple separated with comma
 sentinel_hosts = 127.0.0.1:5000,127.0.0.1:5001,127.0.0.1:5002
 sentinel_master = master
+# stream max len, will delete redundant ones with FIFO
+queue_max_len = 200000
 
 [mysql]
-host = 127.0.0.1
+host = mysql
 port = 3306
 user = root
 password = 123456
@@ -135,7 +141,7 @@ Listen all MySQL binlog and produce to broker.
 
 ### Consume
 
-Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`.
+Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And mysql2ch will do full etl at first when set `auto_full_etl = True` in `mysql2ch.ini`.
 
 ```shell
 > mysql2ch consume -h

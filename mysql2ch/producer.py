@@ -31,9 +31,10 @@ def produce(args):
     if not (log_file and log_pos):
         log_file = settings.init_binlog_file
         log_pos = settings.init_binlog_pos
+        if not (log_file and log_pos):
+            log_file, log_pos = reader.get_binlog_pos()
         pos_handler.set_log_pos_slave(log_file, log_pos)
-    else:
-        log_pos = int(log_pos)
+    log_pos = int(log_pos)
 
     logger.info(f"start producer success")
     count = last_time = 0

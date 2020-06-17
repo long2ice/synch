@@ -3,6 +3,7 @@ import signal
 from signal import Signals
 
 from mysql2ch.factory import Global
+from mysql2ch.replication import etl_full
 
 logger = logging.getLogger("mysql2ch.consumer")
 
@@ -33,6 +34,9 @@ def consume(args):
     skip_error = args.skip_error
 
     tables = settings.schema_table.get(schema)
+    # try etl full
+    if settings.auto_full_etl:
+        etl_full(schema, tables)
 
     tables_pk = {}
     for table in tables:
@@ -54,7 +58,7 @@ def consume(args):
                 alter_table = False
             else:
                 if is_stop:
-                    logger.info("finish success,bye!")
+                    logger.info("finish success, bye!")
                     broker.close()
                     exit()
                 continue

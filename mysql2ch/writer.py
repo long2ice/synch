@@ -13,8 +13,13 @@ logger = logging.getLogger("mysql2ch.writer")
 
 
 class ClickHouseWriter:
-    def __init__(self, host="127.0.0.1", port="8123", user="default", password=None):
+    def __init__(self, host="127.0.0.1", port="9000", user="default", password=""):
         self._client = clickhouse_driver.Client(host=host, port=port, user=user, password=password)
+
+    def table_exists(self, schema: str, table: str):
+        sql = f"select count(*)from system.tables where database = '{schema}' and name = '{table}'"
+        ret = self.execute(sql)[0][0]
+        return bool(ret)
 
     def execute(self, sql, params=None, *args, **kwargs):
         log_sql = sql

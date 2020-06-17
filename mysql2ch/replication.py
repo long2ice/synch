@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from mysql2ch.factory import Global
 
@@ -12,15 +13,16 @@ def make_etl(args):
     etl_full(schema, tables, renew)
 
 
-def etl_full(schema, tables, renew=False):
+def etl_full(schema, tables: List[str] = None, renew=False):
+    """
+    etl full data
+    """
     reader = Global.reader
     writer = Global.writer
     settings = Global.settings
-
     if not tables:
-        tables = Global.settings.schema_table.get(schema)
-    else:
-        tables = tables.split(",")
+        tables = settings.schema_table.get(schema)
+
     for table in tables:
         pk = reader.get_primary_key(schema, table)
         if not pk:
@@ -35,7 +37,8 @@ def etl_full(schema, tables, renew=False):
                 logger.info(f"drop table success:{schema}.{table}")
             except Exception as e:
                 logger.warning(f"Try to drop table {schema}.{table} fail")
-        sql = f"CREATE TABLE {schema}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{settings.mysql_host}:{settings.mysql_port}', '{schema}', '{table}', '{settings.mysql_user}', '{settings.mysql_password}')"
-        writer.execute(sql)
-        writer.fix_table_column_type(reader, schema, table)
-        logger.info(f"etl success:{schema}.{table}")
+        if not writer.table_exists(schema, table):
+            sql = f"CREATE TABLE {schema}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{settings.mysql_host}:{settings.mysql_port}', '{schema}', '{table}', '{settings.mysql_user}', '{settings.mysql_password}')"
+            writer.execute(sql)
+            writer.fix_table_column_type(reader, schema, table)
+            logger.info(f"etl success:{schema}.{table}")

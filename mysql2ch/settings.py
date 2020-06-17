@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     insert_num: int = 20000
     insert_interval: int = 60
     queue_max_len: int = 200000
+    auto_full_etl: bool = True
 
     @classmethod
     def parse(cls, path: str) -> "Settings":
@@ -92,7 +93,7 @@ class Settings(BaseSettings):
             mysql_server_id=int(core.get("mysql_server_id")),
             schema_table=schema_tables,
             init_binlog_file=core.get("init_binlog_file"),
-            init_binlog_pos=int(core.get("init_binlog_pos")),
+            init_binlog_pos=int(core.get("init_binlog_pos") or 0),
             skip_delete_tables=set(core.get("skip_delete_tables").split(",")),
             skip_update_tables=set(core.get("skip_update_tables").split(",")),
             skip_dmls=core.get("skip_dmls").split(","),
@@ -100,6 +101,7 @@ class Settings(BaseSettings):
             insert_interval=int(core.get("insert_interval")),
             broker_type=BrokerType(core.get("broker_type")),
             debug=core.get("debug") == "True",
+            auto_full_etl=core.get("auto_full_etl") == "True",
         )
 
     @classmethod
