@@ -273,6 +273,24 @@ volumes:
 
 <img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/qq_group.png"/>
 
+## Support this project
+
+- Just give a star!
+- Join QQ group for communication.
+- Donation.
+
+### AliPay
+
+![alipay](https://github.com/long2ice/mysql2ch/raw/dev/images/alipay.jepg)
+
+### WeChat Pay
+
+![wechatpay](https://github.com/long2ice/mysql2ch/raw/dev/images/wechatpay.jepg)
+
+### PayPal
+
+Donate money by [paypal](https://www.paypal.me/long2ice) to my account long2ice.
+
 ## ThanksTo
 
 Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=mysql2ch) from [Jetbrains](https://www.jetbrains.com/?from=mysql2ch).
