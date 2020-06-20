@@ -281,11 +281,11 @@ volumes:
 
 ### AliPay
 
-![alipay](https://github.com/long2ice/mysql2ch/raw/dev/images/alipay.jepg)
+<img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/alipay.jpeg"/>
 
 ### WeChat Pay
 
-![wechatpay](https://github.com/long2ice/mysql2ch/raw/dev/images/wechatpay.jepg)
+<img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/wechatpay.jpeg"/>
 
 ### PayPal
 
