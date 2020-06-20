@@ -299,4 +299,4 @@ Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=mysql2ch) 
 
 ## License
 
-This project is licensed under the [MIT](https://github.com/long2ice/mysql2ch/blob/master/LICENSE) License.
+This project is licensed under the [Apache-2.0](https://github.com/long2ice/mysql2ch/blob/master/LICENSE) License.
