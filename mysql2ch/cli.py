@@ -36,9 +36,11 @@ def init(args):
 
 
 def version():
-    with open("pyproject.toml") as f:
-        ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
-        return ret[0]
+    # wait poetry fix up: https://github.com/python-poetry/poetry/issues/1338
+    # with open("pyproject.toml") as f:
+    #     ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
+    #     return ret[0]
+    return "0.5.4"
 
 
 def run(args):
