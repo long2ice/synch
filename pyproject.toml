@@ -12,7 +12,7 @@ keywords = ["MySQL", "ClickHouse", "Sync"]
 packages = [
     { include = "mysql2ch" }
 ]
-include = ["CHANGELOG.md", "LICENSE", "README.md"]
+include = ["CHANGELOG.md", "LICENSE", "README.md", "pyproject.toml"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
