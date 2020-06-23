@@ -2,12 +2,16 @@
 
 ## 0.5
 
+### 0.5.4
+
+- Fix sql covert to clickhouse.
+
 ### 0.5.3
 
 - Fix full data etl with composite primary key and skip when no primary key.
 - Move `queue_max_len` to redis section.
 - Add `debug` in `mysql2ch.ini` and remove from cli.
-- Add `auto_full_etl` in `mysql2ch.ini`. 
+- Add `auto_full_etl` in `mysql2ch.ini`.
 
 ### 0.5.2
 

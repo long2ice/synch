@@ -106,8 +106,10 @@ class MysqlReader:
             if isinstance(binlog_event, QueryEvent):
                 schema = binlog_event.schema.decode()
                 query = binlog_event.query.lower()
+                if "alter" not in query:
+                    continue
                 convent_sql = SqlConvert.to_clickhouse(schema, query)
-                if "alter" not in query or not convent_sql:
+                if not convent_sql:
                     continue
                 event = {
                     "table": None,
