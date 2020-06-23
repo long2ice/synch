@@ -5,6 +5,7 @@
 ### 0.5.4
 
 - Fix sql covert to clickhouse.
+- Fix delete bug.
 
 ### 0.5.3
 

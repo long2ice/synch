@@ -110,10 +110,8 @@ class ClickHouseWriter:
         if value_num == 1:
             del_sql = "alter table {0}.{1} delete where {2}".format(schema, table, tmp_sql)
             del_sql = del_sql.replace(",", "")
-            del_sql = del_sql.replace("L", "")
         else:
             del_sql = "alter table {0}.{1} delete where {2}".format(schema, table, tmp_sql)
-            del_sql = del_sql.replace("L", "")
         return del_sql
 
     # 把解析以后的binlog内容拼接成sql入库到ch里面
