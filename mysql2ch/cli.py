@@ -4,8 +4,8 @@ import re
 import sentry_sdk
 from sentry_sdk.integrations.redis import RedisIntegration
 
-from mysql2ch.brokers.kafka import KafkaBroker
-from mysql2ch.brokers.redis import RedisBroker
+from mysql2ch.broker.kafka import KafkaBroker
+from mysql2ch.broker.redis import RedisBroker
 from mysql2ch.common import init_logging
 from mysql2ch.consumer import consume
 from mysql2ch.factory import Global

@@ -4,7 +4,7 @@ import logging
 from kafka import KafkaAdminClient, KafkaConsumer, KafkaProducer, TopicPartition
 from kafka.admin import NewPartitions
 
-from mysql2ch.brokers import Broker
+from mysql2ch.broker import Broker
 from mysql2ch.common import JsonEncoder, object_hook
 from mysql2ch.settings import Settings
 

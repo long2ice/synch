@@ -1,6 +1,7 @@
 from typing import Optional
 
-from mysql2ch.reader import MysqlReader
+from MySQLdb.cursors import DictCursor
+from mysql2ch.reader import Reader
 from mysql2ch.settings import Settings
 from mysql2ch.writer import ClickHouseWriter
 
@@ -11,7 +12,7 @@ class Global:
     """
 
     settings: Optional[Settings] = None
-    reader: Optional[MysqlReader] = None
+    reader: Optional[Reader] = None
     writer: Optional[ClickHouseWriter] = None
 
     @classmethod
@@ -23,9 +24,12 @@ class Global:
             password=cls.settings.clickhouse_password,
             user=cls.settings.clickhouse_user,
         )
-        cls.reader = MysqlReader(
+        cls.reader = Reader(
             host=cls.settings.mysql_host,
             port=cls.settings.mysql_port,
             password=cls.settings.mysql_password,
             user=cls.settings.mysql_user,
+            connect_timeout=5,
+            cursorclass=DictCursor,
+            charset="utf8",
         )

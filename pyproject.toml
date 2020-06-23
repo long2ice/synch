@@ -25,6 +25,7 @@ python-dateutil = "*"
 pydantic = "*"
 sqlparse = "*"
 kafka-python = "*"
+psycopg2 = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

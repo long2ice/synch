@@ -1,39 +1,34 @@
 import datetime
 import logging
 import time
-from copy import deepcopy
+from typing import Union, Tuple
 
 import MySQLdb
-from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.event import QueryEvent
 from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
-from mysql2ch.common import complex_decode
 from mysql2ch.convert import SqlConvert
+from mysql2ch.reader import Reader
 
 logger = logging.getLogger("mysql2ch.reader")
 
 
-class MysqlReader:
+class Mysql(Reader):
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
 
-    def __init__(self, host="127.0.0.1", port=3306, user="root", password=None):
-        self.password = password
-        self.user = user
-        self.port = int(port)
-        self.host = host
+    def __init__(self, host="127.0.0.1", port=3306, user="root", password=None, **extra):
+        super().__init__(host, port, user, password, **extra)
         self.conn = MySQLdb.connect(
             host=self.host,
             port=self.port,
             user=self.user,
             passwd=self.password,
-            connect_timeout=5,
-            cursorclass=DictCursor,
-            charset="utf8",
+            **self.extra
         )
+        self.cursor = self.conn.cursor()
 
-    def get_binlog_pos(self):
+    def get_binlog_pos(self) -> Tuple[str, str]:
         """
         get binlog pos from master
         """
@@ -41,14 +36,7 @@ class MysqlReader:
         result = self.execute(sql)[0]
         return result.get("File"), result.get("Position")
 
-    def execute(self, sql):
-        logger.debug(sql)
-        with self.conn.cursor() as cursor:
-            cursor.execute(sql)
-            result = cursor.fetchall()
-        return result
-
-    def get_primary_key(self, db, table):
+    def get_primary_key(self, db, table) -> Union[None, str, Tuple[str, ...]]:
         """
         get pk
         :param db:
@@ -63,27 +51,16 @@ class MysqlReader:
             return tuple(map(lambda x: x.get("COLUMN_NAME"), result))
         return result[0]["COLUMN_NAME"]
 
-    def check_table_exists(self, db, table):
-        sql = f"select count(*) as count from information_schema.tables where TABLE_SCHEMA='{db}' and TABLE_NAME='{table}'"
-        result = self.execute(sql)
-        return result[0]["count"]
-
-    def convert_values(self, values):
-        cp_values = deepcopy(values)
-        for k, v in values.items():
-            cp_values[k] = complex_decode(v)
-        return cp_values
-
     def binlog_reading(
-        self,
-        server_id,
-        only_tables,
-        only_schemas,
-        log_file,
-        log_pos,
-        skip_dmls,
-        skip_update_tables,
-        skip_delete_tables,
+            self,
+            server_id,
+            only_tables,
+            only_schemas,
+            log_file,
+            log_pos,
+            skip_dmls,
+            skip_update_tables,
+            skip_delete_tables,
     ):
         logger.info("start sync at %s" % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         logger.info(f"mysql binlog: {log_file}:{log_pos}")
