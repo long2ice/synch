@@ -1,32 +1,46 @@
 import datetime
 import logging
+import signal
 import time
-from typing import Union, Tuple
+from signal import Signals
+from typing import Generator, Tuple, Union
 
 import MySQLdb
+from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.event import QueryEvent
 from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
+from mysql2ch.broker import Broker
 from mysql2ch.convert import SqlConvert
 from mysql2ch.reader import Reader
+from mysql2ch.redis import RedisLogPos
+from mysql2ch.settings import Settings
 
-logger = logging.getLogger("mysql2ch.reader")
+logger = logging.getLogger("mysql2ch.reader.mysql")
 
 
 class Mysql(Reader):
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
 
-    def __init__(self, host="127.0.0.1", port=3306, user="root", password=None, **extra):
-        super().__init__(host, port, user, password, **extra)
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
         self.conn = MySQLdb.connect(
-            host=self.host,
-            port=self.port,
-            user=self.user,
-            passwd=self.password,
-            **self.extra
+            host=self.settings.mysql_host,
+            port=self.settings.mysql_port,
+            user=self.settings.mysql_user,
+            password=self.settings.mysql_password,
+            connect_timeout=5,
+            cursorclass=DictCursor,
+            charset="utf8",
         )
         self.cursor = self.conn.cursor()
+        self.pos_handler = RedisLogPos(settings)
+
+    def execute(self, sql, args=None):
+        logger.debug(sql)
+        self.cursor.execute(sql, args)
+        return self.cursor.fetchall()
 
     def get_binlog_pos(self) -> Tuple[str, str]:
         """
@@ -51,22 +65,84 @@ class Mysql(Reader):
             return tuple(map(lambda x: x.get("COLUMN_NAME"), result))
         return result[0]["COLUMN_NAME"]
 
-    def binlog_reading(
+    def start_sync(self, broker: Broker):
+        settings = self.settings
+
+        def signal_handler(signum: Signals, handler):
+            sig = Signals(signum)
+            log_f, log_p = self.pos_handler.get_log_pos()
+            broker.close()
+            logger.info(f"shutdown producer on {sig.name}, current position: {log_f}:{log_p}")
+            exit()
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        log_file, log_pos = self.pos_handler.get_log_pos()
+        if not (log_file and log_pos):
+            log_file = settings.init_binlog_file
+            log_pos = settings.init_binlog_pos
+            if not (log_file and log_pos):
+                log_file, log_pos = self.get_binlog_pos()
+            self.pos_handler.set_log_pos_slave(log_file, log_pos)
+
+        log_pos = int(log_pos)
+        logger.info(f"mysql binlog: {log_file}:{log_pos}")
+
+        count = last_time = 0
+        tables = []
+        schema_table = settings.schema_table
+        for k, v in schema_table.items():
+            for table in v:
+                pk = self.get_primary_key(k, table)
+                if not pk or isinstance(pk, tuple):
+                    # skip delete and update when no pk and composite pk
+                    settings.skip_delete_tables.add(f"{k}.{table}")
+            tables += v
+        only_schemas = list(schema_table.keys())
+        only_tables = list(set(tables))
+        for schema, table, event, file, pos in self._binlog_reading(
+                only_tables=only_tables,
+                only_schemas=only_schemas,
+                log_file=log_file,
+                log_pos=log_pos,
+                server_id=settings.mysql_server_id,
+                skip_dmls=settings.skip_dmls,
+                skip_delete_tables=settings.skip_delete_tables,
+                skip_update_tables=settings.skip_update_tables,
+        ):
+            if not schema_table.get(schema) or (table and table not in schema_table.get(schema)):
+                continue
+            broker.send(msg=event, schema=schema)
+            self.pos_handler.set_log_pos_slave(file, pos)
+            logger.debug(f"send to queue success: key:{schema},event:{event}")
+            logger.debug(f"success set binlog pos:{file}:{pos}")
+
+            now = int(time.time())
+            count += 1
+
+            if last_time == 0:
+                last_time = now
+            if now - last_time >= settings.insert_interval:
+                logger.info(f"success send {count} events in {settings.insert_interval} seconds")
+                last_time = count = 0
+
+    def _binlog_reading(
             self,
-            server_id,
             only_tables,
             only_schemas,
             log_file,
             log_pos,
+            server_id,
             skip_dmls,
-            skip_update_tables,
             skip_delete_tables,
-    ):
-        logger.info("start sync at %s" % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-        logger.info(f"mysql binlog: {log_file}:{log_pos}")
+            skip_update_tables,
+    ) -> Generator:
         stream = BinLogStreamReader(
             connection_settings=dict(
-                host=self.host, port=self.port, user=self.user, passwd=self.password
+                host=self.settings.mysql_host,
+                port=self.settings.mysql_port,
+                user=self.settings.mysql_user,
+                passwd=self.settings.mysql_password,
             ),
             resume_stream=True,
             blocking=True,

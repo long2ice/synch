@@ -10,6 +10,11 @@ class BrokerType(str, Enum):
     kafka = "kafka"
 
 
+class SourceDatabase(str, Enum):
+    mysql = "mysql"
+    postgres = "postgres"
+
+
 class Settings(BaseSettings):
     """
     settings
@@ -18,12 +23,18 @@ class Settings(BaseSettings):
     debug: bool = False
     environment: str = "development"
     broker_type: BrokerType = "redis"
+    source_db: SourceDatabase = SourceDatabase.mysql
 
     mysql_host: str = "127.0.0.1"
     mysql_port: int = 3306
     mysql_user: str = "root"
     mysql_password: str = "123456"
     mysql_server_id: int = 1
+
+    postgres_host: str = "127.0.0.1"
+    postgres_port: int = 5432
+    postgres_user: str = "postgres"
+    postgres_password: str = "postgres"
 
     redis_host: str = "127.0.0.1"
     redis_port: int = 6379
@@ -62,10 +73,12 @@ class Settings(BaseSettings):
         sentry = parser["sentry"]
         redis = parser["redis"]
         mysql = parser["mysql"]
+        postgres = parser["postgres"]
         clickhouse = parser["clickhouse"]
         kafka = parser["kafka"]
         core = parser["core"]
-        schema_tables, partitions = cls._get_schemas(parser)
+        source_db = SourceDatabase(parser.get("core", "source_db"))
+        schema_tables, partitions = cls._get_schemas(source_db, parser)
 
         return cls(
             environment=sentry.get("environment"),
@@ -74,6 +87,13 @@ class Settings(BaseSettings):
             mysql_port=int(mysql.get("port")),
             mysql_user=mysql.get("user"),
             mysql_password=mysql.get("password"),
+            init_binlog_file=mysql.get("init_binlog_file"),
+            init_binlog_pos=int(mysql.get("init_binlog_pos") or 0),
+            mysql_server_id=int(mysql.get("server_id")),
+            postgres_host=postgres.get("host"),
+            postgres_port=int(postgres.get("port")),
+            postgres_user=postgres.get("user"),
+            postgres_password=postgres.get("password"),
             redis_host=redis.get("host"),
             redis_port=int(redis.get("port")),
             redis_password=redis.get("password"),
@@ -90,10 +110,7 @@ class Settings(BaseSettings):
             clickhouse_port=int(clickhouse.get("port")),
             clickhouse_user=clickhouse.get("user"),
             clickhouse_password=clickhouse.get("password"),
-            mysql_server_id=int(core.get("mysql_server_id")),
             schema_table=schema_tables,
-            init_binlog_file=core.get("init_binlog_file"),
-            init_binlog_pos=int(core.get("init_binlog_pos") or 0),
             skip_delete_tables=set(core.get("skip_delete_tables").split(",")),
             skip_update_tables=set(core.get("skip_update_tables").split(",")),
             skip_dmls=core.get("skip_dmls").split(","),
@@ -102,6 +119,7 @@ class Settings(BaseSettings):
             broker_type=BrokerType(core.get("broker_type")),
             debug=core.get("debug") == "True",
             auto_full_etl=core.get("auto_full_etl") == "True",
+            source_db=source_db,
         )
 
     @classmethod
@@ -114,12 +132,12 @@ class Settings(BaseSettings):
 
     @classmethod
     def _get_schemas(
-        cls, parser: configparser.ConfigParser
+        cls, source_db, parser: configparser.ConfigParser
     ) -> Tuple[Dict[str, List[str]], Dict[str, int]]:
         schema_tables = {}
         schema_partitions = {}
-        for item in filter(lambda x: x.startswith("mysql."), parser.sections()):
-            schema = item.split("mysql.")[-1]
+        for item in filter(lambda x: x.startswith(f"{source_db}."), parser.sections()):
+            schema = item.split(f"{source_db}.")[-1]
             schema_tables[schema] = parser.get(item, "tables").split(",")
             schema_partitions[schema] = parser.getint(item, "kafka_partition")
         return schema_tables, schema_partitions

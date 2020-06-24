@@ -3,9 +3,9 @@ import signal
 from signal import Signals
 
 from mysql2ch.factory import Global
-from mysql2ch.replication import etl_full
+from mysql2ch.replication.etl import etl_full
 
-logger = logging.getLogger("mysql2ch.consumer")
+logger = logging.getLogger("mysql2ch.replication.consumer")
 
 is_stop = False
 is_insert = False
@@ -15,7 +15,7 @@ def consume(args):
     settings = Global.settings
     writer = Global.writer
     reader = Global.reader
-    broker = args.Broker()
+    broker = Global.broker
     global is_stop
     global is_insert
 

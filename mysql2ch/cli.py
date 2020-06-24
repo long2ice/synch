@@ -1,38 +1,9 @@
 import argparse
-import re
 
-import sentry_sdk
-from sentry_sdk.integrations.redis import RedisIntegration
-
-from mysql2ch.broker.kafka import KafkaBroker
-from mysql2ch.broker.redis import RedisBroker
-from mysql2ch.common import init_logging
-from mysql2ch.consumer import consume
-from mysql2ch.factory import Global
-from mysql2ch.producer import produce
-from mysql2ch.redis import Redis
-from mysql2ch.replication import make_etl
-from mysql2ch.settings import BrokerType
-
-
-def init(args):
-    config = args.config
-    Global.init(config)
-    settings = Global.settings
-    broker_type = settings.broker_type
-    if broker_type == BrokerType.redis.value:
-        args.Broker = RedisBroker
-    elif broker_type == BrokerType.kafka.value:
-        args.Broker = KafkaBroker
-
-    Redis.init(settings)
-    args.Broker.init(settings)
-
-    sentry_sdk.init(
-        settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
-    )
-
-    init_logging(settings.debug)
+from mysql2ch import init
+from mysql2ch.replication.consumer import consume
+from mysql2ch.replication.etl import make_etl
+from mysql2ch.replication.producer import produce
 
 
 def version():
@@ -44,12 +15,12 @@ def version():
 
 
 def run(args):
-    init(args)
+    init(args.config)
     args.func(args)
 
 
 def cli():
-    parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.",)
+    parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.", )
     parser.add_argument(
         "-c", "--config", required=False, default="./mysql2ch.ini", help="Config file."
     )

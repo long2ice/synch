@@ -6,10 +6,8 @@ from mysql2ch.settings import Settings
 class Broker:
     settings: Settings
 
-    @classmethod
-    @abc.abstractmethod
-    def init(cls, settings: Settings):
-        cls.settings = settings
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     @abc.abstractmethod
     def send(self, schema: str, msg: dict):

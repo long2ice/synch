@@ -1,7 +1,6 @@
 import datetime
 import json
 import logging
-import sys
 from decimal import Decimal
 
 import dateutil.parser
@@ -13,28 +12,6 @@ CONVERTERS = {
     "datetime": dateutil.parser.parse,
     "decimal": Decimal,
 }
-
-
-def init_logging(debug):
-    """
-    init logging config
-    :param debug:
-    :return:
-    """
-    base_logger = logging.getLogger("mysql2ch")
-    if debug:
-        base_logger.setLevel(logging.DEBUG)
-    else:
-        base_logger.setLevel(logging.INFO)
-    sh = logging.StreamHandler(sys.stdout)
-    sh.setLevel(logging.DEBUG)
-    sh.setFormatter(
-        logging.Formatter(
-            fmt="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-    )
-    base_logger.addHandler(sh)
 
 
 def complex_decode(xs):

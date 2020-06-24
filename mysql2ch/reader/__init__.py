@@ -1,22 +1,19 @@
 import abc
 import logging
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import Generator, Tuple, Union
 
+from mysql2ch.broker import Broker
 from mysql2ch.common import complex_decode
+from mysql2ch.settings import Settings
 
 logger = logging.getLogger("mysql2ch.reader")
 
 
 class Reader:
-    cursor = None
 
-    def __init__(self, host: str, port: int, user: str, password: str, **extra):
-        self.password = password
-        self.user = user
-        self.port = port
-        self.host = host
-        self.extra = extra
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     def convert_values(self, values):
         cp_values = deepcopy(values)
@@ -24,19 +21,10 @@ class Reader:
             cp_values[k] = complex_decode(v)
         return cp_values
 
-    def execute(self, sql, args=None):
-        logger.debug(sql)
-        self.cursor.execute(sql, args)
-        return self.cursor.fetchall()
-
-    @abc.abstractmethod
-    def get_binlog_pos(self) -> Tuple[str, str]:
-        raise NotImplementedError
-
     @abc.abstractmethod
     def get_primary_key(self, db: str, table: str) -> Union[None, str, Tuple[str, ...]]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def start_replication(self):
+    def start_sync(self, broker: Broker):
         raise NotImplementedError

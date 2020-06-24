@@ -6,10 +6,9 @@ import re
 
 import clickhouse_driver
 
-from .common import JsonEncoder
-from .reader import MysqlReader
+from mysql2ch.common import JsonEncoder
 
-logger = logging.getLogger("mysql2ch.writer")
+logger = logging.getLogger("mysql2ch.replication.clickhouse")
 
 
 class ClickHouseWriter:
@@ -28,7 +27,7 @@ class ClickHouseWriter:
         logger.debug(log_sql)
         return self._client.execute(sql, params=params, *args, **kwargs)
 
-    def fix_table_column_type(self, reader: MysqlReader, database, table):
+    def fix_table_column_type(self, reader, database, table):
         """
         fix table column type in full etl
         :return:

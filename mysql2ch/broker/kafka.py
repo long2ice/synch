@@ -15,20 +15,17 @@ class KafkaBroker(Broker):
     consumer: KafkaConsumer = None
     producer: KafkaProducer = None
 
-    @classmethod
-    def init(cls, settings: Settings):
-        super(KafkaBroker, cls).init(settings)
-
-        cls.producer = KafkaProducer(
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
+        self.producer = KafkaProducer(
             bootstrap_servers=settings.kafka_servers,
             value_serializer=lambda x: json.dumps(x, cls=JsonEncoder).encode(),
             key_serializer=lambda x: x.encode(),
-            partitioner=cls._partitioner,
+            partitioner=self._partitioner,
         )
-        cls._init_partitions(settings)
+        self._init_partitions()
 
-    @classmethod
-    def _partitioner(cls, key_bytes, all_partitions, available_partitions):
+    def _partitioner(self, key_bytes, all_partitions, available_partitions):
         """
         custom partitioner depend on settings
         :param key_bytes:
@@ -37,7 +34,7 @@ class KafkaBroker(Broker):
         :return:
         """
         key = key_bytes.decode()
-        partition = cls.settings.kafka_partitions.get(key)
+        partition = self.settings.kafka_partitions.get(key)
         return all_partitions[partition]
 
     def close(self):
@@ -73,8 +70,8 @@ class KafkaBroker(Broker):
     def commit(self, schema: str = None):
         self.consumer.commit()
 
-    @classmethod
-    def _init_partitions(cls, settings: Settings):
+    def _init_partitions(self):
+        settings = self.settings
         client = KafkaAdminClient(bootstrap_servers=settings.kafka_servers,)
         try:
             client.create_partitions(

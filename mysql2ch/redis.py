@@ -9,12 +9,11 @@ class Redis:
     master: redis.Redis
     slave: redis.Redis
 
-    @classmethod
-    def init(cls, settings: Settings):
+    def __init__(self, settings: Settings):
         """
         init setting and create redis instance
         """
-        cls.settings = settings
+        self.settings = settings
         if settings.redis_sentinel:
             sentinel = Sentinel(sentinels=settings.redis_sentinel_hosts,)
             kwargs = dict(
@@ -22,8 +21,8 @@ class Redis:
                 password=settings.redis_password,
                 decode_responses=True,
             )
-            cls.master = sentinel.master_for(**kwargs)
-            cls.slave = sentinel.slave_for(**kwargs)
+            self.master = sentinel.master_for(**kwargs)
+            self.slave = sentinel.slave_for(**kwargs)
         else:
             pool = redis.ConnectionPool(
                 host=settings.redis_host,
@@ -32,7 +31,7 @@ class Redis:
                 password=settings.redis_password,
                 decode_responses=True,
             )
-            cls.master = cls.slave = redis.StrictRedis(connection_pool=pool)
+            self.master = self.slave = redis.StrictRedis(connection_pool=pool)
 
     def close(self):
         self.master.close()
@@ -40,7 +39,8 @@ class Redis:
 
 
 class RedisLogPos(Redis):
-    def __init__(self,):
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
         self.server_id = self.settings.mysql_server_id
         self.pos_key = f"{self.settings.redis_prefix}:binlog:{self.server_id}"
 

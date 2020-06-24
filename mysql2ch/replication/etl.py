@@ -3,7 +3,7 @@ from typing import List
 
 from mysql2ch.factory import Global
 
-logger = logging.getLogger("mysql2ch.replication")
+logger = logging.getLogger("mysql2ch.replication.etl")
 
 
 def make_etl(args):
