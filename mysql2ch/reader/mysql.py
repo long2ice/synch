@@ -1,4 +1,3 @@
-import datetime
 import logging
 import signal
 import time
@@ -36,11 +35,6 @@ class Mysql(Reader):
         )
         self.cursor = self.conn.cursor()
         self.pos_handler = RedisLogPos(settings)
-
-    def execute(self, sql, args=None):
-        logger.debug(sql)
-        self.cursor.execute(sql, args)
-        return self.cursor.fetchall()
 
     def get_binlog_pos(self) -> Tuple[str, str]:
         """
@@ -101,14 +95,14 @@ class Mysql(Reader):
         only_schemas = list(schema_table.keys())
         only_tables = list(set(tables))
         for schema, table, event, file, pos in self._binlog_reading(
-                only_tables=only_tables,
-                only_schemas=only_schemas,
-                log_file=log_file,
-                log_pos=log_pos,
-                server_id=settings.mysql_server_id,
-                skip_dmls=settings.skip_dmls,
-                skip_delete_tables=settings.skip_delete_tables,
-                skip_update_tables=settings.skip_update_tables,
+            only_tables=only_tables,
+            only_schemas=only_schemas,
+            log_file=log_file,
+            log_pos=log_pos,
+            server_id=settings.mysql_server_id,
+            skip_dmls=settings.skip_dmls,
+            skip_delete_tables=settings.skip_delete_tables,
+            skip_update_tables=settings.skip_update_tables,
         ):
             if not schema_table.get(schema) or (table and table not in schema_table.get(schema)):
                 continue
@@ -127,15 +121,15 @@ class Mysql(Reader):
                 last_time = count = 0
 
     def _binlog_reading(
-            self,
-            only_tables,
-            only_schemas,
-            log_file,
-            log_pos,
-            server_id,
-            skip_dmls,
-            skip_delete_tables,
-            skip_update_tables,
+        self,
+        only_tables,
+        only_schemas,
+        log_file,
+        log_pos,
+        server_id,
+        skip_dmls,
+        skip_delete_tables,
+        skip_update_tables,
     ) -> Generator:
         stream = BinLogStreamReader(
             connection_settings=dict(

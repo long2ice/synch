@@ -20,7 +20,7 @@ def run(args):
 
 
 def cli():
-    parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.", )
+    parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.",)
     parser.add_argument(
         "-c", "--config", required=False, default="./mysql2ch.ini", help="Config file."
     )

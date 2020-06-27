@@ -38,6 +38,4 @@ class Global:
         if cls.settings.source_db == SourceDatabase.mysql.value:
             cls.reader = Mysql(cls.settings)
         elif cls.settings.source_db == SourceDatabase.postgres.value:
-            cls.reader = Postgres(
-                cls.settings
-            )
+            cls.reader = Postgres(cls.settings)
