@@ -1,9 +1,9 @@
 import datetime
 import logging
 
-from mysql2ch.factory import Global
+from synch.factory import Global
 
-logger = logging.getLogger("mysql2ch.producer")
+logger = logging.getLogger("synch.producer")
 
 
 def produce(args):

@@ -1,9 +1,9 @@
 import argparse
 
-from mysql2ch.factory import init
-from mysql2ch.replication.consumer import consume
-from mysql2ch.replication.etl import make_etl
-from mysql2ch.replication.producer import produce
+from synch.factory import init
+from synch.replication.consumer import consume
+from synch.replication.etl import make_etl
+from synch.replication.producer import produce
 
 
 def version():
@@ -22,13 +22,13 @@ def run(args):
 def cli():
     parser = argparse.ArgumentParser(description="Sync data from MySQL to ClickHouse.",)
     parser.add_argument(
-        "-c", "--config", required=False, default="./mysql2ch.ini", help="Config file."
+        "-c", "--config", required=False, default="./synch.ini", help="Config file."
     )
     parser.add_argument(
         "--version",
         "-V",
         action="version",
-        version=f"mysql2ch version, {version()}",
+        version=f"synch version, {version()}",
         help="show the version",
     )
     subparsers = parser.add_subparsers(title="subcommands")

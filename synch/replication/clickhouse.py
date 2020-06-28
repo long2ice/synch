@@ -6,9 +6,9 @@ import re
 
 import clickhouse_driver
 
-from mysql2ch.common import JsonEncoder
+from synch.common import JsonEncoder
 
-logger = logging.getLogger("mysql2ch.replication.clickhouse")
+logger = logging.getLogger("synch.replication.clickhouse")
 
 
 class ClickHouseWriter:

@@ -1,6 +1,6 @@
 import abc
 
-from mysql2ch.settings import Settings
+from synch.settings import Settings
 
 
 class Broker:

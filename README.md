@@ -1,17 +1,17 @@
-# mysql2ch
+# synch
 
-![pypi](https://img.shields.io/pypi/v/mysql2ch.svg?style=flat)
-![docker](https://img.shields.io/docker/cloud/build/long2ice/mysql2ch)
-![license](https://img.shields.io/github/license/long2ice/mysql2ch)
-![workflows](https://github.com/long2ice/mysql2ch/workflows/pypi/badge.svg)
+![pypi](https://img.shields.io/pypi/v/synch.svg?style=flat)
+![docker](https://img.shields.io/docker/cloud/build/long2ice/synch)
+![license](https://img.shields.io/github/license/long2ice/synch)
+![workflows](https://github.com/long2ice/synch/workflows/pypi/badge.svg)
 
-[中文文档](https://blog.long2ice.cn/2020/05/mysql2ch%E4%B8%80%E4%B8%AA%E5%90%8C%E6%AD%A5mysql%E6%95%B0%E6%8D%AE%E5%88%B0clickhouse%E7%9A%84%E9%A1%B9%E7%9B%AE/)
+[中文文档](https://blog.long2ice.cn/2020/05/synch%E4%B8%80%E4%B8%AA%E5%90%8C%E6%AD%A5mysql%E6%95%B0%E6%8D%AE%E5%88%B0clickhouse%E7%9A%84%E9%A1%B9%E7%9B%AE/)
 
 ## Introduction
 
-Sync data from MySQL to ClickHouse, support full and increment ETL.
+Sync data from other DB to ClickHouse, current support postgre and mysql, and support full and increment ETL.
 
-![mysql2ch](https://github.com/long2ice/mysql2ch/raw/dev/images/mysql2ch.png)
+![synch](https://github.com/long2ice/synch/raw/dev/images/synch.png)
 
 ## Features
 
@@ -24,20 +24,21 @@ Sync data from MySQL to ClickHouse, support full and increment ETL.
 
 - [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
 - [kafka](https://kafka.apache.org), need if you use kafka as broker.
+- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge), if you use postgres and set `auto_full_etl = True`, or exec `synch etl` command.
 
 ## Install
 
 ```shell
-> pip install mysql2ch
+> pip install synch
 ```
 
 ## Usage
 
-### mysql2ch.ini
+### synch.ini
 
-mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2ch -c` specify config file.
+synch will read default config from `./synch.ini`, or you can use `synch -c` specify config file.
 
-**Don't delete any section in mysql2ch.ini although you don't need it, just keep default as it.**
+**Don't delete any section in synch.ini although you don't need it, just keep default as it.**
 
 ```ini
 [core]
@@ -45,11 +46,8 @@ mysql2ch will read default config from `./mysql2ch.ini`, or you can use `mysql2c
 debug = True
 # current support redis and kafka
 broker_type = redis
-mysql_server_id = 1
-# optional, read from `show master status` result if empty
-init_binlog_file =
-# optional, read from `show master status` result if empty
-init_binlog_pos =
+# source database, current support mysql and postgres
+source_db = mysql
 # these tables skip delete, multiple separated with comma, format with schema.table
 skip_delete_tables =
 # these tables skip update, multiple separated with comma, format with schema.table
@@ -67,16 +65,16 @@ auto_full_etl = True
 # sentry environment
 environment = development
 # sentry dsn
-dsn = https://xxxxxxxx@sentry.test.com/1
+dsn =
 
 [redis]
 host = 127.0.0.1
 port = 6379
 password =
 db = 0
-prefix = mysql2ch
+prefix = synch
 # enable redis sentinel
-sentinel = false
+sentinel = False
 # redis sentinel hosts,multiple separated with comma
 sentinel_hosts = 127.0.0.1:5000,127.0.0.1:5001,127.0.0.1:5002
 sentinel_master = master
@@ -84,6 +82,11 @@ sentinel_master = master
 queue_max_len = 200000
 
 [mysql]
+server_id = 1
+# optional, read from `show master status` result if empty
+init_binlog_file =
+# optional, read from `show master status` result if empty
+init_binlog_pos =
 host = mysql
 port = 3306
 user = root
@@ -96,6 +99,17 @@ tables = test
 # kafka partition, need when broker_type=kafka
 kafka_partition = 0
 
+# when source_db = postgres
+[postgres]
+host = postgres
+port = 5432
+user = postgres
+password =
+
+[postgres.postgres]
+tables = test
+kafka_partition = 0
+
 [clickhouse]
 host = 127.0.0.1
 port = 9000
@@ -106,7 +120,7 @@ password =
 [kafka]
 # kafka servers,multiple separated with comma
 servers = 127.0.0.1:9092
-topic = mysql2ch
+topic = synch
 ```
 
 ### Full data etl
@@ -114,9 +128,9 @@ topic = mysql2ch
 Maybe you need make full data etl before continuous sync data from MySQL to ClickHouse or redo data etl with `--renew`.
 
 ```shell
-> mysql2ch etl -h
+> synch etl -h
 
-usage: mysql2ch etl [-h] --schema SCHEMA [--tables TABLES] [--renew]
+usage: synch etl [-h] --schema SCHEMA [--tables TABLES] [--renew]
 
 optional arguments:
   -h, --help       show this help message and exit
@@ -128,7 +142,7 @@ optional arguments:
 Full etl from table `test.test`:
 
 ```shell
-> mysql2ch etl --schema test --tables test
+> synch etl --schema test --tables test
 ```
 
 ### Produce
@@ -136,17 +150,17 @@ Full etl from table `test.test`:
 Listen all MySQL binlog and produce to broker.
 
 ```shell
-> mysql2ch produce
+> synch produce
 ```
 
 ### Consume
 
-Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And mysql2ch will do full etl at first when set `auto_full_etl = True` in `mysql2ch.ini`.
+Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = True` in `synch.ini`.
 
 ```shell
-> mysql2ch consume -h
+> synch consume -h
 
-usage: mysql2ch consume [-h] --schema SCHEMA [--skip-error] [--last-msg-id LAST_MSG_ID]
+usage: synch consume [-h] --schema SCHEMA [--skip-error] [--last-msg-id LAST_MSG_ID]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -159,7 +173,7 @@ optional arguments:
 Consume schema `test` and insert into `ClickHouse`:
 
 ```shell
-> mysql2ch consume --schema test
+> synch consume --schema test
 ```
 
 ## Use docker-compose(recommended)
@@ -173,17 +187,17 @@ services:
   producer:
     depends_on:
       - redis
-    image: long2ice/mysql2ch
-    command: mysql2ch produce
+    image: long2ice/synch
+    command: synch produce
     volumes:
-      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+      - ./synch.ini:/synch/synch.ini
   consumer.test:
     depends_on:
       - redis
-    image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test
+    image: long2ice/synch
+    command: synch consume --schema test
     volumes:
-      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+      - ./synch.ini:/synch/synch.ini
   redis:
     hostname: redis
     image: redis:latest
@@ -234,19 +248,19 @@ services:
       - redis
       - kafka
       - zookeeper
-    image: long2ice/mysql2ch
-    command: mysql2ch produce
+    image: long2ice/synch
+    command: synch produce
     volumes:
-      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+      - ./synch.ini:/synch/synch.ini
   consumer.test:
     depends_on:
       - redis
       - kafka
       - zookeeper
-    image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test
+    image: long2ice/synch
+    command: synch consume --schema test
     volumes:
-      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+      - ./synch.ini:/synch/synch.ini
   redis:
     hostname: redis
     image: redis:latest
@@ -262,8 +276,9 @@ volumes:
 
 ## Limitions
 
-- mysql2ch don't support composite primary key, you need always keep a primary key or unique key.
-- mysql2ch will not support table mapping or column mapping, it aims to make clickhouse as mirror database for mysql, and with realtime replication.
+- synch don't support composite primary key, you need always keep a primary key or unique key.
+- synch will not support table mapping or column mapping, it aims to make clickhouse as mirror database for mysql, and with realtime replication.
+- DDL sync not support postgres.
 
 ## Optional
 
@@ -271,7 +286,7 @@ volumes:
 
 ## QQ Group
 
-<img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/qq_group.png"/>
+<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/qq_group.png"/>
 
 ## Support this project
 
@@ -281,11 +296,11 @@ volumes:
 
 ### AliPay
 
-<img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/alipay.jpeg"/>
+<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/>
 
 ### WeChat Pay
 
-<img width="200" src="https://github.com/long2ice/mysql2ch/raw/dev/images/wechatpay.jpeg"/>
+<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/>
 
 ### PayPal
 
@@ -293,10 +308,10 @@ Donate money by [paypal](https://www.paypal.me/long2ice) to my account long2ice.
 
 ## ThanksTo
 
-Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=mysql2ch) from [Jetbrains](https://www.jetbrains.com/?from=mysql2ch).
+Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch) from [Jetbrains](https://www.jetbrains.com/?from=synch).
 
-![jetbrains](https://github.com/long2ice/mysql2ch/raw/dev/images/jetbrains.svg)
+![jetbrains](https://github.com/long2ice/synch/raw/dev/images/jetbrains.svg)
 
 ## License
 
-This project is licensed under the [Apache-2.0](https://github.com/long2ice/mysql2ch/blob/master/LICENSE) License.
+This project is licensed under the [Apache-2.0](https://github.com/long2ice/synch/blob/master/LICENSE) License.

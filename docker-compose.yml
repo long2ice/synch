@@ -3,17 +3,17 @@ services:
   producer:
     depends_on:
       - redis
-    image: long2ice/mysql2ch
-    command: mysql2ch produce
+    image: long2ice/synch
+    command: synch produce
     volumes:
-      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+      - ./synch.ini:/synch/synch.ini
   consumer.test:
     depends_on:
       - redis
-    image: long2ice/mysql2ch
-    command: mysql2ch consume --schema test
+    image: long2ice/synch
+    command: synch consume --schema test
     volumes:
-      - ./mysql2ch.ini:/mysql2ch/mysql2ch.ini
+      - ./synch.ini:/synch/synch.ini
   redis:
     hostname: redis
     image: redis:latest

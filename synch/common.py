@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import dateutil.parser
 
-logger = logging.getLogger("mysql2ch.common")
+logger = logging.getLogger("synch.common")
 
 CONVERTERS = {
     "date": dateutil.parser.parse,

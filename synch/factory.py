@@ -2,14 +2,14 @@ import logging
 import sys
 from typing import Optional
 
-from mysql2ch.broker import Broker
-from mysql2ch.broker.kafka import KafkaBroker
-from mysql2ch.broker.redis import RedisBroker
-from mysql2ch.reader import Reader
-from mysql2ch.reader.mysql import Mysql
-from mysql2ch.reader.postgres import Postgres
-from mysql2ch.replication.clickhouse import ClickHouseWriter
-from mysql2ch.settings import BrokerType, Settings, SourceDatabase
+from synch.broker import Broker
+from synch.broker.kafka import KafkaBroker
+from synch.broker.redis import RedisBroker
+from synch.reader import Reader
+from synch.reader.mysql import Mysql
+from synch.reader.postgres import Postgres
+from synch.replication.clickhouse import ClickHouseWriter
+from synch.settings import BrokerType, Settings, SourceDatabase
 
 
 class Global:
@@ -49,7 +49,7 @@ def init_logging(debug):
     :param debug:
     :return:
     """
-    base_logger = logging.getLogger("mysql2ch")
+    base_logger = logging.getLogger("synch")
     if debug:
         base_logger.setLevel(logging.DEBUG)
     else:

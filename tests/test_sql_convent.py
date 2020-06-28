@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from mysql2ch.convert import SqlConvert
+from synch.convert import SqlConvert
 
 
 class TestSqlConvent(TestCase):

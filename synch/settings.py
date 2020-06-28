@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     redis_port: int = 6379
     redis_password: str = None
     redis_db: int = 0
-    redis_prefix: str = "mysql2ch"
+    redis_prefix: str = "synch"
     redis_sentinel: bool = False
     redis_sentinel_master: str = "master"
     redis_sentinel_hosts: Optional[List[Tuple[str, int]]]
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     clickhouse_password: str = None
 
     kafka_servers: Set[str] = {"127.0.0.1"}
-    kafka_topic: str = "mysql2ch"
+    kafka_topic: str = "synch"
     kafka_partitions: Optional[Dict[str, int]]
 
     sentry_dsn: Optional[str]

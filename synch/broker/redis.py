@@ -1,8 +1,8 @@
 import json
 
-from mysql2ch.broker import Broker
-from mysql2ch.common import JsonEncoder, object_hook
-from mysql2ch.redis import Redis
+from synch.broker import Broker
+from synch.common import JsonEncoder, object_hook
+from synch.redis import Redis
 
 
 class RedisBroker(Redis, Broker):

@@ -2,9 +2,9 @@ import logging
 import signal
 from signal import Signals
 
-from mysql2ch.factory import Global
+from synch.factory import Global
 
-logger = logging.getLogger("mysql2ch.replication.consumer")
+logger = logging.getLogger("synch.replication.consumer")
 
 is_stop = False
 is_insert = False

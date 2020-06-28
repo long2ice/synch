@@ -10,11 +10,11 @@ import psycopg2.errors
 from psycopg2._psycopg import ReplicationMessage
 from psycopg2.extras import DictCursor, LogicalReplicationConnection, ReplicationCursor
 
-from mysql2ch.broker import Broker
-from mysql2ch.reader import Reader
-from mysql2ch.settings import Settings
+from synch.broker import Broker
+from synch.reader import Reader
+from synch.settings import Settings
 
-logger = logging.getLogger("mysql2ch.reader.postgres")
+logger = logging.getLogger("synch.reader.postgres")
 
 
 class Postgres(Reader):
@@ -140,10 +140,10 @@ AND i.indisprimary;"""
         logger.info(f"start consume from database: {database}")
         cursor = self._get_repl_cursor(database)  # type:ReplicationCursor
         try:
-            cursor.create_replication_slot("mysql2ch", output_plugin="wal2json")
+            cursor.create_replication_slot("synch", output_plugin="wal2json")
         except psycopg2.errors.DuplicateObject:
             pass
-        cursor.start_replication(slot_name="mysql2ch", decode=True, status_interval=1)
+        cursor.start_replication(slot_name="synch", decode=True, status_interval=1)
         cursor.consume_stream(functools.partial(self._consumer, broker, database))
 
     def start_sync(self, broker: Broker):

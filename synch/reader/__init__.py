@@ -2,10 +2,10 @@ import abc
 import logging
 from typing import List, Tuple, Union
 
-from mysql2ch.broker import Broker
-from mysql2ch.settings import Settings
+from synch.broker import Broker
+from synch.settings import Settings
 
-logger = logging.getLogger("mysql2ch.reader")
+logger = logging.getLogger("synch.reader")
 
 
 class Reader:

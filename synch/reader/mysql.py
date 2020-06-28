@@ -10,13 +10,13 @@ from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.event import QueryEvent
 from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
-from mysql2ch.broker import Broker
-from mysql2ch.convert import SqlConvert
-from mysql2ch.reader import Reader
-from mysql2ch.redis import RedisLogPos
-from mysql2ch.settings import Settings
+from synch.broker import Broker
+from synch.convert import SqlConvert
+from synch.reader import Reader
+from synch.redis import RedisLogPos
+from synch.settings import Settings
 
-logger = logging.getLogger("mysql2ch.reader.mysql")
+logger = logging.getLogger("synch.reader.mysql")
 
 
 class Mysql(Reader):

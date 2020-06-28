@@ -4,11 +4,11 @@ import logging
 from kafka import KafkaAdminClient, KafkaConsumer, KafkaProducer, TopicPartition
 from kafka.admin import NewPartitions
 
-from mysql2ch.broker import Broker
-from mysql2ch.common import JsonEncoder, object_hook
-from mysql2ch.settings import Settings
+from synch.broker import Broker
+from synch.common import JsonEncoder, object_hook
+from synch.settings import Settings
 
-logger = logging.getLogger("mysql2ch.brokers.kafka")
+logger = logging.getLogger("synch.brokers.kafka")
 
 
 class KafkaBroker(Broker):

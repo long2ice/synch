@@ -1,7 +1,7 @@
 import redis
 from redis.sentinel import Sentinel
 
-from mysql2ch.settings import Settings
+from synch.settings import Settings
 
 
 class Redis:

@@ -1,8 +1,8 @@
 import logging
 
-from mysql2ch.factory import Global
+from synch.factory import Global
 
-logger = logging.getLogger("mysql2ch.replication.etl")
+logger = logging.getLogger("synch.replication.etl")
 
 
 def make_etl(args):

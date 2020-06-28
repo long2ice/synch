@@ -5,7 +5,7 @@
 ### 0.6.0
 
 - Add support to postgres.
-- Config file update, see detail in `mysql2ch.ini`.
+- Config file update, see detail in `synch.ini`.
 - Rename project name to `synch`.
 
 ## 0.5
@@ -19,8 +19,8 @@
 
 - Fix full data etl with composite primary key and skip when no primary key.
 - Move `queue_max_len` to redis section.
-- Add `debug` in `mysql2ch.ini` and remove from cli.
-- Add `auto_full_etl` in `mysql2ch.ini`.
+- Add `debug` in `synch.ini` and remove from cli.
+- Add `auto_full_etl` in `synch.ini`.
 
 ### 0.5.2
 
