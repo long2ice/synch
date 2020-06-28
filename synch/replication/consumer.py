@@ -49,9 +49,6 @@ def consume(args):
         schema, last_msg_id=args.last_msg_id, block=settings.insert_interval * 1000
     ):
         if not msg_id:
-            logger.debug(
-                f"block timeout {settings.insert_interval} seconds, len of events:{len_event}"
-            )
             if len_event > 0:
                 is_insert = True
                 alter_table = False

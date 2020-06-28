@@ -1,4 +1,4 @@
-# synch
+# Synch
 
 ![pypi](https://img.shields.io/pypi/v/synch.svg?style=flat)
 ![docker](https://img.shields.io/docker/cloud/build/long2ice/synch)
@@ -9,7 +9,7 @@
 
 ## Introduction
 
-Sync data from other DB to ClickHouse, current support postgre and mysql, and support full and increment ETL.
+Sync data from other DB to ClickHouse, current support postgres and mysql, and support full and increment ETL.
 
 ![synch](https://github.com/long2ice/synch/raw/dev/images/synch.png)
 

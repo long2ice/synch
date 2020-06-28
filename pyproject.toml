@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "synch"
 version = "0.6.0"
-description = "Sync data from other DB to ClickHouse, support full and increment ETL."
+description = "Sync data from other DB to ClickHouse, current support postgres and mysql, and support full and increment ETL."
 authors = ["long2ice <long2ice@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
