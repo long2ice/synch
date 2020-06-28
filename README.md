@@ -24,7 +24,7 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 
 - [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
 - [kafka](https://kafka.apache.org), need if you use kafka as broker.
-- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge), if you use postgres and set `auto_full_etl = True`, or exec `synch etl` command.
+- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge), need if you use postgres and set `auto_full_etl = True`, or exec `synch etl` command.
 
 ## Install
 
@@ -274,11 +274,11 @@ volumes:
 
 </details>
 
-## Limitions
+## Important
 
-- synch don't support composite primary key, you need always keep a primary key or unique key.
-- synch will not support table mapping or column mapping, it aims to make clickhouse as mirror database for mysql, and with realtime replication.
+- Synch don't support composite primary key, and you need always keep a primary key or unique key.
 - DDL sync not support postgres.
+- Postgres sync is not fully test, be careful use it in production.
 
 ## Optional
 
