@@ -21,6 +21,7 @@ logger = logging.getLogger("mysql2ch.reader.mysql")
 
 class Mysql(Reader):
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
+    fix_column_type = True
 
     def __init__(self, settings: Settings):
         super().__init__(settings)
@@ -43,6 +44,9 @@ class Mysql(Reader):
         sql = "show master status"
         result = self.execute(sql)[0]
         return result.get("File"), result.get("Position")
+
+    def get_full_etl_sql(self, schema: str, table: str, pk: str):
+        return f"CREATE TABLE {schema}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{self.settings.mysql_host}:{self.settings.mysql_port}', '{schema}', '{table}', '{self.settings.mysql_user}', '{self.settings.mysql_password}')"
 
     def get_primary_key(self, db, table) -> Union[None, str, Tuple[str, ...]]:
         """
@@ -177,7 +181,7 @@ class Mysql(Reader):
                             "table": table,
                             "schema": schema,
                             "action": "insert",
-                            "values": self.convert_values(row["values"]),
+                            "values": row["values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
                             "action_core": "2",
                         }
@@ -189,7 +193,7 @@ class Mysql(Reader):
                             "table": table,
                             "schema": schema,
                             "action": "delete",
-                            "values": self.convert_values(row["before_values"]),
+                            "values": row["before_values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
                             "action_core": "1",
                         }
@@ -198,7 +202,7 @@ class Mysql(Reader):
                             "table": table,
                             "schema": schema,
                             "action": "insert",
-                            "values": self.convert_values(row["after_values"]),
+                            "values": row["after_values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
                             "action_core": "2",
                         }
@@ -210,7 +214,7 @@ class Mysql(Reader):
                             "table": table,
                             "schema": schema,
                             "action": "delete",
-                            "values": self.convert_values(row["values"]),
+                            "values": row["values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
                             "action_core": "1",
                         }

@@ -1,6 +1,7 @@
 import functools
 import json
 import logging
+import threading
 import time
 from typing import Tuple, Union
 
@@ -19,6 +20,7 @@ logger = logging.getLogger("mysql2ch.reader.postgres")
 class Postgres(Reader):
     _repl_conn = {}
     count = last_time = 0
+    lock = threading.Lock()
 
     def __init__(self, settings: Settings):
         super().__init__(settings)
@@ -38,6 +40,9 @@ class Postgres(Reader):
                 "cursor": replication_conn.cursor(),
             }
 
+    def get_full_etl_sql(self, schema: str, table: str, pk: str):
+        return f"CREATE TABLE postgres.test ENGINE = MergeTree ORDER BY id AS SELECT * FROM jdbc('postgresql://{self.settings.postgres_host}:{self.settings.postgres_port}/{schema}?user={self.settings.postgres_user}&password={self.settings.postgres_password}', '{table}')"
+
     def _get_repl_cursor(self, database: str):
         return self._repl_conn.get(database).get("cursor")
 
@@ -49,11 +54,10 @@ FROM pg_index i
 WHERE i.indrelid = '{db}.public.{table}'::regclass 
 AND i.indisprimary;"""
         ret = self.execute(sql)
-        return ret[0]
+        return ret[0][0]
 
     def _consumer(self, broker: Broker, database: str, msg: ReplicationMessage):
         payload = json.loads(msg.payload)
-        print(payload)
         change = payload.get("change")
         if not change:
             return
@@ -64,6 +68,7 @@ AND i.indisprimary;"""
         columnvalues = change.get("columnvalues")
         skip_dml_table_name = f"{database}.{table}"
         values = dict(zip(columnnames, columnvalues))
+        delete_event = event = None
         if kind == "update":
             if (
                 "update" not in self.settings.skip_dmls
@@ -109,28 +114,41 @@ AND i.indisprimary;"""
             }
         else:
             return
-        broker.send(msg=event, schema=database)
+        if delete_event:
+            broker.send(msg=delete_event, schema=database)
+        if event:
+            broker.send(msg=event, schema=database)
         msg.cursor.send_feedback(flush_lsn=msg.data_start)
+
         logger.debug(f"send to queue success: key:{database},event:{event}")
-        logger.debug(f"success flush lsn:{msg.data_start}")
+        logger.debug(f"success flush lsn: {msg.data_start}")
 
-        now = int(time.time())
-        self.count += 1
+        with self.lock:
+            now = int(time.time())
+            self.count += 1
+            if self.last_time == 0:
+                self.last_time = now
+            if now - self.last_time >= self.settings.insert_interval:
+                logger.info(
+                    f"success send {self.count} events in {self.settings.insert_interval} seconds"
+                )
+                self.last_time = self.count = 0
 
-        if self.last_time == 0:
-            self.last_time = now
-        if now - self.last_time >= self.settings.insert_interval:
-            logger.info(
-                f"success send {self.count} events in {self.settings.insert_interval} seconds"
-            )
-            self.last_time = self.count = 0
+    def _run(
+        self, broker, database,
+    ):
+        logger.info(f"start consume from database: {database}")
+        cursor = self._get_repl_cursor(database)  # type:ReplicationCursor
+        try:
+            cursor.create_replication_slot("mysql2ch", output_plugin="wal2json")
+        except psycopg2.errors.DuplicateObject:
+            pass
+        cursor.start_replication(slot_name="mysql2ch", decode=True, status_interval=1)
+        cursor.consume_stream(functools.partial(self._consumer, broker, database))
 
     def start_sync(self, broker: Broker):
         for database in self.settings.schema_table:
-            cursor = self._get_repl_cursor(database)  # type:ReplicationCursor
-            try:
-                cursor.create_replication_slot("mysql2ch", output_plugin="wal2json")
-            except psycopg2.errors.DuplicateObject:
-                pass
-            cursor.start_replication(slot_name="mysql2ch", decode=True, status_interval=1)
-            cursor.consume_stream(functools.partial(self._consumer, broker, database))
+            t = threading.Thread(target=self._run, args=(broker, database,))
+            t.setDaemon(True)
+            t.start()
+            t.join()

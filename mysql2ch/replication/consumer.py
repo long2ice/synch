@@ -3,7 +3,6 @@ import signal
 from signal import Signals
 
 from mysql2ch.factory import Global
-from mysql2ch.replication.etl import etl_full
 
 logger = logging.getLogger("mysql2ch.replication.consumer")
 
@@ -36,7 +35,7 @@ def consume(args):
     tables = settings.schema_table.get(schema)
     # try etl full
     if settings.auto_full_etl:
-        etl_full(schema, tables)
+        reader.etl_full(writer, schema, tables)
 
     tables_pk = {}
     for table in tables:

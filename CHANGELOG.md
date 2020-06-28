@@ -1,5 +1,13 @@
 # ChangeLog
 
+## 0.6
+
+### 0.6.0
+
+- Add support to postgres.
+- Config file update, see detail in `mysql2ch.ini`.
+- Rename project name to `synch`.
+
 ## 0.5
 
 ### 0.5.4

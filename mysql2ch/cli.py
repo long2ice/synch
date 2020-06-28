@@ -1,6 +1,6 @@
 import argparse
 
-from mysql2ch import init
+from mysql2ch.factory import init
 from mysql2ch.replication.consumer import consume
 from mysql2ch.replication.etl import make_etl
 from mysql2ch.replication.producer import produce
@@ -11,7 +11,7 @@ def version():
     # with open("pyproject.toml") as f:
     #     ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
     #     return ret[0]
-    return "0.5.4"
+    return "0.6.0"
 
 
 def run(args):
