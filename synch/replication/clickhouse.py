@@ -32,7 +32,7 @@ class ClickHouseWriter:
         fix table column type in full etl
         :return:
         """
-        sql = f"select COLUMN_NAME, COLUMN_TYPE from information_schema.COLUMNS where TABLE_NAME = '{table}' and COLUMN_TYPE like '%decimal%'and TABLE_SCHEMA = '{database}'"
+        sql = f"select COLUMN_NAME, COLUMN_TYPE,IS_NULLABLE from information_schema.COLUMNS where TABLE_NAME = '{table}' and COLUMN_TYPE like '%decimal%'and TABLE_SCHEMA = '{database}'"
         cursor = reader.conn.cursor()
         cursor.execute(sql)
         logger.debug(sql)
@@ -40,8 +40,14 @@ class ClickHouseWriter:
         cursor.close()
         for item in ret:
             column_name = item.get("COLUMN_NAME")
+            is_nullable = item.get("IS_NULLABLE")
             column_type = item.get("COLUMN_TYPE").title()
-            fix_sql = f"alter table {database}.{table} modify column {column_name} {column_type}"
+            if is_nullable:
+                fix_sql = f"alter table {database}.{table} modify column {column_name} Nullable({column_type})"
+            else:
+                fix_sql = (
+                    f"alter table {database}.{table} modify column {column_name} {column_type}"
+                )
             self.execute(fix_sql)
 
     def insert_update(self, tmp_data, schema, table, pk):

@@ -43,6 +43,10 @@ class SqlConvert:
                 token_list.tokens.append(SQLToken(Whitespace, " "))
                 token_list.tokens.append(tokens[2])
                 return token_list
+            elif token.value == "modify":
+                token_list.tokens.append(token)
+                token_list.tokens.append(SQLToken(Whitespace, " "))
+                token_list.tokens.append(SQLToken(Keyword, "column"))
             elif isinstance(token, (Function, Identifier)) or token.ttype == Token.Name.Builtin:
                 if token.ttype == Token.Name.Builtin:
                     token_list.tokens.append(SQLToken(Keyword, cls._type_mapping.get(token.value)))
