@@ -25,10 +25,24 @@ class Reader:
         return self.cursor.fetchall()
 
     @abc.abstractmethod
-    def get_full_etl_sql(self, schema: str, table: str, pk: str):
+    def get_full_etl_sql(
+        self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
+    ):
         raise NotImplementedError
 
-    def etl_full(self, writer, schema, tables: List[str] = None, renew=False):
+    def etl_full(
+        self,
+        writer,
+        schema,
+        tables: List[str] = None,
+        renew=False,
+        engine="MergeTree",
+        partition_by=None,
+        engine_settings=None,
+    ):
+        """
+        full etl
+        """
         settings = self.settings
         if not tables:
             tables = settings.schema_table.get(schema)
@@ -48,7 +62,9 @@ class Reader:
                 except Exception as e:
                     logger.warning(f"Try to drop table {schema}.{table} fail")
             if not writer.table_exists(schema, table):
-                sql = self.get_full_etl_sql(schema, table, pk)
+                sql = self.get_full_etl_sql(
+                    schema, table, pk, engine, partition_by, engine_settings
+                )
                 writer.execute(sql)
                 if self.fix_column_type:
                     writer.fix_table_column_type(self, schema, table)

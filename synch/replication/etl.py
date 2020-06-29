@@ -9,4 +9,9 @@ def make_etl(args):
     schema = args.schema
     tables = args.tables
     renew = args.renew
-    Global.reader.etl_full(Global.writer, schema, tables, renew)
+    engine = args.engine
+    partition_by = args.partition_by
+    settings = args.settings
+    Global.reader.etl_full(
+        Global.writer, schema, tables.split(","), renew, engine, partition_by, settings
+    )

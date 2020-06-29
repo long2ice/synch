@@ -42,8 +42,16 @@ class Postgres(Reader):
                 "cursor": replication_conn.cursor(),
             }
 
-    def get_full_etl_sql(self, schema: str, table: str, pk: str):
-        return f"CREATE TABLE postgres.test ENGINE = MergeTree ORDER BY id AS SELECT * FROM jdbc('postgresql://{self.settings.postgres_host}:{self.settings.postgres_port}/{schema}?user={self.settings.postgres_user}&password={self.settings.postgres_password}', '{table}')"
+    def get_full_etl_sql(
+        self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
+    ):
+        partition_by_str = ""
+        settings_str = ""
+        if partition_by:
+            partition_by_str = f" PARTITION BY {partition_by} "
+        if settings:
+            settings_str = f" SETTINGS {settings} "
+        return f"CREATE TABLE postgres.test ENGINE = {engine} {partition_by_str} ORDER BY id {settings_str} AS SELECT * FROM jdbc('postgresql://{self.settings.postgres_host}:{self.settings.postgres_port}/{schema}?user={self.settings.postgres_user}&password={self.settings.postgres_password}', '{table}')"
 
     def _get_repl_cursor(self, database: str):
         return self._repl_conn.get(database).get("cursor")

@@ -44,8 +44,16 @@ class Mysql(Reader):
         result = self.execute(sql)[0]
         return result.get("File"), result.get("Position")
 
-    def get_full_etl_sql(self, schema: str, table: str, pk: str):
-        return f"CREATE TABLE {schema}.{table} ENGINE = MergeTree ORDER BY {pk} AS SELECT * FROM mysql('{self.settings.mysql_host}:{self.settings.mysql_port}', '{schema}', '{table}', '{self.settings.mysql_user}', '{self.settings.mysql_password}')"
+    def get_full_etl_sql(
+        self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
+    ):
+        partition_by_str = ""
+        settings_str = ""
+        if partition_by:
+            partition_by_str = f" PARTITION BY {partition_by} "
+        if settings:
+            settings_str = f" SETTINGS {settings} "
+        return f"CREATE TABLE {schema}.{table} ENGINE = {engine} {partition_by_str} ORDER BY {pk} {settings_str} AS SELECT * FROM mysql('{self.settings.mysql_host}:{self.settings.mysql_port}', '{schema}', '{table}', '{self.settings.mysql_user}', '{self.settings.mysql_password}')"
 
     def get_primary_key(self, db, table) -> Union[None, str, Tuple[str, ...]]:
         """

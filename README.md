@@ -130,13 +130,18 @@ Maybe you need make full data etl before continuous sync data from MySQL to Clic
 ```shell
 > synch etl -h
 
-usage: synch etl [-h] --schema SCHEMA [--tables TABLES] [--renew]
+usage: synch etl [-h] --schema SCHEMA [--tables TABLES] [--renew] [--partition-by PARTITION_BY] [--settings SETTINGS] [--engine ENGINE]
 
 optional arguments:
-  -h, --help       show this help message and exit
-  --schema SCHEMA  Schema to full etl.
-  --tables TABLES  Tables to full etl,multiple tables split with comma,default read from environment.
-  --renew          Etl after try to drop the target tables.
+  -h, --help            show this help message and exit
+  --schema SCHEMA       Schema to full etl.
+  --tables TABLES       Tables to full etl, multiple tables split with comma.
+  --renew               Etl after try to drop the target tables.
+  --partition-by PARTITION_BY
+                        Table create partitioning by, like toYYYYMM(created_at).
+  --settings SETTINGS   Table create settings, like index_granularity=8192
+  --engine ENGINE       Table create engine, default MergeTree.
+
 ```
 
 Full etl from table `test.test`:

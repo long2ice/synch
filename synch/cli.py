@@ -32,18 +32,30 @@ def cli():
         help="show the version",
     )
     subparsers = parser.add_subparsers(title="subcommands")
-    parser_etl = subparsers.add_parser("etl")
+    parser_etl = subparsers.add_parser("etl", help="Make etl from source table to ClickHouse.")
     parser_etl.add_argument("--schema", required=True, help="Schema to full etl.")
     parser_etl.add_argument(
-        "--tables",
-        required=False,
-        help="Tables to full etl,multiple tables split with comma,default read from environment.",
+        "--tables", required=False, help="Tables to full etl, multiple tables split with comma.",
     )
     parser_etl.add_argument(
         "--renew",
         default=False,
         action="store_true",
         help="Etl after try to drop the target tables.",
+    )
+    parser_etl.add_argument(
+        "--partition-by",
+        required=False,
+        help="Table create partitioning by, like toYYYYMM(created_at).",
+    )
+    parser_etl.add_argument(
+        "--settings", required=False, help="Table create settings, like index_granularity=8192",
+    )
+    parser_etl.add_argument(
+        "--engine",
+        required=False,
+        default="MergeTree",
+        help="Table create engine, default MergeTree.",
     )
     parser_etl.set_defaults(run=run, func=make_etl)
 

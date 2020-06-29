@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.1
+
+- Add more args in `etl`.
+
 ### 0.6.0
 
 - Add support to postgres.
