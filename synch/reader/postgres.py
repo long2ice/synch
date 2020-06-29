@@ -3,7 +3,8 @@ import json
 import logging
 import threading
 import time
-from typing import Tuple, Union
+from signal import Signals
+from typing import Callable, Tuple, Union
 
 import psycopg2
 import psycopg2.errors
@@ -21,6 +22,7 @@ class Postgres(Reader):
     _repl_conn = {}
     count = last_time = 0
     lock = threading.Lock()
+    lsn = None
 
     def __init__(self, settings: Settings):
         super().__init__(settings)
@@ -119,11 +121,11 @@ AND i.indisprimary;"""
         if event:
             broker.send(msg=event, schema=database)
         msg.cursor.send_feedback(flush_lsn=msg.data_start)
-
         logger.debug(f"send to queue success: key:{database},event:{event}")
         logger.debug(f"success flush lsn: {msg.data_start}")
 
         with self.lock:
+            self.lsn = msg.data_start
             now = int(time.time())
             self.count += 1
             if self.last_time == 0:
@@ -134,10 +136,15 @@ AND i.indisprimary;"""
                 )
                 self.last_time = self.count = 0
 
+    def signal_handler(self, signum: Signals, handler: Callable):
+        sig = Signals(signum)
+        logger.info(f"shutdown producer on {sig.name}, current lsn: {self.lsn}")
+        exit()
+
     def _run(
         self, broker, database,
     ):
-        logger.info(f"start consume from database: {database}")
+        logger.info(f"start producer success for database: {database}")
         cursor = self._get_repl_cursor(database)  # type:ReplicationCursor
         try:
             cursor.create_replication_slot("synch", output_plugin="wal2json")

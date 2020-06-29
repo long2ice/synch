@@ -1,6 +1,8 @@
 import abc
 import logging
-from typing import List, Tuple, Union
+import signal
+from signal import Signals
+from typing import Callable, List, Tuple, Union
 
 from synch.broker import Broker
 from synch.settings import Settings
@@ -14,6 +16,8 @@ class Reader:
 
     def __init__(self, settings: Settings):
         self.settings = settings
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
 
     def execute(self, sql, args=None):
         logger.debug(sql)
@@ -56,4 +60,8 @@ class Reader:
 
     @abc.abstractmethod
     def start_sync(self, broker: Broker):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def signal_handler(self, signum: Signals, handler: Callable):
         raise NotImplementedError

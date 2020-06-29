@@ -1,8 +1,7 @@
 import logging
-import signal
 import time
 from signal import Signals
-from typing import Generator, Tuple, Union
+from typing import Callable, Generator, Tuple, Union
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
@@ -63,18 +62,15 @@ class Mysql(Reader):
             return tuple(map(lambda x: x.get("COLUMN_NAME"), result))
         return result[0]["COLUMN_NAME"]
 
+    def signal_handler(self, signum: Signals, handler: Callable):
+        sig = Signals(signum)
+        log_f, log_p = self.pos_handler.get_log_pos()
+        logger.info(f"shutdown producer on {sig.name}, current position: {log_f}:{log_p}")
+        exit()
+
     def start_sync(self, broker: Broker):
         settings = self.settings
 
-        def signal_handler(signum: Signals, handler):
-            sig = Signals(signum)
-            log_f, log_p = self.pos_handler.get_log_pos()
-            broker.close()
-            logger.info(f"shutdown producer on {sig.name}, current position: {log_f}:{log_p}")
-            exit()
-
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
         log_file, log_pos = self.pos_handler.get_log_pos()
         if not (log_file and log_pos):
             log_file = settings.init_binlog_file
