@@ -116,11 +116,12 @@ def consume(args):
                 if skip_error:
                     try:
                         writer.execute(query)
-                        logger.info(f"execute query:{query}")
+                        logger.info(f"execute query: {query}")
                     except Exception as e:
-                        logger.error(f"execute query error,error:{e}")
+                        logger.error(f"execute query error, e:{e}")
                 else:
                     writer.execute(query)
+                    logger.info(f"execute ddl query: {query}")
 
             broker.commit(schema)
             logger.info(f"success commit {events_num} events")
