@@ -10,6 +10,12 @@ is_stop = False
 is_insert = False
 
 
+def finish(broker):
+    logger.info("finish success, bye!")
+    broker.close()
+    exit()
+
+
 def consume(args):
     settings = Global.settings
     writer = Global.writer
@@ -22,9 +28,15 @@ def consume(args):
         global is_stop
         global is_insert
         sig = Signals(signum)
-        is_stop = True
-        is_insert = True
-        logger.info(f"shutdown consumer on {sig.name}, wait seconds to finish...")
+        if len_event == 0:
+            logger.info(f"shutdown consumer on {sig.name} success")
+            exit()
+        else:
+            logger.info(
+                f"shutdown consumer on {sig.name}, wait {settings.insert_interval} seconds at most to finish {len_event} events..."
+            )
+            is_stop = True
+            is_insert = True
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -54,12 +66,10 @@ def consume(args):
                 alter_table = False
             else:
                 if is_stop:
-                    logger.info("finish success, bye!")
-                    broker.close()
-                    exit()
+                    finish(broker)
                 continue
         else:
-            logger.debug(f"msg_id:{msg_id},msg:{msg}")
+            logger.debug(f"msg_id:{msg_id}, msg:{msg}")
             event = msg
             table = event["table"]
             schema = event["schema"]
@@ -97,21 +107,20 @@ def consume(args):
                     tmp_data.append(v1)
                 if skip_error:
                     try:
-                        result = writer.insert_event(tmp_data, schema, table, pk)
-                        if not result:
-                            logger.error("insert event error")
+                        writer.insert_event(tmp_data, schema, table, pk)
                     except Exception as e:
-                        logger.error(f"insert event error,error:{e}")
+                        logger.error(f"insert event error,error: {e}")
                 else:
                     writer.insert_event(tmp_data, schema, table, tables_pk.get(table))
             if alter_table:
-                try:
+                if skip_error:
+                    try:
+                        writer.execute(query)
+                        logger.info(f"execute query:{query}")
+                    except Exception as e:
+                        logger.error(f"execute query error,error:{e}")
+                else:
                     writer.execute(query)
-                    logger.info(f"execute query:{query}")
-                except Exception as e:
-                    logger.error(f"execute query error,error:{e}")
-                    if not skip_error:
-                        exit()
 
             broker.commit(schema)
             logger.info(f"success commit {events_num} events")
@@ -119,6 +128,4 @@ def consume(args):
             is_insert = False
             len_event = 0
             if is_stop:
-                logger.info("finish success,bye!")
-                broker.close()
-                exit()
+                finish(broker)
