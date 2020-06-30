@@ -5,6 +5,7 @@
 ### 0.6.1
 
 - Add more args in `etl`.
+- Update etl algorithm prevent stuck since big data.
 
 ### 0.6.0
 

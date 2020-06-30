@@ -24,8 +24,11 @@ class Reader:
         self.cursor.execute(sql, args)
         return self.cursor.fetchall()
 
+    def get_full_insert_sql(self, schema: str, table: str):
+        return f"insert into {schema}.{table} {self.get_source_select_sql(schema, table)}"
+
     @abc.abstractmethod
-    def get_full_etl_sql(
+    def get_table_create_sql(
         self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
     ):
         raise NotImplementedError
@@ -62,12 +65,14 @@ class Reader:
                 except Exception as e:
                     logger.warning(f"Try to drop table {schema}.{table} fail")
             if not writer.table_exists(schema, table):
-                sql = self.get_full_etl_sql(
-                    schema, table, pk, engine, partition_by, engine_settings
+                writer.execute(
+                    self.get_table_create_sql(
+                        schema, table, pk, engine, partition_by, engine_settings
+                    )
                 )
-                writer.execute(sql)
                 if self.fix_column_type:
                     writer.fix_table_column_type(self, schema, table)
+                writer.execute(self.get_full_insert_sql(schema, table))
                 logger.info(f"etl success:{schema}.{table}")
 
     @abc.abstractmethod
@@ -80,4 +85,8 @@ class Reader:
 
     @abc.abstractmethod
     def signal_handler(self, signum: Signals, handler: Callable):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_source_select_sql(self, schema: str, table: str):
         raise NotImplementedError

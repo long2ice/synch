@@ -25,24 +25,7 @@ style: deps
 	black $(black_opts) $(checkfiles)
 
 check: deps
-ifneq ($(shell which black),)
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
-endif
-	flake8 $(checkfiles)
-	mypy $(checkfiles)
-	pylint -d C,W,R $(checkfiles)
-	bandit -r $(checkfiles)
-	python setup.py check -mrs
-
-lint: deps
-ifneq ($(shell which black),)
-	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
-endif
-	flake8 $(checkfiles)
-	mypy $(checkfiles)
-	pylint $(checkfiles)
-	bandit -r $(checkfiles)
-	python setup.py check -mrs
 
 test: deps
 	$(py_warn) py.test

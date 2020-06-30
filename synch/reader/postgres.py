@@ -32,7 +32,7 @@ class Postgres(Reader):
             user=settings.postgres_user,
             password=settings.postgres_password,
         )
-        self.conn = psycopg2.connect(**params, cursor_factory=DictCursor)
+        self.conn = psycopg2.connect(**params, database="test", cursor_factory=DictCursor)
         self.cursor = self.conn.cursor()
         for database in settings.schema_table.keys():
             replication_conn = psycopg2.connect(
@@ -42,7 +42,7 @@ class Postgres(Reader):
                 "cursor": replication_conn.cursor(),
             }
 
-    def get_full_etl_sql(
+    def get_table_create_sql(
         self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
     ):
         partition_by_str = ""
@@ -51,7 +51,10 @@ class Postgres(Reader):
             partition_by_str = f" PARTITION BY {partition_by} "
         if settings:
             settings_str = f" SETTINGS {settings} "
-        return f"CREATE TABLE postgres.test ENGINE = {engine} {partition_by_str} ORDER BY id {settings_str} AS SELECT * FROM jdbc('postgresql://{self.settings.postgres_host}:{self.settings.postgres_port}/{schema}?user={self.settings.postgres_user}&password={self.settings.postgres_password}', '{table}')"
+        return f"CREATE TABLE {schema}.{table} ENGINE = {engine} {partition_by_str} ORDER BY id {settings_str} AS {self.get_source_select_sql(schema, table)} limit 0"
+
+    def get_source_select_sql(self, schema: str, table: str):
+        return f"SELECT * FROM jdbc('postgresql://{self.settings.postgres_host}:{self.settings.postgres_port}/{schema}?user={self.settings.postgres_user}&password={self.settings.postgres_password}', '{table}')"
 
     def _get_repl_cursor(self, database: str):
         return self._repl_conn.get(database).get("cursor")
