@@ -6,67 +6,67 @@
 ![workflows](https://github.com/long2ice/synch/workflows/pypi/badge.svg)
 ![workflows](https://github.com/long2ice/synch/workflows/ci/badge.svg)
 
-[中文文档](https://github.com/long2ice/synch/blob/dev/README-zh.md)
+[English](https://github.com/long2ice/synch/blob/dev/README.md)
 
-## Introduction
+## 简介
 
-Sync data from other DB to ClickHouse, current support postgres and mysql, and support full and increment ETL.
+从其他数据库同步到 ClickHouse，当前支持 MySQL 与 postgres，支持全量复制与增量复制。
 
 ![synch](https://github.com/long2ice/synch/raw/dev/images/synch.png)
 
-## Features
+## 特性
 
-- Full data etl and real time increment etl.
-- Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support of DML also.
-- Custom configurable items.
-- Support kafka and redis as broker.
+- 全量复制与实时增量复制。
+- 支持 DML 同步与 DDL 同步， 支持增加字段、删除字段、更改字段，并且支持所有的 DML。
+- 自定义配置项。
+- 支持 redis 与 kafka 作为消息队列。
 
-## Requirements
+## 依赖
 
-- [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
-- [kafka](https://kafka.apache.org), need if you use kafka as broker.
-- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge), need if you use postgres and set `auto_full_etl = True`, or exec `synch etl` command.
-- [sentry](https://github.com/getsentry/sentry), error reporting, worked if set `dsn` in config.
+- [redis](https://redis.io)，缓存 binlog 和作为消息队列，支持 redis 集群。
+- [kafka](https://kafka.apache.org)，使用 kafka 作为消息队列时需要。
+- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge)， 在 postgres 执行`etl`命令的时候需要。
+- [sentry](https://github.com/getsentry/sentry)，可选的，提供错误报告。
 
-## Install
+## 安装
 
 ```shell
 > pip install synch
 ```
 
-## Usage
+## 使用
 
 ### synch.ini
 
-synch will read default config from `./synch.ini`, or you can use `synch -c` specify config file.
+synch 默认从 `./synch.ini`读取配置， 或者可以使用`synch -c` 指定配置文件。
 
-**Don't delete any section in synch.ini although you don't need it, just keep default as it.**
+**不要删除任何配置项，即使并不需要，只需要保持默认值即可**
 
 ```ini
 [core]
-# when set True, will display sql information.
+# 设置为True时会打印详细的SQL语句
 debug = True
-# current support redis and kafka
+# 当前支持kafka和redis
 broker_type = redis
-# source database, current support mysql and postgres
+# 源数据库类型，当前支持mysql与postgres
 source_db = mysql
-# these tables skip delete, multiple separated with comma, format with schema.table
+# 跳过删除的表，多个以逗号分隔，格式为：schema.table
 skip_delete_tables =
-# these tables skip update, multiple separated with comma, format with schema.table
+# 跳过更新的表，多个以逗号分隔，格式为：schema.table
 skip_update_tables =
-# skip delete or update dmls, multiple separated with comma, example: delete,update
+# 跳过的dml，update 或者 delete，多个以逗号分隔
 skip_dmls =
-# how many num to submit,recommend set 20000 when production
+# 多少条事件提交一次，正式环境推荐20000
 insert_num = 1
-# how many seconds to submit,recommend set 60 when production
+# 多少秒提交一次，正式环境推荐60
 insert_interval = 1
-# auto do full etl at first when table not exists
+# 是否在表不存在时自动全量复制
 auto_full_etl = True
 
 [sentry]
-# sentry environment
+# sentry的环境
 environment = development
-# sentry dsn
+# sentry的dsn配置
 dsn =
 
 [redis]
@@ -75,33 +75,33 @@ port = 6379
 password =
 db = 0
 prefix = synch
-# enable redis sentinel
+# 开启redis哨兵模式
 sentinel = False
-# redis sentinel hosts,multiple separated with comma
+# redis哨兵地址，多个以逗号分隔
 sentinel_hosts = 127.0.0.1:5000,127.0.0.1:5001,127.0.0.1:5002
 sentinel_master = master
-# stream max len, will delete redundant ones with FIFO
+# redis最为消息队列时的最大长度，多余的会按照FIFO删除
 queue_max_len = 200000
 
 [mysql]
 server_id = 1
-# optional, read from `show master status` result if empty
+# 可选，为空的时候会自动从 `show master status` 读取
 init_binlog_file =
-# optional, read from `show master status` result if empty
+# 可选，为空的时候会自动从 `show master status` 读取
 init_binlog_pos =
 host = mysql
 port = 3306
 user = root
 password = 123456
 
-# sync schema, format with mysql.schema, each schema for one section.
+# 同步的数据库， 格式为 mysql.schema，每一个数据库对应一个配置块
 [mysql.test]
-# multiple separated with comma
+# 同步的表，多个以逗号分隔
 tables = test
-# kafka partition, need when broker_type=kafka
+# 该数据库消费对应的kafka的分区，broker=kafka的时候需要
 kafka_partition = 0
 
-# when source_db = postgres
+# source_db = postgres的时候需要
 [postgres]
 host = postgres
 port = 5432
@@ -118,16 +118,16 @@ port = 9000
 user = default
 password =
 
-# need when broker_type=kafka
+# broker_type=kafka的时候需要
 [kafka]
-# kafka servers,multiple separated with comma
+# kafka服务器地址，多个以逗号分隔
 servers = 127.0.0.1:9092
 topic = synch
 ```
 
-### Full data etl
+### 全量复制
 
-Maybe you need make full data etl before continuous sync data from MySQL to ClickHouse or redo data etl with `--renew`.
+在增量复制之前一般需要进行一次全量复制，或者使用`--renew`进行全量重建。
 
 ```shell
 > synch etl -h
@@ -146,23 +146,23 @@ optional arguments:
 
 ```
 
-Full etl from table `test.test`:
+全量复制表 `test.test`：
 
 ```shell
 > synch etl --schema test --tables test
 ```
 
-### Produce
+### 生产
 
-Listen all MySQL binlog and produce to broker.
+监听源库并将变动数据写入消息队列。
 
 ```shell
 > synch produce
 ```
 
-### Consume
+### 消费
 
-Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = True` in `synch.ini`.
+从消息队列中消费数据并插入 ClickHouse，使用 `--skip-error`跳过错误消息。 配置 `auto_full_etl = True` 的时候会首先尝试做一次全量复制。
 
 ```shell
 > synch consume -h
@@ -177,16 +177,16 @@ optional arguments:
                         Redis stream last msg id or kafka msg offset, depend on broker_type in config.
 ```
 
-Consume schema `test` and insert into `ClickHouse`:
+消费数据库 `test` 并插入到`ClickHouse`：
 
 ```shell
 > synch consume --schema test
 ```
 
-## Use docker-compose(recommended)
+## 使用 docker-compose（推荐）
 
 <details>
-<summary>Redis Broker, lightweight and for low concurrency</summary>
+<summary>Redis 作为消息队列，轻量级消息队列，依赖少</summary>
 
 ```yaml
 version: "3"
@@ -217,7 +217,7 @@ volumes:
 </details>
 
 <details>
-<summary>Kafka Broker, for high concurrency</summary>
+<summary>Kafka作为消息队列，重量级，高吞吐量</summary>
 
 ```yml
 version: "3"
@@ -281,40 +281,40 @@ volumes:
 
 </details>
 
-## Important
+## 重要提示
 
-- Synch don't support composite primary key, and you need always keep a primary key or unique key.
-- DDL sync not support postgres.
-- Postgres sync is not fully test, be careful use it in production.
+- synch 不支持复合主键，同步的表必须有主键或唯一键。
+- DDL 不支持 postgres.
+- Postgres 同步未经过大量测试，生产环境谨慎使用。
 
-## QQ Group
+## QQ 群
 
 <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/qq_group.png"/>
 
-## Support this project
+## 支持这个项目
 
-- Just give a star!
-- Join QQ group for communication.
-- Donation.
+- 只需点一个 star！
+- 加入 QQ 群一起交流。
+- 捐赠。
 
-### AliPay
+### 支付宝
 
 <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/>
 
-### WeChat Pay
+### 微信
 
 <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/>
 
 ### PayPal
 
-Donate money by [paypal](https://www.paypal.me/long2ice) to my account long2ice.
+捐赠 [paypal](https://www.paypal.me/long2ice) 到我的账号 long2ice.
 
-## ThanksTo
+## 感谢
 
-Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch) from [Jetbrains](https://www.jetbrains.com/?from=synch).
+强大的 Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch) ，来自 [Jetbrains](https://www.jetbrains.com/?from=synch)。
 
 ![jetbrains](https://github.com/long2ice/synch/raw/dev/images/jetbrains.svg)
 
-## License
+## 开源许可
 
-This project is licensed under the [Apache-2.0](https://github.com/long2ice/synch/blob/master/LICENSE) License.
+本项目遵从 [Apache-2.0](https://github.com/long2ice/synch/blob/master/LICENSE) 开源许可。
