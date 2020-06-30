@@ -4,6 +4,7 @@
 ![docker](https://img.shields.io/docker/cloud/build/long2ice/synch)
 ![license](https://img.shields.io/github/license/long2ice/synch)
 ![workflows](https://github.com/long2ice/synch/workflows/pypi/badge.svg)
+![workflows](https://github.com/long2ice/synch/workflows/ci/badge.svg)
 
 [中文文档](https://blog.long2ice.cn/2020/05/synch%E4%B8%80%E4%B8%AA%E5%90%8C%E6%AD%A5mysql%E6%95%B0%E6%8D%AE%E5%88%B0clickhouse%E7%9A%84%E9%A1%B9%E7%9B%AE/)
 
