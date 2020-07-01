@@ -5,4 +5,4 @@ from synch.factory import init
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_tests():
-    init('synch.ini')
+    init('tests/synch.ini')
