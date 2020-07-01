@@ -8,8 +8,8 @@ from synch.broker.redis import RedisBroker
 from synch.reader import Reader
 from synch.reader.mysql import Mysql
 from synch.reader.postgres import Postgres
-from synch.replication.clickhouse import ClickHouseWriter
 from synch.settings import BrokerType, Settings, SourceDatabase
+from synch.writer import ClickHouse
 
 
 class Global:
@@ -19,7 +19,7 @@ class Global:
 
     settings: Optional[Settings] = None
     reader: Optional[Reader] = None
-    writer: Optional[ClickHouseWriter] = None
+    writer: Optional[ClickHouse] = None
     broker: Optional[Broker] = None
 
     @classmethod
@@ -30,13 +30,6 @@ class Global:
             cls.broker = RedisBroker(cls.settings)
         elif broker_type == BrokerType.kafka.value:
             cls.broker = KafkaBroker(cls.settings)
-
-        cls.writer = ClickHouseWriter(
-            host=cls.settings.clickhouse_host,
-            port=cls.settings.clickhouse_port,
-            password=cls.settings.clickhouse_password,
-            user=cls.settings.clickhouse_user,
-        )
         if cls.settings.source_db == SourceDatabase.mysql.value:
             cls.reader = Mysql(cls.settings)
         elif cls.settings.source_db == SourceDatabase.postgres.value:

@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.2
+
+- Refactor ClickHouse writer.
+- Add `CollapsingMergeTree` support.
+
 ### 0.6.1
 
 - Add more args in `etl`.

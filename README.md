@@ -70,7 +70,7 @@ environment = development
 dsn =
 
 [redis]
-host = 127.0.0.1
+host = redis
 port = 6379
 password =
 db = 0
@@ -100,6 +100,10 @@ password = 123456
 tables = test
 # kafka partition, need when broker_type=kafka
 kafka_partition = 0
+# current support MergeTree and CollapsingMergeTree
+clickhouse_engine = CollapsingMergeTree
+# need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
+sign_column = sign
 
 # when source_db = postgres
 [postgres]
@@ -111,9 +115,13 @@ password =
 [postgres.postgres]
 tables = test
 kafka_partition = 0
+# current support MergeTree and CollapsingMergeTree
+clickhouse_engine = MergeTree
+# need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
+sign_column = sign
 
 [clickhouse]
-host = 127.0.0.1
+host = clickhouse
 port = 9000
 user = default
 password =
@@ -121,7 +129,7 @@ password =
 # need when broker_type=kafka
 [kafka]
 # kafka servers,multiple separated with comma
-servers = 127.0.0.1:9092
+servers = kafka:9092
 topic = synch
 ```
 
@@ -183,6 +191,14 @@ Consume schema `test` and insert into `ClickHouse`:
 > synch consume --schema test
 ```
 
+**One consumer consume one schema**
+
+### ClickHouse Table Engine
+
+Now synch support `MergeTree` and `CollapsingMergeTree`, and performance of `CollapsingMergeTree` is higher than `MergeTree`.
+
+Default you should choice `MergeTree`, and if you pursue a high performance or your database is frequently updated, you can choice `CollapsingMergeTree`, but your `select` sql query should rewrite. More detail see at [CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/).
+
 ## Use docker-compose(recommended)
 
 <details>
@@ -198,6 +214,7 @@ services:
     command: synch produce
     volumes:
       - ./synch.ini:/synch/synch.ini
+  # one service consume on schema
   consumer.test:
     depends_on:
       - redis
@@ -219,7 +236,7 @@ volumes:
 <details>
 <summary>Kafka Broker, for high concurrency</summary>
 
-```yml
+```yaml
 version: "3"
 services:
   zookeeper:
@@ -259,6 +276,7 @@ services:
     command: synch produce
     volumes:
       - ./synch.ini:/synch/synch.ini
+  # one service consume on schema
   consumer.test:
     depends_on:
       - redis

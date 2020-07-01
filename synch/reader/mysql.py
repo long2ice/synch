@@ -11,6 +11,7 @@ from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, Write
 
 from synch.broker import Broker
 from synch.convert import SqlConvert
+from synch.enums import ClickHouseEngine
 from synch.reader import Reader
 from synch.redis import RedisLogPos
 from synch.settings import Settings
@@ -43,20 +44,6 @@ class Mysql(Reader):
         sql = "show master status"
         result = self.execute(sql)[0]
         return result.get("File"), result.get("Position")
-
-    def get_source_select_sql(self, schema: str, table: str):
-        return f"SELECT * FROM mysql('{self.settings.mysql_host}:{self.settings.mysql_port}', '{schema}', '{table}', '{self.settings.mysql_user}', '{self.settings.mysql_password}')"
-
-    def get_table_create_sql(
-        self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
-    ):
-        partition_by_str = ""
-        settings_str = ""
-        if partition_by:
-            partition_by_str = f" PARTITION BY {partition_by} "
-        if settings:
-            settings_str = f" SETTINGS {settings} "
-        return f"CREATE TABLE {schema}.{table} ENGINE = {engine} {partition_by_str} ORDER BY {pk} {settings_str} AS {self.get_source_select_sql(schema, table)} limit 0"
 
     def get_primary_key(self, db, table) -> Union[None, str, Tuple[str, ...]]:
         """
@@ -95,15 +82,14 @@ class Mysql(Reader):
 
         count = last_time = 0
         tables = []
-        schema_table = settings.schema_table
-        for k, v in schema_table.items():
-            for table in v:
+        for k, v in settings.schema_settings.items():
+            for table in v.get("tables"):
                 pk = self.get_primary_key(k, table)
                 if not pk or isinstance(pk, tuple):
                     # skip delete and update when no pk and composite pk
                     settings.skip_delete_tables.add(f"{k}.{table}")
-            tables += v
-        only_schemas = list(schema_table.keys())
+                tables.append(table)
+        only_schemas = list(settings.schema_settings.keys())
         only_tables = list(set(tables))
         for schema, table, event, file, pos in self._binlog_reading(
             only_tables=only_tables,
@@ -115,7 +101,9 @@ class Mysql(Reader):
             skip_delete_tables=settings.skip_delete_tables,
             skip_update_tables=settings.skip_update_tables,
         ):
-            if not schema_table.get(schema) or (table and table not in schema_table.get(schema)):
+            if not settings.schema_settings.get(schema) or (
+                table and table not in settings.schema_settings.get(schema).get("tables")
+            ):
                 continue
             broker.send(msg=event, schema=schema)
             self.pos_handler.set_log_pos_slave(file, pos)
@@ -179,7 +167,7 @@ class Mysql(Reader):
                     "action": "query",
                     "values": {"query": convent_sql},
                     "event_unixtime": int(time.time() * 10 ** 6),
-                    "action_core": "0",
+                    "action_seq": 0,
                 }
                 yield schema, None, event, stream.log_file, stream.log_pos
             else:
@@ -194,7 +182,7 @@ class Mysql(Reader):
                             "action": "insert",
                             "values": row["values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_core": "2",
+                            "action_seq": 2,
                         }
 
                     elif isinstance(binlog_event, UpdateRowsEvent):
@@ -206,7 +194,7 @@ class Mysql(Reader):
                             "action": "delete",
                             "values": row["before_values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_core": "1",
+                            "action_seq": 1,
                         }
                         yield binlog_event.schema, binlog_event.table, delete_event, stream.log_file, stream.log_pos
                         event = {
@@ -215,7 +203,7 @@ class Mysql(Reader):
                             "action": "insert",
                             "values": row["after_values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_core": "2",
+                            "action_seq": 2,
                         }
 
                     elif isinstance(binlog_event, DeleteRowsEvent):
@@ -227,7 +215,7 @@ class Mysql(Reader):
                             "action": "delete",
                             "values": row["values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_core": "1",
+                            "action_seq": 1,
                         }
                     else:
                         return

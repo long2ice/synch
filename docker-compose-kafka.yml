@@ -39,6 +39,7 @@ services:
     command: synch produce
     volumes:
       - ./synch.ini:/synch/synch.ini
+  # one service consume on schema
   consumer.test:
     depends_on:
       - redis

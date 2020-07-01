@@ -100,6 +100,10 @@ password = 123456
 tables = test
 # 该数据库消费对应的kafka的分区，broker=kafka的时候需要
 kafka_partition = 0
+# 当前支持 MergeTree 和 CollapsingMergeTree
+clickhouse_engine = MergeTree
+# 在clickhouse_engine=CollapsingMergeTree时需要，不需要在源库有这个字段，会在clickhouse自动生成
+sign_column = sign
 
 # source_db = postgres的时候需要
 [postgres]
@@ -111,6 +115,10 @@ password =
 [postgres.postgres]
 tables = test
 kafka_partition = 0
+# 当前支持 MergeTree 和 CollapsingMergeTree
+clickhouse_engine = MergeTree
+# 在clickhouse_engine=CollapsingMergeTree时需要，不需要在源库有这个字段，会在clickhouse自动生成
+sign_column = sign
 
 [clickhouse]
 host = 127.0.0.1
@@ -183,6 +191,14 @@ optional arguments:
 > synch consume --schema test
 ```
 
+**一个消费者消费一个数据库产生的消息**
+
+### ClickHouse 表引擎
+
+现在 synch 支持 `MergeTree` 和 `CollapsingMergeTree`，`CollapsingMergeTree` 的性能要高于`MergeTree`。
+
+通常情况下你应该选择`MergeTree`，如果你追求更高性能或者你的数据库极为频繁的更新，你可以选择 `CollapsingMergeTree`， 但是你的 `select` sql 语句需要重写。 更多详情参考[CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/)。
+
 ## 使用 docker-compose（推荐）
 
 <details>
@@ -198,6 +214,7 @@ services:
     command: synch produce
     volumes:
       - ./synch.ini:/synch/synch.ini
+  # 一个消费者消费一个数据库
   consumer.test:
     depends_on:
       - redis
@@ -219,7 +236,7 @@ volumes:
 <details>
 <summary>Kafka作为消息队列，重量级，高吞吐量</summary>
 
-```yml
+```yaml
 version: "3"
 services:
   zookeeper:
@@ -259,6 +276,7 @@ services:
     command: synch produce
     volumes:
       - ./synch.ini:/synch/synch.ini
+  # 一个消费者消费一个数据库
   consumer.test:
     depends_on:
       - redis

@@ -1,18 +1,9 @@
 import configparser
-from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseSettings
 
-
-class BrokerType(str, Enum):
-    redis = "redis"
-    kafka = "kafka"
-
-
-class SourceDatabase(str, Enum):
-    mysql = "mysql"
-    postgres = "postgres"
+from synch.enums import BrokerType, SourceDatabase
 
 
 class Settings(BaseSettings):
@@ -49,13 +40,11 @@ class Settings(BaseSettings):
     clickhouse_port: int = 9000
     clickhouse_user: str = "default"
     clickhouse_password: str = None
-
     kafka_servers: Set[str] = {"127.0.0.1"}
     kafka_topic: str = "synch"
-    kafka_partitions: Optional[Dict[str, int]]
 
     sentry_dsn: Optional[str]
-    schema_table: Dict[str, List[str]]
+
     init_binlog_file: str
     init_binlog_pos: int
     skip_delete_tables: Set[str]
@@ -65,6 +54,7 @@ class Settings(BaseSettings):
     insert_interval: int = 60
     queue_max_len: int = 200000
     auto_full_etl: bool = True
+    schema_settings: Dict[str, Dict]
 
     @classmethod
     def parse(cls, path: str) -> "Settings":
@@ -78,7 +68,7 @@ class Settings(BaseSettings):
         kafka = parser["kafka"]
         core = parser["core"]
         source_db = SourceDatabase(parser.get("core", "source_db"))
-        schema_tables, partitions = cls._get_schemas(source_db, parser)
+        schema_settings = cls._get_schema_settings(source_db, parser)
 
         return cls(
             environment=sentry.get("environment"),
@@ -105,12 +95,10 @@ class Settings(BaseSettings):
             redis_sentinel_master=redis.get("sentinel_master"),
             kafka_servers=set(kafka.get("servers").split(",")),
             kafka_topic=kafka.get("topic"),
-            kafka_partitions=partitions,
             clickhouse_host=clickhouse.get("host"),
             clickhouse_port=int(clickhouse.get("port")),
             clickhouse_user=clickhouse.get("user"),
             clickhouse_password=clickhouse.get("password"),
-            schema_table=schema_tables,
             skip_delete_tables=set(core.get("skip_delete_tables").split(",")),
             skip_update_tables=set(core.get("skip_update_tables").split(",")),
             skip_dmls=core.get("skip_dmls").split(","),
@@ -120,6 +108,7 @@ class Settings(BaseSettings):
             debug=core.get("debug") == "True",
             auto_full_etl=core.get("auto_full_etl") == "True",
             source_db=source_db,
+            schema_settings=schema_settings,
         )
 
     @classmethod
@@ -131,13 +120,14 @@ class Settings(BaseSettings):
         return hosts
 
     @classmethod
-    def _get_schemas(
-        cls, source_db, parser: configparser.ConfigParser
-    ) -> Tuple[Dict[str, List[str]], Dict[str, int]]:
-        schema_tables = {}
-        schema_partitions = {}
+    def _get_schema_settings(cls, source_db, parser: configparser.ConfigParser) -> Dict[str, Dict]:
+        schema_settings = {}
         for item in filter(lambda x: x.startswith(f"{source_db}."), parser.sections()):
             schema = item.split(f"{source_db}.")[-1]
-            schema_tables[schema] = parser.get(item, "tables").split(",")
-            schema_partitions[schema] = parser.getint(item, "kafka_partition")
-        return schema_tables, schema_partitions
+            schema_settings[schema] = dict(
+                tables=parser.get(item, "tables").split(","),
+                kafka_partition=parser.getint(item, "kafka_partition"),
+                clickhouse_engine=parser.get(item, "clickhouse_engine"),
+                sign_column=parser.get(item, "sign_column"),
+            )
+        return schema_settings

@@ -34,27 +34,13 @@ class Postgres(Reader):
         )
         self.conn = psycopg2.connect(**params, database="test", cursor_factory=DictCursor)
         self.cursor = self.conn.cursor()
-        for database in settings.schema_table.keys():
+        for database in settings.schema_settings.keys():
             replication_conn = psycopg2.connect(
                 **params, database=database, connection_factory=LogicalReplicationConnection
             )
             self._repl_conn[database] = {
                 "cursor": replication_conn.cursor(),
             }
-
-    def get_table_create_sql(
-        self, schema: str, table: str, pk: str, engine: str, partition_by: str, settings: str
-    ):
-        partition_by_str = ""
-        settings_str = ""
-        if partition_by:
-            partition_by_str = f" PARTITION BY {partition_by} "
-        if settings:
-            settings_str = f" SETTINGS {settings} "
-        return f"CREATE TABLE {schema}.{table} ENGINE = {engine} {partition_by_str} ORDER BY id {settings_str} AS {self.get_source_select_sql(schema, table)} limit 0"
-
-    def get_source_select_sql(self, schema: str, table: str):
-        return f"SELECT * FROM jdbc('postgresql://{self.settings.postgres_host}:{self.settings.postgres_port}/{schema}?user={self.settings.postgres_user}&password={self.settings.postgres_password}', '{table}')"
 
     def _get_repl_cursor(self, database: str):
         return self._repl_conn.get(database).get("cursor")
@@ -93,7 +79,7 @@ AND i.indisprimary;"""
                     "action": "delete",
                     "values": values,
                     "event_unixtime": int(time.time() * 10 ** 6),
-                    "action_core": "1",
+                    "action_seq": 1,
                 }
                 event = {
                     "table": table,
@@ -101,7 +87,7 @@ AND i.indisprimary;"""
                     "action": "insert",
                     "values": values,
                     "event_unixtime": int(time.time() * 10 ** 6),
-                    "action_core": "2",
+                    "action_seq": 2,
                 }
         elif kind == "delete":
             if (
@@ -114,7 +100,7 @@ AND i.indisprimary;"""
                     "action": "delete",
                     "values": values,
                     "event_unixtime": int(time.time() * 10 ** 6),
-                    "action_core": "1",
+                    "action_seq": 1,
                 }
         elif kind == "insert":
             event = {
@@ -123,7 +109,7 @@ AND i.indisprimary;"""
                 "action": "insert",
                 "values": values,
                 "event_unixtime": int(time.time() * 10 ** 6),
-                "action_core": "2",
+                "action_seq": 2,
             }
         else:
             return
@@ -165,7 +151,7 @@ AND i.indisprimary;"""
         cursor.consume_stream(functools.partial(self._consumer, broker, database))
 
     def start_sync(self, broker: Broker):
-        for database in self.settings.schema_table:
+        for database in self.settings.schema_settings:
             t = threading.Thread(target=self._run, args=(broker, database,))
             t.setDaemon(True)
             t.start()

@@ -11,7 +11,7 @@ def version():
     # with open("pyproject.toml") as f:
     #     ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
     #     return ret[0]
-    return "0.6.1"
+    return "0.6.2"
 
 
 def run(args):
@@ -50,12 +50,6 @@ def cli():
     )
     parser_etl.add_argument(
         "--settings", required=False, help="Table create settings, like index_granularity=8192",
-    )
-    parser_etl.add_argument(
-        "--engine",
-        required=False,
-        default="MergeTree",
-        help="Table create engine, default MergeTree.",
     )
     parser_etl.set_defaults(run=run, func=make_etl)
 
