@@ -1,15 +1,9 @@
 import logging
 import sys
 from typing import Optional
-
 from synch.broker import Broker
-from synch.broker.kafka import KafkaBroker
-from synch.broker.redis import RedisBroker
-from synch.reader import Reader
-from synch.reader.mysql import Mysql
-from synch.reader.postgres import Postgres
-from synch.settings import BrokerType, Settings, SourceDatabase
-from synch.writer import ClickHouse
+from synch.enums import BrokerType
+from synch.settings import Settings
 
 
 class Global:
@@ -18,22 +12,18 @@ class Global:
     """
 
     settings: Optional[Settings] = None
-    reader: Optional[Reader] = None
-    writer: Optional[ClickHouse] = None
     broker: Optional[Broker] = None
 
     @classmethod
-    def init(cls, config):
-        cls.settings = Settings.parse(config)
+    def init(cls, config_file):
+        from synch.broker.kafka import KafkaBroker
+        from synch.broker.redis import RedisBroker
+        cls.settings = Settings(config_file)
         broker_type = cls.settings.broker_type
         if broker_type == BrokerType.redis.value:
-            cls.broker = RedisBroker(cls.settings)
+            cls.broker = RedisBroker(cls.settings.get('redis'))
         elif broker_type == BrokerType.kafka.value:
             cls.broker = KafkaBroker(cls.settings)
-        if cls.settings.source_db == SourceDatabase.mysql.value:
-            cls.reader = Mysql(cls.settings)
-        elif cls.settings.source_db == SourceDatabase.postgres.value:
-            cls.reader = Postgres(cls.settings)
 
 
 def init_logging(debug):
@@ -59,13 +49,19 @@ def init_logging(debug):
 
 
 def init(config_file):
+    """
+    init
+    """
     Global.init(config_file)
     settings = Global.settings
     init_logging(settings.debug)
-    if settings.sentry_dsn:
+    dsn = settings.get("sentry", "dsn")
+    if dsn:
         import sentry_sdk
         from sentry_sdk.integrations.redis import RedisIntegration
 
         sentry_sdk.init(
-            settings.sentry_dsn, environment=settings.environment, integrations=[RedisIntegration()]
+            dsn,
+            environment=settings.get("sentry", "environment"),
+            integrations=[RedisIntegration()],
         )

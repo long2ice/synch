@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict, List
 
 from synch.enums import ClickHouseEngine, SourceDatabase
 from synch.factory import Global
@@ -44,7 +44,7 @@ def get_table_create_sql(schema: str, table: str, pk: str, partition_by: str, en
 
 
 def get_full_insert_sql(
-    schema: str, table: str,
+        schema: str, table: str,
 ):
     settings = Global.settings
     schema_setting = settings.schema_settings.get(schema)
@@ -58,47 +58,31 @@ def get_full_insert_sql(
 
 
 def etl_full(
-    reader,
-    writer,
-    schema,
-    tables: List[str] = None,
-    renew=False,
-    partition_by=None,
-    engine_settings=None,
+        reader, schema, tables: List[Dict], tables_pk: Dict, renew=False,
 ):
     """
     full etl
     """
-    settings = Global.settings
-    if not tables:
-        tables = settings.schema_table.get(schema)
-
     for table in tables:
-        pk = reader.get_primary_key(schema, table)
+        table_name = table.get('table')
+        pk = tables_pk.get(table_name)
+        writer = Global.get_writer(table.get('clickhouse_engine'))
         if not pk:
-            logger.warning(f"No pk found in {schema}.{table}, skip")
+            logger.warning(f"No pk found in {schema}.{table_name}, skip")
             continue
         elif isinstance(pk, tuple):
             pk = f"({','.join(pk)}"
         if renew:
-            drop_sq = f"drop table {schema}.{table}"
+            drop_sq = f"drop table {schema}.{table_name}"
             try:
                 writer.execute(drop_sq)
-                logger.info(f"drop table success:{schema}.{table}")
+                logger.info(f"drop table success:{schema}.{table_name}")
             except Exception as e:
-                logger.warning(f"Try to drop table {schema}.{table} fail")
-        if not writer.table_exists(schema, table):
-            writer.execute(get_table_create_sql(schema, table, pk, partition_by, engine_settings,))
+                logger.warning(f"Try to drop table {schema}.{table_name} fail")
+        if not writer.table_exists(schema, table_name):
+            writer.execute(
+                get_table_create_sql(schema, table_name, pk, table.get('partition_by'), table.get('engine_settings'), ))
             if reader.fix_column_type:
-                writer.fix_table_column_type(reader, schema, table)
-            writer.execute(get_full_insert_sql(schema, table,))
-            logger.info(f"etl success:{schema}.{table}")
-
-
-def make_etl(args):
-    schema = args.schema
-    tables = args.tables
-    renew = args.renew
-    partition_by = args.partition_by
-    settings = args.settings
-    etl_full(Global.reader, Global.writer, schema, tables.split(","), renew, partition_by, settings)
+                writer.fix_table_column_type(reader, schema, table_name)
+            writer.execute(get_full_insert_sql(schema, table_name, ))
+            logger.info(f"etl success:{schema}.{table_name}")

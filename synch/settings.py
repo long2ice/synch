@@ -1,133 +1,89 @@
-import configparser
-from typing import Dict, List, Optional, Set, Tuple
+import functools
+from typing import Dict, List
 
-from pydantic import BaseSettings
+import yaml
 
-from synch.enums import BrokerType, SourceDatabase
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 
-class Settings(BaseSettings):
-    """
-    settings
-    """
+class Settings:
+    _config: Dict
 
-    debug: bool = False
-    environment: str = "development"
-    broker_type: BrokerType = "redis"
-    source_db: SourceDatabase = SourceDatabase.mysql
+    def __init__(self, file_path: str):
+        with open(file_path, "r") as f:
+            self._config = yaml.load(f, Loader)
 
-    mysql_host: str = "127.0.0.1"
-    mysql_port: int = 3306
-    mysql_user: str = "root"
-    mysql_password: str = "123456"
-    mysql_server_id: int = 1
+    @functools.cached_property
+    def debug(self):
+        return self._config.get("debug")
 
-    postgres_host: str = "127.0.0.1"
-    postgres_port: int = 5432
-    postgres_user: str = "postgres"
-    postgres_password: str = "postgres"
+    @functools.cached_property
+    def insert_interval(self):
+        return self._config.get("insert_interval")
 
-    redis_host: str = "127.0.0.1"
-    redis_port: int = 6379
-    redis_password: str = None
-    redis_db: int = 0
-    redis_prefix: str = "synch"
-    redis_sentinel: bool = False
-    redis_sentinel_master: str = "master"
-    redis_sentinel_hosts: Optional[List[Tuple[str, int]]]
+    @functools.cached_property
+    def broker_type(self):
+        return self._config.get("broker_type")
 
-    clickhouse_host: str = "127.0.0.1"
-    clickhouse_port: int = 9000
-    clickhouse_user: str = "default"
-    clickhouse_password: str = None
-    kafka_servers: Set[str] = {"127.0.0.1"}
-    kafka_topic: str = "synch"
+    @functools.cached_property
+    def insert_num(self):
+        return self._config.get("insert_num")
 
-    sentry_dsn: Optional[str]
+    @functools.cached_property
+    def auto_full_etl(self):
+        return self._config.get("auto_full_etl")
 
-    init_binlog_file: str
-    init_binlog_pos: int
-    skip_delete_tables: Set[str]
-    skip_update_tables: Set[str]
-    skip_dmls: List[str]
-    insert_num: int = 20000
-    insert_interval: int = 60
-    queue_max_len: int = 200000
-    auto_full_etl: bool = True
-    schema_settings: Dict[str, Dict]
+    @functools.lru_cache()
+    def get_source_db(self, alias: str) -> Dict:
+        return next(filter(lambda x: x.get("alias") == alias, self.get("source_dbs")))
 
-    @classmethod
-    def parse(cls, path: str) -> "Settings":
-        parser = configparser.ConfigParser()
-        parser.read(path)
-        sentry = parser["sentry"]
-        redis = parser["redis"]
-        mysql = parser["mysql"]
-        postgres = parser["postgres"]
-        clickhouse = parser["clickhouse"]
-        kafka = parser["kafka"]
-        core = parser["core"]
-        source_db = SourceDatabase(parser.get("core", "source_db"))
-        schema_settings = cls._get_schema_settings(source_db, parser)
+    @functools.lru_cache()
+    def get_source_db_database(self, alias: str, database: str) -> Dict:
+        source_db = self.get_source_db(alias)
+        return next(filter(lambda x: x.get("database") == database, source_db.get("databases")))
 
-        return cls(
-            environment=sentry.get("environment"),
-            sentry_dsn=sentry.get("dsn"),
-            mysql_host=mysql.get("host"),
-            mysql_port=int(mysql.get("port")),
-            mysql_user=mysql.get("user"),
-            mysql_password=mysql.get("password"),
-            init_binlog_file=mysql.get("init_binlog_file"),
-            init_binlog_pos=int(mysql.get("init_binlog_pos") or 0),
-            mysql_server_id=int(mysql.get("server_id")),
-            postgres_host=postgres.get("host"),
-            postgres_port=int(postgres.get("port")),
-            postgres_user=postgres.get("user"),
-            postgres_password=postgres.get("password"),
-            redis_host=redis.get("host"),
-            redis_port=int(redis.get("port")),
-            redis_password=redis.get("password"),
-            redis_db=int(redis.get("db")),
-            redis_prefix=redis.get("prefix"),
-            queue_max_len=int(redis.get("queue_max_len")),
-            redis_sentinel=redis.get("sentinel") == "true",
-            redis_sentinel_hosts=cls._get_sentinel_hosts(redis.get("sentinel_hosts")),
-            redis_sentinel_master=redis.get("sentinel_master"),
-            kafka_servers=set(kafka.get("servers").split(",")),
-            kafka_topic=kafka.get("topic"),
-            clickhouse_host=clickhouse.get("host"),
-            clickhouse_port=int(clickhouse.get("port")),
-            clickhouse_user=clickhouse.get("user"),
-            clickhouse_password=clickhouse.get("password"),
-            skip_delete_tables=set(core.get("skip_delete_tables").split(",")),
-            skip_update_tables=set(core.get("skip_update_tables").split(",")),
-            skip_dmls=core.get("skip_dmls").split(","),
-            insert_num=int(core.get("insert_num")),
-            insert_interval=int(core.get("insert_interval")),
-            broker_type=BrokerType(core.get("broker_type")),
-            debug=core.get("debug") == "True",
-            auto_full_etl=core.get("auto_full_etl") == "True",
-            source_db=source_db,
-            schema_settings=schema_settings,
+    @functools.lru_cache()
+    def get_source_db_database_tables_name(self, alias: str, database: str) -> List[str]:
+        return list(
+            map(lambda x: x.get("table"), self.get_source_db_database_tables(alias, database))
         )
 
-    @classmethod
-    def _get_sentinel_hosts(cls, sentinel_hosts: str) -> List[Tuple[str, int]]:
-        hosts = []
-        for host in sentinel_hosts.split(","):
-            host_split = host.split(":")
-            hosts.append((host_split[0], int(host_split[1])))
-        return hosts
+    @functools.lru_cache()
+    def get_source_db_database_tables(self, alias: str, database: str) -> List[Dict]:
+        """
+        get table list
+        """
+        source_db_database = self.get_source_db_database(alias, database)
+        return source_db_database.get("tables")
 
-    @classmethod
-    def _get_schema_settings(cls, source_db, parser: configparser.ConfigParser) -> Dict[str, Dict]:
-        schema_settings = {}
-        for item in filter(lambda x: x.startswith(f"{source_db}."), parser.sections()):
-            schema = item.split(f"{source_db}.")[-1]
-            schema_settings[schema] = dict(
-                tables=parser.get(item, "tables").split(","),
-                kafka_partition=parser.getint(item, "kafka_partition"),
-                clickhouse_engine=parser.get(item, "clickhouse_engine"),
-                sign_column=parser.get(item, "sign_column"),
+    @functools.lru_cache()
+    def get_source_db_database_tables_by_tables_name(
+        self, alias: str, database: str, tables: List[str]
+    ):
+        source_db_database_tables = self.get_source_db_database_tables(alias, database)
+        return list(filter(lambda x: x.get("table") in tables, source_db_database_tables))
+
+    @functools.lru_cache()
+    def get_source_db_database_table(self, alias: str, database: str, table: str) -> Dict:
+        """
+        get table dict
+        """
+        return next(
+            filter(
+                lambda x: x.get("table") == table,
+                self.get_source_db_database_tables(alias, database),
             )
-        return schema_settings
+        )
+
+    @functools.lru_cache()
+    def get(self, *args):
+        """
+        get config item
+        """
+        c = self._config
+        for arg in args:
+            c = c.get(arg)
+        return c

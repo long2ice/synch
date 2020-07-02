@@ -1,34 +1,35 @@
+from typing import Dict
+
 import redis
 from redis.sentinel import Sentinel
 
-from synch.settings import Settings
-
 
 class Redis:
-    settings: Settings
     master: redis.Redis
     slave: redis.Redis
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Dict):
         """
         init setting and create redis instance
         """
-        self.settings = settings
-        if settings.redis_sentinel:
-            sentinel = Sentinel(sentinels=settings.redis_sentinel_hosts,)
+        self.prefix = settings.get('prefix')
+        self.queue_max_len = settings.get('queue_max_len')
+        self.sentinel = settings.get('sentinel')
+        if self.sentinel:
+            sentinel = Sentinel(sentinels=settings.get('sentinel_hosts'), )
             kwargs = dict(
-                service_name=settings.redis_sentinel_master,
-                password=settings.redis_password,
+                service_name=settings.get('sentinel_master'),
+                password=settings.get('password'),
                 decode_responses=True,
             )
             self.master = sentinel.master_for(**kwargs)
             self.slave = sentinel.slave_for(**kwargs)
         else:
             pool = redis.ConnectionPool(
-                host=settings.redis_host,
-                port=settings.redis_port,
-                db=settings.redis_db,
-                password=settings.redis_password,
+                host=settings.get('host'),
+                port=settings.get('port'),
+                db=settings.get('db'),
+                password=settings.get('password'),
                 decode_responses=True,
             )
             self.master = self.slave = redis.StrictRedis(connection_pool=pool)
@@ -39,13 +40,13 @@ class Redis:
 
 
 class RedisLogPos(Redis):
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Dict, mysql_server_id: int):
         super().__init__(settings)
-        self.server_id = self.settings.mysql_server_id
-        self.pos_key = f"{self.settings.redis_prefix}:binlog:{self.server_id}"
+        self.server_id = mysql_server_id
+        self.pos_key = f"{self.prefix}:binlog:{self.server_id}"
 
     def set_log_pos_master(
-        self, master_host, master_port, relay_master_log_file, exec_master_log_pos
+            self, master_host, master_port, relay_master_log_file, exec_master_log_pos
     ):
         self.master.hmset(
             self.pos_key,

@@ -4,7 +4,7 @@ import logging
 import threading
 import time
 from signal import Signals
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple, Union, Dict
 
 import psycopg2
 import psycopg2.errors
@@ -13,7 +13,6 @@ from psycopg2.extras import DictCursor, LogicalReplicationConnection, Replicatio
 
 from synch.broker import Broker
 from synch.reader import Reader
-from synch.settings import Settings
 
 logger = logging.getLogger("synch.reader.postgres")
 
@@ -24,21 +23,22 @@ class Postgres(Reader):
     lock = threading.Lock()
     lsn = None
 
-    def __init__(self, settings: Settings):
-        super().__init__(settings)
+    def __init__(self, source_db: Dict):
+        super().__init__(source_db)
         params = dict(
-            host=settings.postgres_host,
-            port=settings.postgres_port,
-            user=settings.postgres_user,
-            password=settings.postgres_password,
+            host=source_db.get('host'),
+            port=source_db.get('port'),
+            user=source_db.get('user'),
+            password=source_db.get('password'),
         )
-        self.conn = psycopg2.connect(**params, database="test", cursor_factory=DictCursor)
+        self.conn = psycopg2.connect(**params, cursor_factory=DictCursor)
         self.cursor = self.conn.cursor()
-        for database in settings.schema_settings.keys():
+        for database in source_db.get('databases'):
+            database_name = database.get('database')
             replication_conn = psycopg2.connect(
-                **params, database=database, connection_factory=LogicalReplicationConnection
+                **params, database=database_name, connection_factory=LogicalReplicationConnection
             )
-            self._repl_conn[database] = {
+            self._repl_conn[database_name] = {
                 "cursor": replication_conn.cursor(),
             }
 

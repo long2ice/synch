@@ -16,16 +16,17 @@ include = ["CHANGELOG.md", "LICENSE", "README.md", "pyproject.toml"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-mysql-replication = "*"
+mysql-replication = {version = "*", optional = true}
 clickhouse-driver = "*"
 redis = "*"
-mysqlclient = "*"
-sentry-sdk = "*"
+mysqlclient = {version = "*", optional = true}
+sentry-sdk = {version = "*", optional = true}
 python-dateutil = "*"
-pydantic = "*"
 sqlparse = "*"
-kafka-python = "*"
-psycopg2 = "*"
+kafka-python = {version = "*", optional = true}
+psycopg2 = {version = "*", optional = true}
+pyyaml = "*"
+click = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -40,3 +41,9 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry.scripts]
 synch = "synch.cli:cli"
+
+[tool.poetry.extras]
+mysql = ["mysqlclient", "mysql-replication"]
+postgres = ["psycopg2"]
+kafka = ["kafka-python"]
+sentry = ["sentry-sdk"]

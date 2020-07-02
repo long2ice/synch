@@ -1,7 +1,7 @@
 import logging
 import time
 from signal import Signals
-from typing import Callable, Generator, Tuple, Union
+from typing import Callable, Generator, Tuple, Union, Dict
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
@@ -11,10 +11,8 @@ from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, Write
 
 from synch.broker import Broker
 from synch.convert import SqlConvert
-from synch.enums import ClickHouseEngine
 from synch.reader import Reader
 from synch.redis import RedisLogPos
-from synch.settings import Settings
 
 logger = logging.getLogger("synch.reader.mysql")
 
@@ -23,19 +21,25 @@ class Mysql(Reader):
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
     fix_column_type = True
 
-    def __init__(self, settings: Settings):
-        super().__init__(settings)
+    def __init__(self, source_db: Dict, redis_settings: Dict):
+        super().__init__(source_db)
         self.conn = MySQLdb.connect(
-            host=self.settings.mysql_host,
-            port=self.settings.mysql_port,
-            user=self.settings.mysql_user,
-            password=self.settings.mysql_password,
+            host=self.host,
+            port=self.port,
+            user=self.user,
+            password=self.password,
             connect_timeout=5,
             cursorclass=DictCursor,
             charset="utf8",
         )
+        self.init_binlog_file = source_db.get('init_binlog_file')
+        self.init_binlog_pos = source_db.get('init_binlog_pos')
+        self.server_id = source_db.get('server_id')
+        self.skip_dmls = source_db.get('skip_dmls')
+        self.skip_delete_tables = source_db.get('skip_delete_tables')
+        self.skip_update_tables = source_db.get('skip_update_tables')
         self.cursor = self.conn.cursor()
-        self.pos_handler = RedisLogPos(settings)
+        self.pos_handler = RedisLogPos(redis_settings, self.server_id)
 
     def get_binlog_pos(self) -> Tuple[str, str]:
         """
@@ -67,12 +71,10 @@ class Mysql(Reader):
         exit()
 
     def start_sync(self, broker: Broker):
-        settings = self.settings
-
         log_file, log_pos = self.pos_handler.get_log_pos()
         if not (log_file and log_pos):
-            log_file = settings.init_binlog_file
-            log_pos = settings.init_binlog_pos
+            log_file = self.init_binlog_file
+            log_pos = self.init_binlog_pos
             if not (log_file and log_pos):
                 log_file, log_pos = self.get_binlog_pos()
             self.pos_handler.set_log_pos_slave(log_file, log_pos)
@@ -82,7 +84,7 @@ class Mysql(Reader):
 
         count = last_time = 0
         tables = []
-        for k, v in settings.schema_settings.items():
+        for k, v in self.source_db.get('databases').items():
             for table in v.get("tables"):
                 pk = self.get_primary_key(k, table)
                 if not pk or isinstance(pk, tuple):
@@ -92,17 +94,17 @@ class Mysql(Reader):
         only_schemas = list(settings.schema_settings.keys())
         only_tables = list(set(tables))
         for schema, table, event, file, pos in self._binlog_reading(
-            only_tables=only_tables,
-            only_schemas=only_schemas,
-            log_file=log_file,
-            log_pos=log_pos,
-            server_id=settings.mysql_server_id,
-            skip_dmls=settings.skip_dmls,
-            skip_delete_tables=settings.skip_delete_tables,
-            skip_update_tables=settings.skip_update_tables,
+                only_tables=only_tables,
+                only_schemas=only_schemas,
+                log_file=log_file,
+                log_pos=log_pos,
+                server_id=self.server_id,
+                skip_dmls=self.skip_dmls,
+                skip_delete_tables=self.skip_delete_tables,
+                skip_update_tables=self.skip_update_tables,
         ):
             if not settings.schema_settings.get(schema) or (
-                table and table not in settings.schema_settings.get(schema).get("tables")
+                    table and table not in settings.schema_settings.get(schema).get("tables")
             ):
                 continue
             broker.send(msg=event, schema=schema)
@@ -120,22 +122,22 @@ class Mysql(Reader):
                 last_time = count = 0
 
     def _binlog_reading(
-        self,
-        only_tables,
-        only_schemas,
-        log_file,
-        log_pos,
-        server_id,
-        skip_dmls,
-        skip_delete_tables,
-        skip_update_tables,
+            self,
+            only_tables,
+            only_schemas,
+            log_file,
+            log_pos,
+            server_id,
+            skip_dmls,
+            skip_delete_tables,
+            skip_update_tables,
     ) -> Generator:
         stream = BinLogStreamReader(
             connection_settings=dict(
-                host=self.settings.mysql_host,
-                port=self.settings.mysql_port,
-                user=self.settings.mysql_user,
-                passwd=self.settings.mysql_password,
+                host=self.host,
+                port=self.port,
+                user=self.user,
+                passwd=self.password,
             ),
             resume_stream=True,
             blocking=True,

@@ -1,9 +1,14 @@
-import argparse
+import datetime
+import logging
+from typing import List
 
-from synch.factory import init
-from synch.replication.consumer import consume
-from synch.replication.etl import make_etl
-from synch.replication.producer import produce
+import click
+from click import Context
+
+from synch.factory import Global, init
+from synch.replication.etl import etl_full
+
+logger = logging.getLogger("synch.cli")
 
 
 def version():
@@ -14,63 +19,88 @@ def version():
     return "0.6.2"
 
 
-def run(args):
-    init(args.config)
-    args.func(args)
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.version_option(version(), "-V", "--version")
+@click.option(
+    "--alias", help="DB alias from config.",
+)
+@click.option(
+    "-c", "--config", default="./synch.yaml", show_default=True, help="Config file.",
+)
+@click.pass_context
+def cli(ctx: Context, alias: str, config: str):
+    """
+    Sync data from other DB to ClickHouse.
+    """
+    ctx.ensure_object(dict)
+    ctx.obj["alias"] = alias
+    init(config)
 
 
-def cli():
-    parser = argparse.ArgumentParser(description="Sync data from other DB to ClickHouse.",)
-    parser.add_argument(
-        "-c", "--config", required=False, default="./synch.ini", help="Config file."
-    )
-    parser.add_argument(
-        "--version",
-        "-V",
-        action="version",
-        version=f"synch version, {version()}",
-        help="show the version",
-    )
-    subparsers = parser.add_subparsers(title="subcommands")
-    parser_etl = subparsers.add_parser("etl", help="Make etl from source table to ClickHouse.")
-    parser_etl.add_argument("--schema", required=True, help="Schema to full etl.")
-    parser_etl.add_argument(
-        "--tables", required=False, help="Tables to full etl, multiple tables split with comma.",
-    )
-    parser_etl.add_argument(
-        "--renew",
-        default=False,
-        action="store_true",
-        help="Etl after try to drop the target tables.",
-    )
-    parser_etl.add_argument(
-        "--partition-by",
-        required=False,
-        help="Table create partitioning by, like toYYYYMM(created_at).",
-    )
-    parser_etl.add_argument(
-        "--settings", required=False, help="Table create settings, like index_granularity=8192",
-    )
-    parser_etl.set_defaults(run=run, func=make_etl)
-
-    parser_producer = subparsers.add_parser("produce")
-    parser_producer.set_defaults(run=run, func=produce)
-
-    parser_consumer = subparsers.add_parser("consume")
-    parser_consumer.add_argument("--schema", required=True, help="Schema to consume.")
-    parser_consumer.add_argument(
-        "--skip-error", action="store_true", default=False, help="Skip error rows."
-    )
-    parser_consumer.add_argument(
-        "--last-msg-id",
-        required=False,
-        help="Redis stream last msg id or kafka msg offset, depend on broker_type in config.",
-    )
-    parser_consumer.set_defaults(run=run, func=consume)
-
-    parse_args = parser.parse_args()
-    parse_args.run(parse_args)
+@cli.command(help="Make etl from source table to ClickHouse.")
+@click.option(
+    "--schema", help="Schema to full etl.",
+)
+@click.option(
+    "--renew", help="Etl after try to drop the target tables.", is_flag=True, default=False
+)
+@click.option(
+    "-t", "--table", help="Tables to full etl.", required=False, multiple=True,
+)
+@click.pass_context
+def etl(ctx: Context, schema: str, renew: bool, table: List[str]):
+    alias = ctx.obj["alias"]
+    settings = Global.settings
+    tables = table
+    if tables:
+        tables = settings.get_source_db_database_tables_by_tables_name(alias, schema, tables)
+    else:
+        tables = settings.get_source_db_database_tables(alias, schema)
+    tables_pk = {}
+    reader = Global.get_reader(alias)
+    for table in tables:
+        tables_pk[table] = reader.get_primary_key(schema, table)
+    etl_full(Global.get_reader(alias), Global.writer, schema, tables, tables_pk, renew)
 
 
-if __name__ == "__main__":
+@cli.command(help="Consume from broker and insert into ClickHouse.")
+@click.option(
+    "--schema", help="Schema to consume.",
+)
+@click.option("--skip-error", help="Skip error rows.", is_flag=True, default=False)
+@click.option(
+    "--last-msg-id",
+    required=False,
+    help="Redis stream last msg id or kafka msg offset, depend on broker_type in config.",
+)
+@click.pass_context
+def consume(ctx: Context, schema: str, skip_error: bool, last_msg_id: str):
+    alias = ctx.obj["alias"]
+    settings = Global.settings
+    reader = Global.get_reader(alias)
+    tables = settings.get_source_db_database_tables_name(alias, schema)
+    tables_pk = {}
+    for table in tables:
+        tables_pk[table] = reader.get_primary_key(schema, table)
+
+    # try etl full
+    if settings.auto_full_etl:
+        etl_full(reader, schema, settings.get_source_db_database_tables(alias, schema), tables_pk)
+
+    writer.start_consume(schema, tables_pk, last_msg_id, skip_error)
+
+
+@cli.command(help="Listen binlog and produce to broker.")
+@click.pass_context
+def produce(ctx: Context):
+    alias = ctx.obj["alias"]
+    reader = Global.get_reader(alias)
+    broker = Global.broker
+    logger.info(
+        f"start producer success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+    reader.start_sync(broker)
+
+
+if __name__ == '__main__':
     cli()

@@ -9,13 +9,13 @@ class RedisBroker(Redis, Broker):
     last_msg_id: str = "0"
 
     def _get_queue(self, schema: str):
-        return f"{self.settings.redis_prefix}:schema:{schema}"
+        return f"{self.prefix}:schema:{schema}"
 
     def send(self, schema: str, msg: dict):
         self.master.xadd(
             self._get_queue(schema),
             {"msg": json.dumps(msg, cls=JsonEncoder)},
-            maxlen=self.settings.queue_max_len,
+            maxlen=self.queue_max_len,
         )
 
     def msgs(self, schema: str, last_msg_id=None, block: int = None):
@@ -43,7 +43,7 @@ class RedisBroker(Redis, Broker):
         )
 
     def _get_last_msg_id_key(self):
-        return f"{self.settings.redis_prefix}:last_msg_id"
+        return f"{self.prefix}:last_msg_id"
 
     def commit(
         self, schema: str,

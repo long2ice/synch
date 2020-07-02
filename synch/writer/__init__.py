@@ -8,7 +8,6 @@ from typing import Callable, Dict, List
 import clickhouse_driver
 
 from synch.common import JsonEncoder
-from synch.settings import Settings
 
 logger = logging.getLogger("synch.replication.clickhouse")
 
@@ -19,14 +18,13 @@ class ClickHouse:
     is_insert = False
     event_list = {}
 
-    def __init__(self, settings: Settings, broker):
+    def __init__(self, settings: Dict):
         self.settings = settings
-        self.broker = broker
         self._client = clickhouse_driver.Client(
-            host=settings.clickhouse_host,
-            port=settings.clickhouse_port,
-            user=settings.clickhouse_user,
-            password=settings.clickhouse_password,
+            host=settings.get('host'),
+            port=settings.get('port'),
+            user=settings.get('user'),
+            password=settings.get('password'),
         )
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)

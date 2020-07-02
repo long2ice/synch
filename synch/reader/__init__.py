@@ -2,10 +2,9 @@ import abc
 import logging
 import signal
 from signal import Signals
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple, Union, Dict
 
 from synch.broker import Broker
-from synch.settings import Settings
 
 logger = logging.getLogger("synch.reader")
 
@@ -14,8 +13,13 @@ class Reader:
     cursor = None
     fix_column_type = False
 
-    def __init__(self, settings: Settings):
-        self.settings = settings
+    def __init__(self, source_db: Dict):
+        self.source_db = source_db
+        self.host = source_db.get('host')
+        self.port = source_db.get('port')
+        self.user = source_db.get('user')
+        self.password = source_db.get('password')
+
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
 

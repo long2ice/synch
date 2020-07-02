@@ -1,0 +1,70 @@
+core:
+  debug: true # when set True, will display sql information.
+  broker_type: redis # current support redis and kafka
+  insert_num: 1 # how many num to submit,recommend set 20000 when production
+  insert_interval: 1 # how many seconds to submit,recommend set 60 when production
+  auto_full_etl: true # auto do full etl at first when table not exists
+
+sentry:
+  environment: development
+  dsn:
+
+redis:
+  host: redis
+  port: 6379
+  db: 0
+  prefix: synch
+  sentinel: false # enable redis sentinel
+  sentinel_hosts: # redis sentinel hosts
+    - 127.0.0.1:5000
+    - 127.0.0.1:5001
+    - 127.0.0.1:5002
+  sentinel_master: master
+  queue_max_len: 200000 # stream max len, will delete redundant ones with FIFO
+
+source_dbs:
+  - db_type: mysql
+    alias: mysql_db # use in cli command args
+    server_id: 1
+    host: mysql
+    port: 3306
+    user: root
+    password: '123456'
+    init_binlog_file:
+    init_binlog_pos:
+    skip_dmls:
+    skip_delete_tables:
+    skip_update_tables:
+    databases:
+      - database: test
+        kafka_partition: 0 # kafka partition, need when broker_type=kafka
+        tables:
+          - table: test
+            clickhouse_engine: MergeTree # current support MergeTree and CollapsingMergeTree
+            partition_by: # Table create partitioning by, like toYYYYMM(created_at).
+            settings: # Table create settings, like index_granularity=8192
+  - db_type: postgres
+    alias: postgres_db
+    host: postgres
+    port: 5432
+    user: postgres
+    password:
+    databases:
+      - database: test
+        kafka_partition: 0
+        tables:
+          - table: test
+            clickhouse_engine: CollapsingMergeTree
+            sign_column: sign # need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
+
+clickhouse:
+  host: clickhouse
+  port: 9000
+  user: default
+  password:
+
+# need when broker_type: kafka
+kafka:
+  servers:
+    - kafka:9092
+  topic: synch

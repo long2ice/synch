@@ -1,13 +1,12 @@
 import abc
-
-from synch.settings import Settings
+from typing import Dict
 
 
 class Broker:
-    settings: Settings
+    source_db: Dict
 
-    def __init__(self, settings: Settings):
-        self.settings = settings
+    def __init__(self, source_db: Dict):
+        self.source_db = source_db
 
     @abc.abstractmethod
     def send(self, schema: str, msg: dict):
@@ -25,7 +24,7 @@ class Broker:
 
     @abc.abstractmethod
     def commit(
-        self, schema: str,
+            self, schema: str,
     ):
         """
         commit mgs
@@ -33,5 +32,5 @@ class Broker:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def close(self,):
+    def close(self, ):
         raise NotImplementedError
