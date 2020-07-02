@@ -33,7 +33,7 @@ class Reader:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def start_sync(self, broker: Broker):
+    def start_sync(self, broker: Broker, insert_interval: int):
         raise NotImplementedError
 
     @abc.abstractmethod

@@ -35,10 +35,11 @@ class Mysql(Reader):
         self.init_binlog_file = source_db.get('init_binlog_file')
         self.init_binlog_pos = source_db.get('init_binlog_pos')
         self.server_id = source_db.get('server_id')
-        self.skip_dmls = source_db.get('skip_dmls')
-        self.skip_delete_tables = source_db.get('skip_delete_tables')
-        self.skip_update_tables = source_db.get('skip_update_tables')
+        self.skip_dmls = source_db.get('skip_dmls') or []
+        self.skip_delete_tables = source_db.get('skip_delete_tables') or []
+        self.skip_update_tables = source_db.get('skip_update_tables') or []
         self.cursor = self.conn.cursor()
+        self.databases = list(map(lambda x: x.get("database"), source_db.get("databases")))
         self.pos_handler = RedisLogPos(redis_settings, self.server_id)
 
     def get_binlog_pos(self) -> Tuple[str, str]:
@@ -70,7 +71,7 @@ class Mysql(Reader):
         logger.info(f"shutdown producer on {sig.name}, current position: {log_f}:{log_p}")
         exit()
 
-    def start_sync(self, broker: Broker):
+    def start_sync(self, broker: Broker, insert_interval: int):
         log_file, log_pos = self.pos_handler.get_log_pos()
         if not (log_file and log_pos):
             log_file = self.init_binlog_file
@@ -84,14 +85,18 @@ class Mysql(Reader):
 
         count = last_time = 0
         tables = []
-        for k, v in self.source_db.get('databases').items():
-            for table in v.get("tables"):
-                pk = self.get_primary_key(k, table)
+        schema_tables = {}
+        for database in self.source_db.get('databases'):
+            database_name = database.get('database')
+            for table in database.get("tables"):
+                table_name = table.get('table')
+                schema_tables.setdefault(database_name, []).append(table_name)
+                pk = self.get_primary_key(database_name, table_name)
                 if not pk or isinstance(pk, tuple):
                     # skip delete and update when no pk and composite pk
-                    settings.skip_delete_tables.add(f"{k}.{table}")
-                tables.append(table)
-        only_schemas = list(settings.schema_settings.keys())
+                    self.skip_delete_tables.add(f"{database_name}.{table_name}")
+                tables.append(table_name)
+        only_schemas = self.databases
         only_tables = list(set(tables))
         for schema, table, event, file, pos in self._binlog_reading(
                 only_tables=only_tables,
@@ -103,8 +108,8 @@ class Mysql(Reader):
                 skip_delete_tables=self.skip_delete_tables,
                 skip_update_tables=self.skip_update_tables,
         ):
-            if not settings.schema_settings.get(schema) or (
-                    table and table not in settings.schema_settings.get(schema).get("tables")
+            if not schema_tables.get(schema) or (
+                    table and table not in schema_tables.get(schema)
             ):
                 continue
             broker.send(msg=event, schema=schema)
@@ -117,8 +122,8 @@ class Mysql(Reader):
 
             if last_time == 0:
                 last_time = now
-            if now - last_time >= settings.insert_interval:
-                logger.info(f"success send {count} events in {settings.insert_interval} seconds")
+            if now - last_time >= insert_interval:
+                logger.info(f"success send {count} events in {insert_interval} seconds")
                 last_time = count = 0
 
     def _binlog_reading(

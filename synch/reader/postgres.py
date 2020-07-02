@@ -150,7 +150,7 @@ AND i.indisprimary;"""
         cursor.start_replication(slot_name="synch", decode=True, status_interval=1)
         cursor.consume_stream(functools.partial(self._consumer, broker, database))
 
-    def start_sync(self, broker: Broker):
+    def start_sync(self, broker: Broker, insert_interval: int):
         for database in self.settings.schema_settings:
             t = threading.Thread(target=self._run, args=(broker, database,))
             t.setDaemon(True)

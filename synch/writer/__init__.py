@@ -24,7 +24,7 @@ class ClickHouse:
             host=settings.get('host'),
             port=settings.get('port'),
             user=settings.get('user'),
-            password=settings.get('password'),
+            password=settings.get('password') or '',
         )
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
@@ -105,10 +105,7 @@ class ClickHouse:
             self.is_stop = True
             self.is_insert = True
 
-    def finish(self):
-        logger.info("finish success, bye!")
-        self.broker.close()
-        exit()
+
 
     def after_insert(self, schema: str, events_num: int):
         self.broker.commit(schema)

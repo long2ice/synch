@@ -5,8 +5,9 @@ from typing import List
 import click
 from click import Context
 
+from synch import get_reader, get_writer
 from synch.factory import Global, init
-from synch.replication.etl import etl_full
+from synch.replication.etl import etl_full, continuous_etl
 
 logger = logging.getLogger("synch.cli")
 
@@ -77,7 +78,7 @@ def etl(ctx: Context, schema: str, renew: bool, table: List[str]):
 def consume(ctx: Context, schema: str, skip_error: bool, last_msg_id: str):
     alias = ctx.obj["alias"]
     settings = Global.settings
-    reader = Global.get_reader(alias)
+    reader = get_reader(alias)
     tables = settings.get_source_db_database_tables_name(alias, schema)
     tables_pk = {}
     for table in tables:
@@ -85,21 +86,21 @@ def consume(ctx: Context, schema: str, skip_error: bool, last_msg_id: str):
 
     # try etl full
     if settings.auto_full_etl:
-        etl_full(reader, schema, settings.get_source_db_database_tables(alias, schema), tables_pk)
+        etl_full(reader, settings, schema, tables_pk, alias)
 
-    writer.start_consume(schema, tables_pk, last_msg_id, skip_error)
+    continuous_etl(schema, tables_pk, last_msg_id, skip_error, settings.insert_interval)
 
 
 @cli.command(help="Listen binlog and produce to broker.")
 @click.pass_context
 def produce(ctx: Context):
     alias = ctx.obj["alias"]
-    reader = Global.get_reader(alias)
+    reader = get_reader(alias)
     broker = Global.broker
     logger.info(
         f"start producer success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
-    reader.start_sync(broker)
+    reader.start_sync(broker, Global.settings.insert_interval)
 
 
 if __name__ == '__main__':

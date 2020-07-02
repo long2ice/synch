@@ -16,13 +16,13 @@ class Global:
 
     @classmethod
     def init(cls, config_file):
-        from synch.broker.kafka import KafkaBroker
-        from synch.broker.redis import RedisBroker
         cls.settings = Settings(config_file)
         broker_type = cls.settings.broker_type
         if broker_type == BrokerType.redis.value:
+            from synch.broker.redis import RedisBroker
             cls.broker = RedisBroker(cls.settings.get('redis'))
         elif broker_type == BrokerType.kafka.value:
+            from synch.broker.kafka import KafkaBroker
             cls.broker = KafkaBroker(cls.settings)
 
 
