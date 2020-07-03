@@ -44,6 +44,12 @@ class Postgres(Reader):
                 "cursor": replication_conn.cursor(),
             }
 
+    def execute(self, sql, args=None):
+        try:
+            return super(Postgres, self).execute(sql, args)
+        except psycopg2.ProgrammingError:
+            pass
+
     def _get_repl_cursor(self, database: str):
         return self._repl_conn.get(database).get("cursor")
 
