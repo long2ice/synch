@@ -6,6 +6,7 @@
 
 - Refactor ClickHouse writer.
 - Add `CollapsingMergeTree` support.
+- Refactor config file.
 
 ### 0.6.1
 

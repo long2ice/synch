@@ -12,24 +12,24 @@ class Redis:
         """
         init setting and create redis instance
         """
-        self.prefix = settings.get('prefix')
-        self.queue_max_len = settings.get('queue_max_len')
-        self.sentinel = settings.get('sentinel')
+        self.prefix = settings.get("prefix")
+        self.queue_max_len = settings.get("queue_max_len")
+        self.sentinel = settings.get("sentinel")
         if self.sentinel:
-            sentinel = Sentinel(sentinels=settings.get('sentinel_hosts'), )
+            sentinel = Sentinel(sentinels=settings.get("sentinel_hosts"),)
             kwargs = dict(
-                service_name=settings.get('sentinel_master'),
-                password=settings.get('password'),
+                service_name=settings.get("sentinel_master"),
+                password=settings.get("password"),
                 decode_responses=True,
             )
             self.master = sentinel.master_for(**kwargs)
             self.slave = sentinel.slave_for(**kwargs)
         else:
             pool = redis.ConnectionPool(
-                host=settings.get('host'),
-                port=settings.get('port'),
-                db=settings.get('db'),
-                password=settings.get('password'),
+                host=settings.get("host"),
+                port=settings.get("port"),
+                db=settings.get("db"),
+                password=settings.get("password"),
                 decode_responses=True,
             )
             self.master = self.slave = redis.StrictRedis(connection_pool=pool)
@@ -46,7 +46,7 @@ class RedisLogPos(Redis):
         self.pos_key = f"{self.prefix}:binlog:{self.server_id}"
 
     def set_log_pos_master(
-            self, master_host, master_port, relay_master_log_file, exec_master_log_pos
+        self, master_host, master_port, relay_master_log_file, exec_master_log_pos
     ):
         self.master.hmset(
             self.pos_key,

@@ -18,23 +18,19 @@ class Settings:
 
     @functools.cached_property
     def debug(self):
-        return self.get('core', "debug")
+        return self.get("core", "debug")
 
     @functools.cached_property
     def insert_interval(self):
-        return self.get('core', "insert_interval")
+        return self.get("core", "insert_interval")
 
     @functools.cached_property
     def broker_type(self):
-        return self.get('core', "broker_type")
+        return self.get("core", "broker_type")
 
     @functools.cached_property
     def insert_num(self):
-        return self.get('core', "insert_num")
-
-    @functools.cached_property
-    def auto_full_etl(self):
-        return self.get('core', "auto_full_etl")
+        return self.get("core", "insert_num")
 
     @functools.lru_cache()
     def get_source_db(self, alias: str) -> Dict:
@@ -61,10 +57,17 @@ class Settings:
 
     @functools.lru_cache()
     def get_source_db_database_tables_by_tables_name(
-            self, alias: str, database: str, tables: List[str]
+        self, alias: str, database: str, tables: List[str]
     ):
         source_db_database_tables = self.get_source_db_database_tables(alias, database)
         return list(filter(lambda x: x.get("table") in tables, source_db_database_tables))
+
+    @functools.lru_cache()
+    def get_source_db_database_tables_dict(self, alias: str, database: str) -> Dict:
+        ret = {}
+        for table in self.get_source_db_database_tables(alias, database):
+            ret[table.get("table")] = table
+        return ret
 
     @functools.lru_cache()
     def get_source_db_database_table(self, alias: str, database: str, table: str) -> Dict:

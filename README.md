@@ -20,6 +20,7 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 - Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support of DML also.
 - Custom configurable items.
 - Support kafka and redis as broker.
+- Multiple source db sync to ClickHouse at the same time。
 
 ## Requirements
 
@@ -36,102 +37,11 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 
 ## Usage
 
-### synch.ini
+### Config
 
-synch will read default config from `./synch.ini`, or you can use `synch -c` specify config file.
+synch will read default config from `./synch.yaml`, or you can use `synch -c` specify config file.
 
-**Don't delete any section in synch.ini although you don't need it, just keep default as it.**
-
-```ini
-[core]
-# when set True, will display sql information.
-debug = True
-# current support redis and kafka
-broker_type = redis
-# source database, current support mysql and postgres
-source_db = mysql
-# these tables skip delete, multiple separated with comma, format with schema.table
-skip_delete_tables =
-# these tables skip update, multiple separated with comma, format with schema.table
-skip_update_tables =
-# skip delete or update dmls, multiple separated with comma, example: delete,update
-skip_dmls =
-# how many num to submit,recommend set 20000 when production
-insert_num = 1
-# how many seconds to submit,recommend set 60 when production
-insert_interval = 1
-# auto do full etl at first when table not exists
-auto_full_etl = True
-
-[sentry]
-# sentry environment
-environment = development
-# sentry dsn
-dsn =
-
-[redis]
-host = redis
-port = 6379
-password =
-db = 0
-prefix = synch
-# enable redis sentinel
-sentinel = False
-# redis sentinel hosts,multiple separated with comma
-sentinel_hosts = 127.0.0.1:5000,127.0.0.1:5001,127.0.0.1:5002
-sentinel_master = master
-# stream max len, will delete redundant ones with FIFO
-queue_max_len = 200000
-
-[mysql]
-server_id = 1
-# optional, read from `show master status` result if empty
-init_binlog_file =
-# optional, read from `show master status` result if empty
-init_binlog_pos =
-host = mysql
-port = 3306
-user = root
-password = 123456
-
-# sync schema, format with mysql.schema, each schema for one section.
-[mysql.test]
-# multiple separated with comma
-tables = test
-# kafka partition, need when broker_type=kafka
-kafka_partition = 0
-# current support MergeTree and CollapsingMergeTree
-clickhouse_engine = CollapsingMergeTree
-# need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
-sign_column = sign
-
-# when source_db = postgres
-[postgres]
-host = postgres
-port = 5432
-user = postgres
-password =
-
-[postgres.postgres]
-tables = test
-kafka_partition = 0
-# current support MergeTree and CollapsingMergeTree
-clickhouse_engine = MergeTree
-# need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
-sign_column = sign
-
-[clickhouse]
-host = clickhouse
-port = 9000
-user = default
-password =
-
-# need when broker_type=kafka
-[kafka]
-# kafka servers,multiple separated with comma
-servers = kafka:9092
-topic = synch
-```
+See full example config in [`synch.yaml`](https://github.com/long2ice/synch/blob/dev/synch.yaml).
 
 ### Full data etl
 
@@ -170,7 +80,7 @@ Listen all MySQL binlog and produce to broker.
 
 ### Consume
 
-Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = True` in `synch.ini`.
+Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = True` in config.
 
 ```shell
 > synch consume -h
@@ -213,7 +123,7 @@ services:
     image: long2ice/synch
     command: synch produce
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
   consumer.test:
     depends_on:
@@ -221,7 +131,7 @@ services:
     image: long2ice/synch
     command: synch consume --schema test
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   redis:
     hostname: redis
     image: redis:latest
@@ -275,7 +185,7 @@ services:
     image: long2ice/synch
     command: synch produce
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
   consumer.test:
     depends_on:
@@ -285,7 +195,7 @@ services:
     image: long2ice/synch
     command: synch consume --schema test
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   redis:
     hostname: redis
     image: redis:latest

@@ -5,9 +5,10 @@ from typing import List
 import click
 from click import Context
 
-from synch import get_reader, get_writer
+from synch import get_reader
 from synch.factory import Global, init
-from synch.replication.etl import etl_full, continuous_etl
+from synch.replication.continuous import continuous_etl
+from synch.replication.etl import etl_full
 
 logger = logging.getLogger("synch.cli")
 
@@ -85,10 +86,18 @@ def consume(ctx: Context, schema: str, skip_error: bool, last_msg_id: str):
         tables_pk[table] = reader.get_primary_key(schema, table)
 
     # try etl full
-    if settings.auto_full_etl:
-        etl_full(reader, settings, schema, tables_pk, alias)
+    etl_full(reader, settings, schema, tables_pk, alias)
+    table_dict = settings.get_source_db_database_tables_dict(alias, schema)
 
-    continuous_etl(schema, tables_pk, last_msg_id, skip_error, settings.insert_interval)
+    continuous_etl(
+        schema,
+        tables_pk,
+        table_dict,
+        last_msg_id,
+        skip_error,
+        settings.insert_interval,
+        settings.insert_num,
+    )
 
 
 @cli.command(help="Listen binlog and produce to broker.")
@@ -103,5 +112,5 @@ def produce(ctx: Context):
     reader.start_sync(broker, Global.settings.insert_interval)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

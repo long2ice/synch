@@ -3,7 +3,6 @@ core:
   broker_type: redis # current support redis and kafka
   insert_num: 1 # how many num to submit,recommend set 20000 when production
   insert_interval: 1 # how many seconds to submit,recommend set 60 when production
-  auto_full_etl: true # auto do full etl at first when table not exists
 
 sentry:
   environment: development
@@ -24,12 +23,12 @@ redis:
 
 source_dbs:
   - db_type: mysql
-    alias: mysql_db # use in cli command args
+    alias: mysql_db # must be unique
     server_id: 1
     host: mysql
     port: 3306
     user: root
-    password: '123456'
+    password: "123456"
     init_binlog_file:
     init_binlog_pos:
     skip_dmls:
@@ -40,6 +39,7 @@ source_dbs:
         kafka_partition: 0 # kafka partition, need when broker_type=kafka
         tables:
           - table: test
+            auto_full_etl: true # auto do full etl at first when table not exists
             clickhouse_engine: MergeTree # current support MergeTree and CollapsingMergeTree
             partition_by: # Table create partitioning by, like toYYYYMM(created_at).
             settings: # Table create settings, like index_granularity=8192
@@ -54,6 +54,7 @@ source_dbs:
         kafka_partition: 0
         tables:
           - table: test
+            auto_full_etl: true
             clickhouse_engine: CollapsingMergeTree
             sign_column: sign # need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
 
@@ -63,7 +64,6 @@ clickhouse:
   user: default
   password:
 
-# need when broker_type: kafka
 kafka:
   servers:
     - kafka:9092

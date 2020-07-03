@@ -1,7 +1,7 @@
 import logging
 import time
 from signal import Signals
-from typing import Callable, Generator, Tuple, Union, Dict
+from typing import Callable, Dict, Generator, Tuple, Union
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
@@ -32,12 +32,12 @@ class Mysql(Reader):
             cursorclass=DictCursor,
             charset="utf8",
         )
-        self.init_binlog_file = source_db.get('init_binlog_file')
-        self.init_binlog_pos = source_db.get('init_binlog_pos')
-        self.server_id = source_db.get('server_id')
-        self.skip_dmls = source_db.get('skip_dmls') or []
-        self.skip_delete_tables = source_db.get('skip_delete_tables') or []
-        self.skip_update_tables = source_db.get('skip_update_tables') or []
+        self.init_binlog_file = source_db.get("init_binlog_file")
+        self.init_binlog_pos = source_db.get("init_binlog_pos")
+        self.server_id = source_db.get("server_id")
+        self.skip_dmls = source_db.get("skip_dmls") or []
+        self.skip_delete_tables = source_db.get("skip_delete_tables") or []
+        self.skip_update_tables = source_db.get("skip_update_tables") or []
         self.cursor = self.conn.cursor()
         self.databases = list(map(lambda x: x.get("database"), source_db.get("databases")))
         self.pos_handler = RedisLogPos(redis_settings, self.server_id)
@@ -86,10 +86,10 @@ class Mysql(Reader):
         count = last_time = 0
         tables = []
         schema_tables = {}
-        for database in self.source_db.get('databases'):
-            database_name = database.get('database')
+        for database in self.source_db.get("databases"):
+            database_name = database.get("database")
             for table in database.get("tables"):
-                table_name = table.get('table')
+                table_name = table.get("table")
                 schema_tables.setdefault(database_name, []).append(table_name)
                 pk = self.get_primary_key(database_name, table_name)
                 if not pk or isinstance(pk, tuple):
@@ -99,18 +99,16 @@ class Mysql(Reader):
         only_schemas = self.databases
         only_tables = list(set(tables))
         for schema, table, event, file, pos in self._binlog_reading(
-                only_tables=only_tables,
-                only_schemas=only_schemas,
-                log_file=log_file,
-                log_pos=log_pos,
-                server_id=self.server_id,
-                skip_dmls=self.skip_dmls,
-                skip_delete_tables=self.skip_delete_tables,
-                skip_update_tables=self.skip_update_tables,
+            only_tables=only_tables,
+            only_schemas=only_schemas,
+            log_file=log_file,
+            log_pos=log_pos,
+            server_id=self.server_id,
+            skip_dmls=self.skip_dmls,
+            skip_delete_tables=self.skip_delete_tables,
+            skip_update_tables=self.skip_update_tables,
         ):
-            if not schema_tables.get(schema) or (
-                    table and table not in schema_tables.get(schema)
-            ):
+            if not schema_tables.get(schema) or (table and table not in schema_tables.get(schema)):
                 continue
             broker.send(msg=event, schema=schema)
             self.pos_handler.set_log_pos_slave(file, pos)
@@ -127,22 +125,19 @@ class Mysql(Reader):
                 last_time = count = 0
 
     def _binlog_reading(
-            self,
-            only_tables,
-            only_schemas,
-            log_file,
-            log_pos,
-            server_id,
-            skip_dmls,
-            skip_delete_tables,
-            skip_update_tables,
+        self,
+        only_tables,
+        only_schemas,
+        log_file,
+        log_pos,
+        server_id,
+        skip_dmls,
+        skip_delete_tables,
+        skip_update_tables,
     ) -> Generator:
         stream = BinLogStreamReader(
             connection_settings=dict(
-                host=self.host,
-                port=self.port,
-                user=self.user,
-                passwd=self.password,
+                host=self.host, port=self.port, user=self.user, passwd=self.password,
             ),
             resume_stream=True,
             blocking=True,

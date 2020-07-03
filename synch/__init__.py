@@ -23,9 +23,11 @@ def get_reader(alias: str):
         db_type = source_db.get("db_type")
         if db_type == SourceDatabase.mysql.value:
             from synch.reader.mysql import Mysql
-            r = Mysql(source_db, Global.settings.get('redis'))
+
+            r = Mysql(source_db, Global.settings.get("redis"))
         elif db_type == SourceDatabase.postgres.value:
             from synch.reader.postgres import Postgres
+
             r = Postgres(source_db)
         else:
             raise NotImplementedError(f"Unsupported db_type {db_type}")
@@ -33,18 +35,18 @@ def get_reader(alias: str):
     return r
 
 
-def get_writer(engine: ClickHouseEngine):
+def get_writer(engine: ClickHouseEngine = None):
     """
     get writer once
     """
     w = _writers.get(engine)
     if not w:
-        settings = Global.settings.get('clickhouse')
+        settings = Global.settings.get("clickhouse")
         if engine == ClickHouseEngine.merge_tree.value:
             w = ClickHouseMergeTree(settings)
         elif engine == ClickHouseEngine.collapsing_merge_tree:
             w = ClickHouseCollapsingMergeTree(settings)
         else:
-            raise NotImplementedError(f"Unsupported engine {engine}")
+            w = ClickHouse(settings)
         _writers[engine] = w
     return w

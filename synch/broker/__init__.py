@@ -24,7 +24,7 @@ class Broker:
 
     @abc.abstractmethod
     def commit(
-            self, schema: str,
+        self, schema: str,
     ):
         """
         commit mgs
@@ -32,5 +32,5 @@ class Broker:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def close(self, ):
+    def close(self,):
         raise NotImplementedError

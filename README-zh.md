@@ -20,6 +20,7 @@
 - 支持 DML 同步与 DDL 同步， 支持增加字段、删除字段、更改字段，并且支持所有的 DML。
 - 自定义配置项。
 - 支持 redis 与 kafka 作为消息队列。
+- 支持多源数据库同时同步到 ClickHouse。
 
 ## 依赖
 
@@ -36,102 +37,11 @@
 
 ## 使用
 
-### synch.ini
+### synch.yaml
 
-synch 默认从 `./synch.ini`读取配置， 或者可以使用`synch -c` 指定配置文件。
+synch 默认从 `./synch.yaml`读取配置， 或者可以使用`synch -c` 指定配置文件。
 
-**不要删除任何配置项，即使并不需要，只需要保持默认值即可**
-
-```ini
-[core]
-# 设置为True时会打印详细的SQL语句
-debug = True
-# 当前支持kafka和redis
-broker_type = redis
-# 源数据库类型，当前支持mysql与postgres
-source_db = mysql
-# 跳过删除的表，多个以逗号分隔，格式为：schema.table
-skip_delete_tables =
-# 跳过更新的表，多个以逗号分隔，格式为：schema.table
-skip_update_tables =
-# 跳过的dml，update 或者 delete，多个以逗号分隔
-skip_dmls =
-# 多少条事件提交一次，正式环境推荐20000
-insert_num = 1
-# 多少秒提交一次，正式环境推荐60
-insert_interval = 1
-# 是否在表不存在时自动全量复制
-auto_full_etl = True
-
-[sentry]
-# sentry的环境
-environment = development
-# sentry的dsn配置
-dsn =
-
-[redis]
-host = 127.0.0.1
-port = 6379
-password =
-db = 0
-prefix = synch
-# 开启redis哨兵模式
-sentinel = False
-# redis哨兵地址，多个以逗号分隔
-sentinel_hosts = 127.0.0.1:5000,127.0.0.1:5001,127.0.0.1:5002
-sentinel_master = master
-# redis最为消息队列时的最大长度，多余的会按照FIFO删除
-queue_max_len = 200000
-
-[mysql]
-server_id = 1
-# 可选，为空的时候会自动从 `show master status` 读取
-init_binlog_file =
-# 可选，为空的时候会自动从 `show master status` 读取
-init_binlog_pos =
-host = mysql
-port = 3306
-user = root
-password = 123456
-
-# 同步的数据库， 格式为 mysql.schema，每一个数据库对应一个配置块
-[mysql.test]
-# 同步的表，多个以逗号分隔
-tables = test
-# 该数据库消费对应的kafka的分区，broker=kafka的时候需要
-kafka_partition = 0
-# 当前支持 MergeTree 和 CollapsingMergeTree
-clickhouse_engine = MergeTree
-# 在clickhouse_engine=CollapsingMergeTree时需要，不需要在源库有这个字段，会在clickhouse自动生成
-sign_column = sign
-
-# source_db = postgres的时候需要
-[postgres]
-host = postgres
-port = 5432
-user = postgres
-password =
-
-[postgres.postgres]
-tables = test
-kafka_partition = 0
-# 当前支持 MergeTree 和 CollapsingMergeTree
-clickhouse_engine = MergeTree
-# 在clickhouse_engine=CollapsingMergeTree时需要，不需要在源库有这个字段，会在clickhouse自动生成
-sign_column = sign
-
-[clickhouse]
-host = 127.0.0.1
-port = 9000
-user = default
-password =
-
-# broker_type=kafka的时候需要
-[kafka]
-# kafka服务器地址，多个以逗号分隔
-servers = 127.0.0.1:9092
-topic = synch
-```
+参考配置文件 [`synch.yaml`](https://github.com/long2ice/synch/blob/dev/synch.yaml)。
 
 ### 全量复制
 
@@ -213,7 +123,7 @@ services:
     image: long2ice/synch
     command: synch produce
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   # 一个消费者消费一个数据库
   consumer.test:
     depends_on:
@@ -221,7 +131,7 @@ services:
     image: long2ice/synch
     command: synch consume --schema test
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   redis:
     hostname: redis
     image: redis:latest
@@ -275,7 +185,7 @@ services:
     image: long2ice/synch
     command: synch produce
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   # 一个消费者消费一个数据库
   consumer.test:
     depends_on:
@@ -285,7 +195,7 @@ services:
     image: long2ice/synch
     command: synch consume --schema test
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   redis:
     hostname: redis
     image: redis:latest

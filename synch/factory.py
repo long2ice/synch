@@ -1,6 +1,7 @@
 import logging
 import sys
 from typing import Optional
+
 from synch.broker import Broker
 from synch.enums import BrokerType
 from synch.settings import Settings
@@ -20,9 +21,11 @@ class Global:
         broker_type = cls.settings.broker_type
         if broker_type == BrokerType.redis.value:
             from synch.broker.redis import RedisBroker
-            cls.broker = RedisBroker(cls.settings.get('redis'))
+
+            cls.broker = RedisBroker(cls.settings.get("redis"))
         elif broker_type == BrokerType.kafka.value:
             from synch.broker.kafka import KafkaBroker
+
             cls.broker = KafkaBroker(cls.settings)
 
 

@@ -14,7 +14,6 @@ CONVERTERS = {
 }
 
 
-
 class JsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -36,6 +35,3 @@ def object_hook(obj):
         return CONVERTERS[_spec_type](obj["val"])
     else:
         raise TypeError("Unknown {}".format(_spec_type))
-
-
-

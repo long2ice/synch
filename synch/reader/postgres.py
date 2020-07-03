@@ -4,7 +4,7 @@ import logging
 import threading
 import time
 from signal import Signals
-from typing import Callable, Tuple, Union, Dict
+from typing import Callable, Dict, Tuple, Union
 
 import psycopg2
 import psycopg2.errors
@@ -26,15 +26,15 @@ class Postgres(Reader):
     def __init__(self, source_db: Dict):
         super().__init__(source_db)
         params = dict(
-            host=source_db.get('host'),
-            port=source_db.get('port'),
-            user=source_db.get('user'),
-            password=source_db.get('password'),
+            host=source_db.get("host"),
+            port=source_db.get("port"),
+            user=source_db.get("user"),
+            password=source_db.get("password"),
         )
         self.conn = psycopg2.connect(**params, cursor_factory=DictCursor)
         self.cursor = self.conn.cursor()
-        for database in source_db.get('databases'):
-            database_name = database.get('database')
+        for database in source_db.get("databases"):
+            database_name = database.get("database")
             replication_conn = psycopg2.connect(
                 **params, database=database_name, connection_factory=LogicalReplicationConnection
             )
