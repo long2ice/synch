@@ -101,6 +101,7 @@ def etl_full(
                     table.get("engine_settings"),
                     table.get("clickhouse_engine"),
                     source_db,
+                    sign_column=table.get("sign_column"),
                 )
             )
             if reader.fix_column_type:

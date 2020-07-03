@@ -9,7 +9,7 @@ sentry:
   dsn:
 
 redis:
-  host: redis
+  host: 127.0.0.1
   port: 6379
   db: 0
   prefix: synch
@@ -25,10 +25,10 @@ source_dbs:
   - db_type: mysql
     alias: mysql_db # must be unique
     server_id: 1
-    host: mysql
+    host: 127.0.0.1
     port: 3306
     user: root
-    password: "123456"
+    password: root
     init_binlog_file:
     init_binlog_pos:
     skip_dmls:
@@ -45,7 +45,7 @@ source_dbs:
             settings: # Table create settings, like index_granularity=8192
   - db_type: postgres
     alias: postgres_db
-    host: postgres
+    host: 127.0.0.1
     port: 5432
     user: postgres
     password:
@@ -59,12 +59,12 @@ source_dbs:
             sign_column: sign # need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
 
 clickhouse:
-  host: clickhouse
+  host: 127.0.0.1
   port: 9000
   user: default
   password:
 
 kafka:
   servers:
-    - kafka:9092
+    - 127.0.0.1:9092
   topic: synch

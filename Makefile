@@ -28,7 +28,7 @@ check: deps
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
 
 test: deps
-	$(py_warn) py.test
+	$(py_warn) local=$(local) pytest
 
 build: deps
 	@poetry build

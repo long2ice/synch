@@ -26,7 +26,7 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 
 - [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
 - [kafka](https://kafka.apache.org), need if you use kafka as broker.
-- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge), need if you use postgres and set `auto_full_etl = True`, or exec `synch etl` command.
+- [clickhouse-jdbc-bridge](https://github.com/ClickHouse/clickhouse-jdbc-bridge), need if you use postgres and set `auto_full_etl = true`, or exec `synch etl` command.
 - [sentry](https://github.com/getsentry/sentry), error reporting, worked if set `dsn` in config.
 
 ## Install
@@ -80,7 +80,7 @@ Listen all MySQL binlog and produce to broker.
 
 ### Consume
 
-Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = True` in config.
+Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = true` in config.
 
 ```shell
 > synch consume -h

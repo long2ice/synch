@@ -4,6 +4,26 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     services:
+      clickhouse-jdbc-bridge-service:
+        image: clickhouse-jdbc-bridge-service
+        ports:
+          - 9091:9091
+        env:
+          - BRIDGE_BIND_HOST: 0.0.0.0
+      clickhouse:
+        image: yandex/clickhouse-server
+        ports:
+          - 8123:8123
+          - 9000:9000
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       postgres:
         image: postgres:latest
         ports:
@@ -23,11 +43,4 @@ jobs:
       - name: Check
         run: make check
       - name: Test with pytest
-        env:
-          MYSQL_PASS: root
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_PORT: 3306
-          POSTGRES_PASS: 123456
-          POSTGRES_HOST: 127.0.0.1
-          POSTGRES_PORT: 5432
         run: make test
