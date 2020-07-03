@@ -23,7 +23,7 @@ def create_mysql_table(initialize_tests):
   `id` int NOT NULL AUTO_INCREMENT,
   `amount` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci"""
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"""
     return get_reader("mysql_db").execute(sql)
 
 
