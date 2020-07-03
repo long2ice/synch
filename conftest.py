@@ -6,10 +6,11 @@ import pytest
 from synch import get_reader
 from synch.factory import init
 
+local = os.getenv('local') == 'True'
+
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_tests():
-    local = os.getenv('local') == 'True'
     if local:
         init('synch.yaml')
     else:
