@@ -6,7 +6,7 @@ from synch import Global, get_reader
 from synch.replication.etl import etl_full
 
 
-@pytest.mark.skipif(not local, reason="can't etl not local")
+@pytest.mark.skipif(not local, reason="can't etl when not local")
 def test_full_etl_postgres():
     alias = "postgres_db"
     reader = get_reader(alias)
@@ -16,7 +16,7 @@ def test_full_etl_postgres():
         assert e.code == 86
 
 
-@pytest.mark.skipif(not local, reason="can't etl not local")
+@pytest.mark.skipif(not local, reason="can't etl when not local")
 def test_full_etl_mysql():
     alias = "mysql_db"
     reader = get_reader(alias)

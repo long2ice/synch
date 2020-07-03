@@ -9,6 +9,7 @@ from typing import Callable, Dict, Tuple, Union
 import psycopg2
 import psycopg2.errors
 from psycopg2._psycopg import ReplicationMessage
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import DictCursor, LogicalReplicationConnection, ReplicationCursor
 
 from synch.broker import Broker
@@ -32,6 +33,7 @@ class Postgres(Reader):
             password=source_db.get("password"),
         )
         self.conn = psycopg2.connect(**params, cursor_factory=DictCursor)
+        self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.cursor = self.conn.cursor()
         for database in source_db.get("databases"):
             database_name = database.get("database")

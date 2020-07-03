@@ -19,22 +19,28 @@ def initialize_tests():
 
 @pytest.fixture(scope="session", autouse=True)
 def create_mysql_table(initialize_tests):
-    sql = """create database if not exists test;use test;CREATE TABLE IF NOT EXISTS `test.test` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `amount` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"""
+    sql = """drop database if exists test;create database if not exists test;use test;create table if not exists `test` (
+  `id` int not null auto_increment,
+  `amount` decimal(10,2) default null,
+  primary key (`id`)
+) engine=innodb auto_increment=10 default charset=utf8mb4 collate=utf8mb4_general_ci"""
     return get_reader("mysql_db").execute(sql)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def create_postgres_table(initialize_tests):
+    reader = get_reader("postgres_db")
+    sql = "create database test"
+    try:
+        reader.execute(sql)
+    except psycopg2.errors.DuplicateDatabase:
+        pass
+
     sql = """create table if not exists test
 (
-    id     int NOT NULL primary key,
-    amount decimal(10, 2) DEFAULT NULL
+    id     int not null primary key,
+    amount decimal(10, 2) default null
 )"""
-    reader = get_reader("postgres_db")
     try:
         reader.execute(sql)
     except psycopg2.ProgrammingError as e:
