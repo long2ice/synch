@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       clickhouse-jdbc-bridge-service:
-        image: clickhouse-jdbc-bridge-service
+        image: riftbit/clickhouse-jdbc-bridge-service
         ports:
           - 9091:9091
         env:
