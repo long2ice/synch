@@ -18,7 +18,7 @@ def initialize_tests():
 
 @pytest.fixture(scope="session", autouse=True)
 def create_mysql_table(initialize_tests):
-    sql = """use test;CREATE TABLE IF NOT EXISTS `test.test` (
+    sql = """create database if not exists test;use test;CREATE TABLE IF NOT EXISTS `test.test` (
   `id` int NOT NULL AUTO_INCREMENT,
   `amount` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -33,7 +33,8 @@ def create_postgres_table(initialize_tests):
     id     int NOT NULL primary key,
     amount decimal(10, 2) DEFAULT NULL
 )"""
+    reader = get_reader("postgres_db")
     try:
-        get_reader("postgres_db").execute(sql)
+        reader.execute(sql)
     except psycopg2.ProgrammingError as e:
         assert str(e) == "no results to fetch"
