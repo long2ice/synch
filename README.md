@@ -32,8 +32,16 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 ## Install
 
 ```shell
-> pip install synch
+> pip install synch[all]
 ```
+
+Extra pip dependencies:
+
+- `mysql`, if your source db is `MySQL`.
+- `postgres`, if your source db is `PostgreSQL`.
+- `kafka`, if your broker type is `kafka`.
+- `sentry`, if your use `sentry`.
+- `all`, install all dependencies.
 
 ## Usage
 

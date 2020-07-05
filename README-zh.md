@@ -32,8 +32,16 @@
 ## 安装
 
 ```shell
-> pip install synch
+> pip install synch[all]
 ```
+
+额外pip依赖：
+
+- `mysql`， 如果你的源库为 `MySQL`。
+- `postgres`， 如果你的源库为 `PostgreSQL`。
+- `kafka`， 如果你是否 `kafka`消息队列。
+- `sentry`， 如果你使用 `sentry`。
+- `all`， 安装所有依赖。
 
 ## 使用
 
