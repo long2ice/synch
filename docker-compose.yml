@@ -4,17 +4,17 @@ services:
     depends_on:
       - redis
     image: long2ice/synch
-    command: synch produce
+    command: synch --alias mysql_db produce
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
   consumer.test:
     depends_on:
       - redis
     image: long2ice/synch
-    command: synch consume --schema test
+    command: synch --alias mysql_db consume --schema test
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   redis:
     hostname: redis
     image: redis:latest

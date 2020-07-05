@@ -1,17 +1,18 @@
-from typing import Dict
-
 import redis
 from redis.sentinel import Sentinel
+
+from synch.settings import Settings
 
 
 class Redis:
     master: redis.Redis
     slave: redis.Redis
 
-    def __init__(self, settings: Dict):
+    def __init__(self):
         """
         init setting and create redis instance
         """
+        settings = Settings.get("redis")
         self.prefix = settings.get("prefix")
         self.queue_max_len = settings.get("queue_max_len")
         self.sentinel = settings.get("sentinel")
@@ -40,10 +41,12 @@ class Redis:
 
 
 class RedisLogPos(Redis):
-    def __init__(self, settings: Dict, mysql_server_id: int):
-        super().__init__(settings)
-        self.server_id = mysql_server_id
-        self.pos_key = f"{self.prefix}:binlog:{self.server_id}"
+    def __init__(
+        self, alias: str,
+    ):
+        super().__init__()
+        self.server_id = Settings.get_source_db(alias).get("server_id")
+        self.pos_key = f"{self.prefix}:binlog:{alias}:{self.server_id}"
 
     def set_log_pos_master(
         self, master_host, master_port, relay_master_log_file, exec_master_log_pos

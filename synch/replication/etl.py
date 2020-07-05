@@ -1,8 +1,8 @@
 import logging
 from typing import Dict
 
-from synch import get_writer
 from synch.enums import ClickHouseEngine, SourceDatabase
+from synch.factory import get_reader, get_writer
 from synch.settings import Settings
 
 logger = logging.getLogger("synch.replication.etl")
@@ -60,18 +60,19 @@ def get_full_insert_sql(schema: str, source_db: Dict, source_db_database_table: 
     if engine == ClickHouseEngine.merge_tree:
         return f"insert into {schema}.{table} {get_source_select_sql(schema, table, source_db)}"
     elif engine == ClickHouseEngine.collapsing_merge_tree:
-        sign_column = table.get("sign_column")
+        sign_column = source_db_database_table.get("sign_column")
         return f"insert into {schema}.{table} {get_source_select_sql(schema, table, source_db, sign_column)}"
 
 
 def etl_full(
-    reader, settings: Settings, schema: str, tables_pk: Dict, alias: str, renew=False,
+    alias: str, schema: str, tables_pk: Dict, renew=False,
 ):
     """
     full etl
     """
-    source_db = settings.get_source_db(alias)
-    source_db_database = settings.get_source_db_database(alias, schema)
+    reader = get_reader(alias)
+    source_db = Settings.get_source_db(alias)
+    source_db_database = Settings.get_source_db_database(alias, schema)
     schema = source_db_database.get("database")
     for table in source_db_database.get("tables"):
         if not table.get("auto_full_etl"):
@@ -89,7 +90,7 @@ def etl_full(
             try:
                 writer.execute(drop_sq)
                 logger.info(f"drop table success:{schema}.{table_name}")
-            except Exception as e:
+            except Exception:
                 logger.warning(f"Try to drop table {schema}.{table_name} fail")
         if not writer.table_exists(schema, table_name):
             writer.execute(
@@ -106,8 +107,12 @@ def etl_full(
             )
             if reader.fix_column_type:
                 writer.fix_table_column_type(reader, schema, table_name)
-            source_db_database_table = settings.get_source_db_database_table(
+            source_db_database_table = Settings.get_source_db_database_table(
                 alias, schema, table_name
             )
             writer.execute(get_full_insert_sql(schema, source_db, source_db_database_table))
             logger.info(f"full data etl for {schema}.{table_name} success")
+        else:
+            logger.info(
+                f"{schema}.{table_name} exists, skip, or use --renew force etl with drop old tables"
+            )

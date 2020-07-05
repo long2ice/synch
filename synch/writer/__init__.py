@@ -1,13 +1,7 @@
-import abc
-import json
 import logging
-import signal
-from signal import Signals
-from typing import Callable, Dict, List
+from typing import Dict, List
 
 import clickhouse_driver
-
-from synch.common import JsonEncoder
 
 logger = logging.getLogger("synch.replication.clickhouse")
 

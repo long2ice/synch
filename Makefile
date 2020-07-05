@@ -21,11 +21,13 @@ deps:
 	@poetry install --no-root -E mysql -E postgres -E kafka -E sentry
 
 style: deps
-	isort -rc $(checkfiles)
+	isort -src $(checkfiles)
 	black $(black_opts) $(checkfiles)
 
 check: deps
 	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
+	flake8 $(checkfiles)
+	bandit -x tests -r $(checkfiles)
 
 test: deps
 	$(py_warn) local=$(local) pytest

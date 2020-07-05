@@ -1,12 +1,9 @@
 import abc
-from typing import Dict
 
 
 class Broker:
-    source_db: Dict
-
-    def __init__(self, source_db: Dict):
-        self.source_db = source_db
+    def __init__(self, alias: str):
+        self.alias = alias
 
     @abc.abstractmethod
     def send(self, schema: str, msg: dict):

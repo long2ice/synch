@@ -1,6 +1,5 @@
 core:
   debug: true # when set True, will display sql information.
-  broker_type: redis # current support redis and kafka
   insert_num: 1 # how many num to submit,recommend set 20000 when production
   insert_interval: 1 # how many seconds to submit,recommend set 60 when production
 
@@ -24,6 +23,7 @@ redis:
 source_dbs:
   - db_type: mysql
     alias: mysql_db # must be unique
+    broker_type: redis # current support redis and kafka
     server_id: 1
     host: mysql
     port: 3306
@@ -31,12 +31,11 @@ source_dbs:
     password: "123456"
     init_binlog_file:
     init_binlog_pos:
-    skip_dmls:
-    skip_delete_tables:
-    skip_update_tables:
+    skip_dmls: # dmls to skip
+    skip_delete_tables: # tables skip delete, format with schema.table
+    skip_update_tables: # tables skip update, format with schema.table
     databases:
       - database: test
-        kafka_partition: 0 # kafka partition, need when broker_type=kafka
         tables:
           - table: test
             auto_full_etl: true # auto do full etl at first when table not exists
@@ -45,18 +44,20 @@ source_dbs:
             settings: # Table create settings, like index_granularity=8192
   - db_type: postgres
     alias: postgres_db
+    broker_type: kafka # current support redis and kafka
     host: postgres
     port: 5432
     user: postgres
     password:
     databases:
       - database: postgres
-        kafka_partition: 0
         tables:
           - table: test
-            auto_full_etl: false # now clickhouse-jdbc-bridge-service not support decimal mapping, so full etl for postgres now work
+            auto_full_etl: true # now clickhouse-jdbc-bridge-service not support decimal mapping
             clickhouse_engine: CollapsingMergeTree
             sign_column: sign # need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
+            partition_by:
+            settings:
 
 clickhouse:
   host: clickhouse
@@ -67,4 +68,4 @@ clickhouse:
 kafka:
   servers:
     - kafka:9092
-  topic: synch
+  topic_prefix: synch

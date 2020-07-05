@@ -1,7 +1,7 @@
 import logging
 import time
 from signal import Signals
-from typing import Callable, Dict, Generator, Tuple, Union
+from typing import Callable, Generator, Tuple, Union
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
@@ -21,8 +21,9 @@ class Mysql(Reader):
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
     fix_column_type = True
 
-    def __init__(self, source_db: Dict, redis_settings: Dict):
-        super().__init__(source_db)
+    def __init__(self, alias):
+        super().__init__(alias)
+        source_db = self.source_db
         self.conn = MySQLdb.connect(
             host=self.host,
             port=self.port,
@@ -40,7 +41,7 @@ class Mysql(Reader):
         self.skip_update_tables = source_db.get("skip_update_tables") or []
         self.cursor = self.conn.cursor()
         self.databases = list(map(lambda x: x.get("database"), source_db.get("databases")))
-        self.pos_handler = RedisLogPos(redis_settings, self.server_id)
+        self.pos_handler = RedisLogPos(alias)
 
     def get_binlog_pos(self) -> Tuple[str, str]:
         """

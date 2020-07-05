@@ -4,7 +4,9 @@ import signal
 from signal import Signals
 from typing import Callable, Dict
 
-from synch import ClickHouseEngine, Global, get_writer
+from synch.enums import ClickHouseEngine
+from synch.factory import get_broker, get_writer
+from synch.settings import Settings
 
 logger = logging.getLogger("synch.replication.etl")
 
@@ -29,9 +31,9 @@ def signal_handler(signum: Signals, handler: Callable):
         is_insert = True
 
 
-def finish_continuous_etl():
+def finish_continuous_etl(broker):
     logger.info("finish success, bye!")
-    Global.broker.close()
+    broker.close()
     exit()
 
 
@@ -41,27 +43,27 @@ def handle_event_by_engine(
     schema: str,
     table: str,
     action: str,
-    event_list: Dict,
+    tmp_event_list: Dict,
     event: Dict,
 ):
     """
     handle event by different engine
     :return:
     """
-    event_list.setdefault(table, {}).setdefault(action, {})
     values = event["values"]
     engine = tables_dict.get(table).get("clickhouse_engine")
     if engine == ClickHouseEngine.merge_tree.value:
+        tmp_event_list.setdefault(table, {}).setdefault(action, {})
         pk = tables_pk.get(table)
         if not pk:
             logger.warning(f"No pk found in table {schema}.{table}, skip...")
-            return event_list
+            return tmp_event_list
         else:
             if isinstance(pk, tuple):
                 pk_value = {values[pk[0]], values[pk[1]]}
             else:
                 pk_value = values[pk]
-            event_list[table][action][pk_value] = event
+            tmp_event_list[table][action][pk_value] = event
     elif engine == ClickHouseEngine.collapsing_merge_tree.value:
         sign_column = tables_dict.get(table).get("sign_column")
         if action == "delete":
@@ -71,22 +73,18 @@ def handle_event_by_engine(
         elif action == "insert":
             values[sign_column] = 1
         event["values"] = values
-        event_list.setdefault(table, []).append(event)
-    return event_list
+        tmp_event_list.setdefault(table, []).append(event)
+    return tmp_event_list
 
 
 def continuous_etl(
-    schema: str,
-    tables_pk: Dict,
-    tables_dict: Dict,
-    last_msg_id,
-    skip_error: bool,
-    insert_interval: int,
-    insert_num: int,
+    alias: str, schema: str, tables_pk: Dict, tables_dict: Dict, last_msg_id, skip_error: bool,
 ):
     """
     continuous etl from broker and insert into clickhouse
     """
+    insert_interval = Settings.insert_interval()
+    insert_num = Settings.insert_num()
     logger.info(
         f"start consumer for {schema} success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, last_msg_id={last_msg_id}, insert_interval={insert_interval}, insert_num={insert_num}"
     )
@@ -97,9 +95,8 @@ def continuous_etl(
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    for msg_id, msg in Global.broker.msgs(
-        schema, last_msg_id=last_msg_id, block=insert_interval * 1000
-    ):
+    broker = get_broker(alias)
+    for msg_id, msg in broker.msgs(schema, last_msg_id=last_msg_id, block=insert_interval * 1000):
         if not msg_id:
             if len_event > 0:
                 is_insert = True
@@ -107,7 +104,7 @@ def continuous_etl(
                 query = None
             else:
                 if is_stop:
-                    finish_continuous_etl()
+                    finish_continuous_etl(broker)
                 continue
         else:
             alter_table = False
@@ -157,6 +154,8 @@ def continuous_etl(
                         except Exception as e:
                             logger.error(f"insert event error,error: {e}")
                     else:
+                        if delete_pks:
+                            writer.delete_events(schema, table, pk, delete_pks)
                         if insert_events:
                             writer.insert_events(schema, table, insert_events)
                 elif isinstance(v, list):
@@ -172,10 +171,10 @@ def continuous_etl(
             if alter_table:
                 get_writer().alter_table(query, skip_error)
 
-            Global.broker.commit(schema)
+            broker.commit(schema)
             logger.info(f"success commit {len_event} events")
             event_list = {}
             is_insert = False
             len_event = 0
             if is_stop:
-                finish_continuous_etl()
+                finish_continuous_etl(broker)

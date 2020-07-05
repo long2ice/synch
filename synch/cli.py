@@ -5,10 +5,10 @@ from typing import List
 import click
 from click import Context
 
-from synch import get_reader
-from synch.factory import Global, init
+from synch.factory import get_broker, get_reader, init
 from synch.replication.continuous import continuous_etl
 from synch.replication.etl import etl_full
+from synch.settings import Settings
 
 logger = logging.getLogger("synch.cli")
 
@@ -23,9 +23,7 @@ def version():
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.version_option(version(), "-V", "--version")
-@click.option(
-    "--alias", help="DB alias from config.",
-)
+@click.option("--alias", help="DB alias from config.", required=True)
 @click.option(
     "-c", "--config", default="./synch.yaml", show_default=True, help="Config file.",
 )
@@ -40,9 +38,7 @@ def cli(ctx: Context, alias: str, config: str):
 
 
 @cli.command(help="Make etl from source table to ClickHouse.")
-@click.option(
-    "--schema", help="Schema to full etl.",
-)
+@click.option("--schema", help="Schema to full etl.", required=True)
 @click.option(
     "--renew", help="Etl after try to drop the target tables.", is_flag=True, default=False
 )
@@ -52,23 +48,18 @@ def cli(ctx: Context, alias: str, config: str):
 @click.pass_context
 def etl(ctx: Context, schema: str, renew: bool, table: List[str]):
     alias = ctx.obj["alias"]
-    settings = Global.settings
     tables = table
-    if tables:
-        tables = settings.get_source_db_database_tables_by_tables_name(alias, schema, tables)
-    else:
-        tables = settings.get_source_db_database_tables(alias, schema)
+    if not tables:
+        tables = Settings.get_source_db_database_tables_name(alias, schema)
     tables_pk = {}
-    reader = Global.get_reader(alias)
+    reader = get_reader(alias)
     for table in tables:
         tables_pk[table] = reader.get_primary_key(schema, table)
-    etl_full(Global.get_reader(alias), Global.writer, schema, tables, tables_pk, renew)
+    etl_full(alias, schema, tables_pk, renew)
 
 
 @cli.command(help="Consume from broker and insert into ClickHouse.")
-@click.option(
-    "--schema", help="Schema to consume.",
-)
+@click.option("--schema", help="Schema to consume.", required=True)
 @click.option("--skip-error", help="Skip error rows.", is_flag=True, default=False)
 @click.option(
     "--last-msg-id",
@@ -78,25 +69,18 @@ def etl(ctx: Context, schema: str, renew: bool, table: List[str]):
 @click.pass_context
 def consume(ctx: Context, schema: str, skip_error: bool, last_msg_id: str):
     alias = ctx.obj["alias"]
-    settings = Global.settings
     reader = get_reader(alias)
-    tables = settings.get_source_db_database_tables_name(alias, schema)
+    tables = Settings.get_source_db_database_tables_name(alias, schema)
     tables_pk = {}
     for table in tables:
         tables_pk[table] = reader.get_primary_key(schema, table)
 
     # try etl full
-    etl_full(reader, settings, schema, tables_pk, alias)
-    table_dict = settings.get_source_db_database_tables_dict(alias, schema)
+    etl_full(alias, schema, tables_pk)
+    table_dict = Settings.get_source_db_database_tables_dict(alias, schema)
 
     continuous_etl(
-        schema,
-        tables_pk,
-        table_dict,
-        last_msg_id,
-        skip_error,
-        settings.insert_interval,
-        settings.insert_num,
+        alias, schema, tables_pk, table_dict, last_msg_id, skip_error,
     )
 
 
@@ -105,11 +89,11 @@ def consume(ctx: Context, schema: str, skip_error: bool, last_msg_id: str):
 def produce(ctx: Context):
     alias = ctx.obj["alias"]
     reader = get_reader(alias)
-    broker = Global.broker
+    broker = get_broker(alias)
     logger.info(
         f"start producer success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
-    reader.start_sync(broker, Global.settings.insert_interval)
+    reader.start_sync(broker, Settings.insert_interval())
 
 
 if __name__ == "__main__":

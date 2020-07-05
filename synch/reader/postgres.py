@@ -4,7 +4,7 @@ import logging
 import threading
 import time
 from signal import Signals
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Tuple, Union
 
 import psycopg2
 import psycopg2.errors
@@ -14,6 +14,7 @@ from psycopg2.extras import DictCursor, LogicalReplicationConnection, Replicatio
 
 from synch.broker import Broker
 from synch.reader import Reader
+from synch.settings import Settings
 
 logger = logging.getLogger("synch.reader.postgres")
 
@@ -24,14 +25,19 @@ class Postgres(Reader):
     lock = threading.Lock()
     lsn = None
 
-    def __init__(self, source_db: Dict):
-        super().__init__(source_db)
+    def __init__(self, alias):
+        super().__init__(alias)
+        source_db = Settings.get_source_db(alias)
         params = dict(
             host=source_db.get("host"),
             port=source_db.get("port"),
             user=source_db.get("user"),
             password=source_db.get("password"),
         )
+        self.insert_interval = Settings.insert_interval()
+        self.skip_dmls = source_db.get("skip_dmls") or []
+        self.skip_update_tables = source_db.get("skip_update_tables") or []
+        self.skip_delete_tables = source_db.get("skip_delete_tables") or []
         self.conn = psycopg2.connect(**params, cursor_factory=DictCursor)
         self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.cursor = self.conn.cursor()
@@ -58,8 +64,7 @@ class Postgres(Reader):
 FROM pg_index i
          JOIN pg_attribute a ON a.attrelid = i.indrelid
     AND a.attnum = ANY (i.indkey)
-WHERE i.indrelid = '{db}.public.{table}'::regclass 
-AND i.indisprimary;"""
+WHERE i.indrelid = '{db}.public.{table}'::regclass AND i.indisprimary;"""
         ret = self.execute(sql)
         return ret[0][0]
 
@@ -73,13 +78,14 @@ AND i.indisprimary;"""
         table = change.get("table")
         columnnames = change.get("columnnames")
         columnvalues = change.get("columnvalues")
+        oldkeys = change.get("oldkeys")
         skip_dml_table_name = f"{database}.{table}"
-        values = dict(zip(columnnames, columnvalues))
         delete_event = event = None
         if kind == "update":
+            values = dict(zip(columnnames, columnvalues))
             if (
-                "update" not in self.settings.skip_dmls
-                and skip_dml_table_name not in self.settings.skip_update_tables
+                "update" not in self.skip_dmls
+                and skip_dml_table_name not in self.skip_update_tables
             ):
                 delete_event = {
                     "table": table,
@@ -98,9 +104,10 @@ AND i.indisprimary;"""
                     "action_seq": 2,
                 }
         elif kind == "delete":
+            values = dict(zip(oldkeys.get("keynames"), oldkeys.get("keyvalues")))
             if (
-                "delete" not in self.settings.skip_dmls
-                and skip_dml_table_name not in self.settings.skip_delete_tables
+                "delete" not in self.skip_dmls
+                and skip_dml_table_name not in self.skip_delete_tables
             ):
                 event = {
                     "table": table,
@@ -111,6 +118,7 @@ AND i.indisprimary;"""
                     "action_seq": 1,
                 }
         elif kind == "insert":
+            values = dict(zip(columnnames, columnvalues))
             event = {
                 "table": table,
                 "schema": database,
@@ -135,10 +143,8 @@ AND i.indisprimary;"""
             self.count += 1
             if self.last_time == 0:
                 self.last_time = now
-            if now - self.last_time >= self.settings.insert_interval:
-                logger.info(
-                    f"success send {self.count} events in {self.settings.insert_interval} seconds"
-                )
+            if now - self.last_time >= self.insert_interval:
+                logger.info(f"success send {self.count} events in {self.insert_interval} seconds")
                 self.last_time = self.count = 0
 
     def signal_handler(self, signum: Signals, handler: Callable):
@@ -159,8 +165,8 @@ AND i.indisprimary;"""
         cursor.consume_stream(functools.partial(self._consumer, broker, database))
 
     def start_sync(self, broker: Broker, insert_interval: int):
-        for database in self.settings.schema_settings:
-            t = threading.Thread(target=self._run, args=(broker, database,))
+        for database in self.source_db.get("databases"):
+            t = threading.Thread(target=self._run, args=(broker, database.get("database"),))
             t.setDaemon(True)
             t.start()
             t.join()

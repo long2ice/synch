@@ -3,90 +3,94 @@ from typing import Dict, List
 
 import yaml
 
-try:
-    from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
-
 
 class Settings:
     _config: Dict
 
-    def __init__(self, file_path: str):
+    @classmethod
+    def init(cls, file_path: str):
         with open(file_path, "r") as f:
-            self._config = yaml.load(f, Loader)
+            cls._config = yaml.safe_load(f)
 
-    @functools.cached_property
-    def debug(self):
-        return self.get("core", "debug")
+    @classmethod
+    def debug(cls):
+        return cls.get("core", "debug")
 
-    @functools.cached_property
-    def insert_interval(self):
-        return self.get("core", "insert_interval")
+    @classmethod
+    def insert_interval(cls):
+        return cls.get("core", "insert_interval")
 
-    @functools.cached_property
-    def broker_type(self):
-        return self.get("core", "broker_type")
+    @classmethod
+    def broker_type(cls):
+        return cls.get("core", "broker_type")
 
-    @functools.cached_property
-    def insert_num(self):
-        return self.get("core", "insert_num")
+    @classmethod
+    def insert_num(cls):
+        return cls.get("core", "insert_num")
 
+    @classmethod
     @functools.lru_cache()
-    def get_source_db(self, alias: str) -> Dict:
-        return next(filter(lambda x: x.get("alias") == alias, self.get("source_dbs")))
+    def get_source_db(cls, alias: str) -> Dict:
+        return next(filter(lambda x: x.get("alias") == alias, cls.get("source_dbs")))
 
+    @classmethod
     @functools.lru_cache()
-    def get_source_db_database(self, alias: str, database: str) -> Dict:
-        source_db = self.get_source_db(alias)
+    def get_source_db_database(cls, alias: str, database: str) -> Dict:
+        source_db = cls.get_source_db(alias)
         return next(filter(lambda x: x.get("database") == database, source_db.get("databases")))
 
+    @classmethod
     @functools.lru_cache()
-    def get_source_db_database_tables_name(self, alias: str, database: str) -> List[str]:
+    def get_source_db_database_tables_name(cls, alias: str, database: str) -> List[str]:
         return list(
-            map(lambda x: x.get("table"), self.get_source_db_database_tables(alias, database))
+            map(lambda x: x.get("table"), cls.get_source_db_database_tables(alias, database))
         )
 
+    @classmethod
     @functools.lru_cache()
-    def get_source_db_database_tables(self, alias: str, database: str) -> List[Dict]:
+    def get_source_db_database_tables(cls, alias: str, database: str) -> List[Dict]:
         """
         get table list
         """
-        source_db_database = self.get_source_db_database(alias, database)
+        source_db_database = cls.get_source_db_database(alias, database)
         return source_db_database.get("tables")
 
+    @classmethod
     @functools.lru_cache()
     def get_source_db_database_tables_by_tables_name(
-        self, alias: str, database: str, tables: List[str]
+        cls, alias: str, database: str, tables: List[str]
     ):
-        source_db_database_tables = self.get_source_db_database_tables(alias, database)
+        source_db_database_tables = cls.get_source_db_database_tables(alias, database)
         return list(filter(lambda x: x.get("table") in tables, source_db_database_tables))
 
+    @classmethod
     @functools.lru_cache()
-    def get_source_db_database_tables_dict(self, alias: str, database: str) -> Dict:
+    def get_source_db_database_tables_dict(cls, alias: str, database: str) -> Dict:
         ret = {}
-        for table in self.get_source_db_database_tables(alias, database):
+        for table in cls.get_source_db_database_tables(alias, database):
             ret[table.get("table")] = table
         return ret
 
+    @classmethod
     @functools.lru_cache()
-    def get_source_db_database_table(self, alias: str, database: str, table: str) -> Dict:
+    def get_source_db_database_table(cls, alias: str, database: str, table: str) -> Dict:
         """
         get table dict
         """
         return next(
             filter(
                 lambda x: x.get("table") == table,
-                self.get_source_db_database_tables(alias, database),
+                cls.get_source_db_database_tables(alias, database),
             )
         )
 
+    @classmethod
     @functools.lru_cache()
-    def get(self, *args):
+    def get(cls, *args):
         """
         get config item
         """
-        c = self._config
+        c = cls._config
         for arg in args:
             c = c.get(arg)
         return c

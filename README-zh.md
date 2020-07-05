@@ -48,26 +48,23 @@ synch 默认从 `./synch.yaml`读取配置， 或者可以使用`synch -c` 指�
 在增量复制之前一般需要进行一次全量复制，或者使用`--renew`进行全量重建。
 
 ```shell
-> synch etl -h
+> synch --alias mysql_db etl -h
 
-usage: synch etl [-h] --schema SCHEMA [--tables TABLES] [--renew] [--partition-by PARTITION_BY] [--settings SETTINGS] [--engine ENGINE]
+Usage: synch etl [OPTIONS]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --schema SCHEMA       Schema to full etl.
-  --tables TABLES       Tables to full etl, multiple tables split with comma.
-  --renew               Etl after try to drop the target tables.
-  --partition-by PARTITION_BY
-                        Table create partitioning by, like toYYYYMM(created_at).
-  --settings SETTINGS   Table create settings, like index_granularity=8192
-  --engine ENGINE       Table create engine, default MergeTree.
+  Make etl from source table to ClickHouse.
 
+Options:
+  --schema TEXT     Schema to full etl.
+  --renew           Etl after try to drop the target tables.
+  -t, --table TEXT  Tables to full etl.
+  -h, --help        Show this message and exit.
 ```
 
 全量复制表 `test.test`：
 
 ```shell
-> synch etl --schema test --tables test
+> synch --alias mysql_db etl --schema test --tables test
 ```
 
 ### 生产
@@ -75,7 +72,7 @@ optional arguments:
 监听源库并将变动数据写入消息队列。
 
 ```shell
-> synch produce
+> synch --alias mysql_db produce
 ```
 
 ### 消费
@@ -83,22 +80,25 @@ optional arguments:
 从消息队列中消费数据并插入 ClickHouse，使用 `--skip-error`跳过错误消息。 配置 `auto_full_etl = True` 的时候会首先尝试做一次全量复制。
 
 ```shell
-> synch consume -h
+> synch --alias mysql_db consume -h
 
-usage: synch consume [-h] --schema SCHEMA [--skip-error] [--last-msg-id LAST_MSG_ID]
+Usage: synch consume [OPTIONS]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --schema SCHEMA       Schema to consume.
-  --skip-error          Skip error rows.
-  --last-msg-id LAST_MSG_ID
-                        Redis stream last msg id or kafka msg offset, depend on broker_type in config.
+  Consume from broker and insert into ClickHouse.
+
+Options:
+  --schema TEXT       Schema to consume.  [required]
+  --skip-error        Skip error rows.
+  --last-msg-id TEXT  Redis stream last msg id or kafka msg offset, depend on
+                      broker_type in config.
+
+  -h, --help          Show this message and exit.
 ```
 
 消费数据库 `test` 并插入到`ClickHouse`：
 
 ```shell
-> synch consume --schema test
+> synch --alias mysql_db consume --schema test
 ```
 
 **一个消费者消费一个数据库产生的消息**
@@ -121,7 +121,7 @@ services:
     depends_on:
       - redis
     image: long2ice/synch
-    command: synch produce
+    command: synch --alias mysql_db produce
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   # 一个消费者消费一个数据库
@@ -129,7 +129,7 @@ services:
     depends_on:
       - redis
     image: long2ice/synch
-    command: synch consume --schema test
+    command: synch --alias mysql_db consume --schema test
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   redis:
@@ -183,7 +183,7 @@ services:
       - kafka
       - zookeeper
     image: long2ice/synch
-    command: synch produce
+    command: synch --alias mysql_db produce
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   # 一个消费者消费一个数据库
@@ -193,7 +193,7 @@ services:
       - kafka
       - zookeeper
     image: long2ice/synch
-    command: synch consume --schema test
+    command: synch --alias mysql_db consume --schema test
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   redis:

@@ -23,12 +23,10 @@ services:
   kafka-manager:
     image: hlebalbau/kafka-manager
     ports:
-      - "9000:9000"
+      - 9000:9000
     environment:
-      ZK_HOSTS: "zookeeper:2181"
-      KAFKA_MANAGER_AUTH_ENABLED: "false"
-      KAFKA_MANAGER_USERNAME: "admin"
-      KAFKA_MANAGER_PASSWORD: "123456"
+      ZK_HOSTS: zookeeper:2181
+      KAFKA_MANAGER_AUTH_ENABLED: false
     command: -Dpidfile.path=/dev/null
   producer:
     depends_on:
@@ -36,9 +34,9 @@ services:
       - kafka
       - zookeeper
     image: long2ice/synch
-    command: synch produce
+    command: synch --alias mysql_db produce
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
   consumer.test:
     depends_on:
@@ -46,9 +44,9 @@ services:
       - kafka
       - zookeeper
     image: long2ice/synch
-    command: synch consume --schema test
+    command: synch --alias mysql_db consume --schema test
     volumes:
-      - ./synch.ini:/synch/synch.ini
+      - ./synch.yaml:/synch/synch.yaml
   redis:
     hostname: redis
     image: redis:latest

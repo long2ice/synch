@@ -48,20 +48,17 @@ See full example config in [`synch.yaml`](https://github.com/long2ice/synch/blob
 Maybe you need make full data etl before continuous sync data from MySQL to ClickHouse or redo data etl with `--renew`.
 
 ```shell
-> synch etl -h
+> synch --alias mysql_db etl -h
 
-usage: synch etl [-h] --schema SCHEMA [--tables TABLES] [--renew] [--partition-by PARTITION_BY] [--settings SETTINGS] [--engine ENGINE]
+Usage: synch etl [OPTIONS]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --schema SCHEMA       Schema to full etl.
-  --tables TABLES       Tables to full etl, multiple tables split with comma.
-  --renew               Etl after try to drop the target tables.
-  --partition-by PARTITION_BY
-                        Table create partitioning by, like toYYYYMM(created_at).
-  --settings SETTINGS   Table create settings, like index_granularity=8192
-  --engine ENGINE       Table create engine, default MergeTree.
+  Make etl from source table to ClickHouse.
 
+Options:
+  --schema TEXT     Schema to full etl.
+  --renew           Etl after try to drop the target tables.
+  -t, --table TEXT  Tables to full etl.
+  -h, --help        Show this message and exit.
 ```
 
 Full etl from table `test.test`:
@@ -75,7 +72,7 @@ Full etl from table `test.test`:
 Listen all MySQL binlog and produce to broker.
 
 ```shell
-> synch produce
+> synch --alias mysql_db produce
 ```
 
 ### Consume
@@ -83,22 +80,25 @@ Listen all MySQL binlog and produce to broker.
 Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = true` in config.
 
 ```shell
-> synch consume -h
+> synch --alias mysql_db consume -h
 
-usage: synch consume [-h] --schema SCHEMA [--skip-error] [--last-msg-id LAST_MSG_ID]
+Usage: synch consume [OPTIONS]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --schema SCHEMA       Schema to consume.
-  --skip-error          Skip error rows.
-  --last-msg-id LAST_MSG_ID
-                        Redis stream last msg id or kafka msg offset, depend on broker_type in config.
+  Consume from broker and insert into ClickHouse.
+
+Options:
+  --schema TEXT       Schema to consume.  [required]
+  --skip-error        Skip error rows.
+  --last-msg-id TEXT  Redis stream last msg id or kafka msg offset, depend on
+                      broker_type in config.
+
+  -h, --help          Show this message and exit.
 ```
 
 Consume schema `test` and insert into `ClickHouse`:
 
 ```shell
-> synch consume --schema test
+> synch --alias mysql_db consume --schema test
 ```
 
 **One consumer consume one schema**
@@ -121,7 +121,7 @@ services:
     depends_on:
       - redis
     image: long2ice/synch
-    command: synch produce
+    command: synch --alias mysql_db produce
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
@@ -129,7 +129,7 @@ services:
     depends_on:
       - redis
     image: long2ice/synch
-    command: synch consume --schema test
+    command: synch --alias mysql_db consume --schema test
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   redis:
@@ -183,7 +183,7 @@ services:
       - kafka
       - zookeeper
     image: long2ice/synch
-    command: synch produce
+    command: synch --alias mysql_db produce
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
@@ -193,7 +193,7 @@ services:
       - kafka
       - zookeeper
     image: long2ice/synch
-    command: synch consume --schema test
+    command: synch --alias mysql_db consume --schema test
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   redis:

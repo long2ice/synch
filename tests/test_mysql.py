@@ -1,4 +1,4 @@
-from synch import get_reader
+from synch.factory import get_reader
 
 
 def test_get_pk():

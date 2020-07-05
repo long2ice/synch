@@ -3,7 +3,7 @@ import os
 import psycopg2
 import pytest
 
-from synch import get_reader
+from synch.factory import get_reader
 from synch.factory import init
 
 local = os.getenv('local') == 'True'

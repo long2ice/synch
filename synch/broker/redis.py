@@ -5,11 +5,15 @@ from synch.common import JsonEncoder, object_hook
 from synch.redis import Redis
 
 
-class RedisBroker(Redis, Broker):
+class RedisBroker(Broker, Redis):
     last_msg_id: str = "0"
 
+    def __init__(self, alias: str):
+        Broker.__init__(self, alias)
+        Redis.__init__(self)
+
     def _get_queue(self, schema: str):
-        return f"{self.prefix}:schema:{schema}"
+        return f"{self.prefix}:{self.alias}:{schema}"
 
     def send(self, schema: str, msg: dict):
         self.master.xadd(
@@ -43,7 +47,7 @@ class RedisBroker(Redis, Broker):
         )
 
     def _get_last_msg_id_key(self):
-        return f"{self.prefix}:last_msg_id"
+        return f"{self.prefix}:{self.alias}:last_msg_id"
 
     def commit(
         self, schema: str,
@@ -54,3 +58,7 @@ class RedisBroker(Redis, Broker):
         :return:
         """
         self.master.hset(self._get_last_msg_id_key(), schema, self.last_msg_id)
+
+    def close(self):
+        self.master and self.master.close()
+        self.slave and self.slave.close()
