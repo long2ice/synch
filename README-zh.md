@@ -43,9 +43,15 @@
 - `sentry`， 如果你使用 `sentry`。
 - `all`， 安装所有依赖。
 
+示例:
+
+```shell
+> pip install synch[mysql,sentry]
+```
+
 ## 使用
 
-### synch.yaml
+### 配置文件 `synch.yaml`
 
 synch 默认从 `./synch.yaml`读取配置， 或者可以使用`synch -c` 指定配置文件。
 

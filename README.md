@@ -43,9 +43,15 @@ Extra pip dependencies:
 - `sentry`, if your use `sentry`.
 - `all`, install all dependencies.
 
+Example:
+
+```shell
+> pip install synch[mysql,sentry]
+```
+
 ## Usage
 
-### Config
+### Config file `synch.yaml`
 
 synch will read default config from `./synch.yaml`, or you can use `synch -c` specify config file.
 
