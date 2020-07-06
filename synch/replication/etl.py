@@ -75,7 +75,7 @@ def etl_full(
     source_db_database = Settings.get_source_db_database(alias, schema)
     schema = source_db_database.get("database")
     for table in source_db_database.get("tables"):
-        if not table.get("auto_full_etl"):
+        if table.get("auto_full_etl") is False:
             continue
         table_name = table.get("table")
         pk = tables_pk.get(table_name)

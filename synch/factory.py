@@ -48,12 +48,10 @@ def get_writer(engine: ClickHouseEngine = None):
     w = _writers.get(engine)
     if not w:
         settings = Settings.get("clickhouse")
-        if engine == ClickHouseEngine.merge_tree.value:
+        if engine == ClickHouseEngine.merge_tree.value or engine is None:
             w = ClickHouseMergeTree(settings)
         elif engine == ClickHouseEngine.collapsing_merge_tree:
             w = ClickHouseCollapsingMergeTree(settings)
-        else:
-            w = ClickHouse(settings)
         _writers[engine] = w
     return w
 

@@ -38,9 +38,13 @@ source_dbs:
       - database: test
         tables:
           - table: test
+            # optional, default true
             auto_full_etl: true # auto do full etl at first when table not exists
+            # optional, default MergeTree
             clickhouse_engine: MergeTree # current support MergeTree and CollapsingMergeTree
+            # optional
             partition_by: # Table create partitioning by, like toYYYYMM(created_at).
+            # optional
             settings: # Table create settings, like index_granularity=8192
   - db_type: postgres
     alias: postgres_db
