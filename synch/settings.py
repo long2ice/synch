@@ -21,10 +21,6 @@ class Settings:
         return cls.get("core", "insert_interval")
 
     @classmethod
-    def broker_type(cls):
-        return cls.get("core", "broker_type")
-
-    @classmethod
     def insert_num(cls):
         return cls.get("core", "insert_num")
 

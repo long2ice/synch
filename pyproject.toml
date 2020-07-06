@@ -1,51 +1,51 @@
 [tool.poetry]
-name = "synch"
-version = "0.6.3"
-description = "Sync data from other DB to ClickHouse, current support postgres and mysql, and support full and increment ETL."
 authors = ["long2ice <long2ice@gmail.com>"]
-license = "Apache-2.0"
-readme = "README.md"
-homepage = "https://github.com/long2ice/synch"
-repository = "https://github.com/long2ice/synch.git"
+description = "Sync data from other DB to ClickHouse, current support postgres and mysql, and support full and increment ETL."
 documentation = "https://github.com/long2ice/synch"
-keywords = ["MySQL", "ClickHouse", "Sync"]
-packages = [
-    { include = "synch" }
-]
+homepage = "https://github.com/long2ice/synch"
 include = ["CHANGELOG.md", "LICENSE", "README.md", "pyproject.toml"]
+keywords = ["MySQL", "ClickHouse", "Sync"]
+license = "Apache-2.0"
+name = "synch"
+packages = [
+  {include = "synch"},
+]
+readme = "README.md"
+repository = "https://github.com/long2ice/synch.git"
+version = "0.6.3"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-mysql-replication = {version = "*", optional = true}
-clickhouse-driver = "*"
-redis = "*"
-mysqlclient = {version = "*", optional = true}
-sentry-sdk = {version = "*", optional = true}
-python-dateutil = "*"
-sqlparse = "*"
-kafka-python = {version = "*", optional = true}
-psycopg2 = {version = "*", optional = true}
-pyyaml = "*"
 click = "*"
+clickhouse-driver = "*"
+kafka-python = {version = "*", optional = true}
+mysql-replication = {version = "*", optional = true}
+mysqlclient = {version = "*", optional = true}
+psycopg2 = {version = "*", optional = true}
+python = "^3.8"
+python-dateutil = "*"
+pyyaml = "*"
+redis = "*"
+sentry-sdk = {version = "*", optional = true}
+sqlparse = "*"
 
 [tool.poetry.dev-dependencies]
-pytest = "*"
+bandit = "*"
+black = "^19.10b0"
 flake8 = "*"
 isort = "*"
-black = "^19.10b0"
+pytest = "*"
 pytest-xdist = "*"
-bandit = "*"
 
 [build-system]
-requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+requires = ["poetry>=0.12"]
 
 [tool.poetry.scripts]
 synch = "synch.cli:cli"
 
 [tool.poetry.extras]
+all = ["mysqlclient", "mysql-replication", "psycopg2", "kafka-python", "sentry-sdk"]
+kafka = ["kafka-python"]
 mysql = ["mysqlclient", "mysql-replication"]
 postgres = ["psycopg2"]
-kafka = ["kafka-python"]
 sentry = ["sentry-sdk"]
-all = ["mysqlclient", "mysql-replication", "psycopg2", "kafka-python", "sentry-sdk"]
