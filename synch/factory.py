@@ -99,7 +99,7 @@ def init(config_file):
     init
     """
     Settings.init(config_file)
-    init_logging(Settings.debug)
+    init_logging(Settings.debug())
     dsn = Settings.get("sentry", "dsn")
     if dsn:
         import sentry_sdk
