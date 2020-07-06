@@ -6,6 +6,7 @@
 
 - Fix redis sentinel error.
 - Fix debug error.
+- Fix delete pk error.
 
 ### 0.6.2
 

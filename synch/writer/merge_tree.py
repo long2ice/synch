@@ -22,7 +22,7 @@ class ClickHouseMergeTree(ClickHouse):
             sql += " or ".join(pks_list)
         else:
             if len(pk_list) > 1:
-                pks = ",".join(pk_list)
+                pks = ",".join(str(pk) for pk in pk_list)
             else:
                 pks = pk_list[0]
             sql = f"alter table {schema}.{table} delete where {pk} in ({pks})"
