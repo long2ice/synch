@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.3
+
+- Fix redis sentinel error.
+
 ### 0.6.2
 
 - Refactor ClickHouse writer.

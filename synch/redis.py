@@ -17,7 +17,9 @@ class Redis:
         self.queue_max_len = settings.get("queue_max_len")
         self.sentinel = settings.get("sentinel")
         if self.sentinel:
-            sentinel = Sentinel(sentinels=settings.get("sentinel_hosts"),)
+            sentinel = Sentinel(
+                sentinels=map(lambda x: x.split(":"), settings.get("sentinel_hosts"))
+            )
             kwargs = dict(
                 service_name=settings.get("sentinel_master"),
                 password=settings.get("password"),

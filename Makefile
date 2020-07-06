@@ -35,5 +35,4 @@ test: deps
 build: deps
 	@poetry build
 
-publish: deps
-	@poetry publish --build
+ci: deps check test
