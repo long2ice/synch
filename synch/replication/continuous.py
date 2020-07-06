@@ -37,46 +37,6 @@ def finish_continuous_etl(broker):
     exit()
 
 
-def handle_event_by_engine(
-    tables_dict: Dict,
-    tables_pk: Dict,
-    schema: str,
-    table: str,
-    action: str,
-    tmp_event_list: Dict,
-    event: Dict,
-):
-    """
-    handle event by different engine
-    :return:
-    """
-    values = event["values"]
-    engine = tables_dict.get(table).get("clickhouse_engine")
-    if engine == ClickHouseEngine.merge_tree.value:
-        tmp_event_list.setdefault(table, {}).setdefault(action, {})
-        pk = tables_pk.get(table)
-        if not pk:
-            logger.warning(f"No pk found in table {schema}.{table}, skip...")
-            return tmp_event_list
-        else:
-            if isinstance(pk, tuple):
-                pk_value = {values[pk[0]], values[pk[1]]}
-            else:
-                pk_value = values[pk]
-            tmp_event_list[table][action][pk_value] = event
-    elif engine == ClickHouseEngine.collapsing_merge_tree.value:
-        sign_column = tables_dict.get(table).get("sign_column")
-        if action == "delete":
-            values[sign_column] = -1
-        elif action == "update":
-            values[sign_column] = 1
-        elif action == "insert":
-            values[sign_column] = 1
-        event["values"] = values
-        tmp_event_list.setdefault(table, []).append(event)
-    return tmp_event_list
-
-
 def continuous_etl(
     alias: str, schema: str, tables_pk: Dict, tables_dict: Dict, last_msg_id, skip_error: bool,
 ):
@@ -121,7 +81,8 @@ def continuous_etl(
                 alter_table = True
                 query = values["query"]
             else:
-                event_list = handle_event_by_engine(
+                engine = tables_dict.get(table).get("clickhouse_engine")
+                event_list = get_writer(engine).handle_event(
                     tables_dict, tables_pk, schema, table, action, event_list, event,
                 )
 

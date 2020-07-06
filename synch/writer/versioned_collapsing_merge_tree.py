@@ -5,8 +5,8 @@ from synch.reader import Reader
 from synch.writer import ClickHouse
 
 
-class ClickHouseCollapsingMergeTree(ClickHouse):
-    engine = ClickHouseEngine.collapsing_merge_tree
+class ClickHouseVersionedCollapsingMergeTree(ClickHouse):
+    engine = ClickHouseEngine.versioned_collapsing_merge_tree
 
     def get_table_create_sql(
         self,
@@ -17,6 +17,7 @@ class ClickHouseCollapsingMergeTree(ClickHouse):
         partition_by: str = None,
         engine_settings: str = None,
         sign_column: str = None,
+        version_column: str = None,
     ):
         select_sql = reader.get_source_select_sql(schema, table, sign_column)
         partition_by_str = ""
@@ -25,7 +26,7 @@ class ClickHouseCollapsingMergeTree(ClickHouse):
             partition_by_str = f" PARTITION BY {partition_by} "
         if engine_settings:
             engine_settings_str = f" SETTINGS {engine_settings} "
-        return f"CREATE TABLE {schema}.{table} ENGINE = {self.engine}({sign_column}) {partition_by_str} ORDER BY {pk} {engine_settings_str} AS {select_sql} limit 0"
+        return f"CREATE TABLE {schema}.{table} ENGINE = {self.engine}({sign_column},{version_column}) {partition_by_str} ORDER BY {pk} {engine_settings_str} AS {select_sql} limit 0"
 
     def get_full_insert_sql(self, reader: Reader, schema: str, table: str, sign_column: str = None):
         return f"insert into {schema}.{table} {reader.get_source_select_sql(schema, table, sign_column)}"

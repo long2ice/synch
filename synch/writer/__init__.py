@@ -1,12 +1,17 @@
+import abc
 import logging
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import clickhouse_driver
+
+from synch.enums import ClickHouseEngine
+from synch.reader import Reader
 
 logger = logging.getLogger("synch.replication.clickhouse")
 
 
 class ClickHouse:
+    engine: ClickHouseEngine
     len_event = 0
     is_stop = False
     is_insert = False
@@ -73,3 +78,36 @@ class ClickHouse:
         else:
             self.execute(query)
             logger.info(f"execute ddl query: {query}")
+
+    @abc.abstractmethod
+    def get_table_create_sql(
+        self,
+        reader: Reader,
+        schema: str,
+        table: str,
+        pk,
+        partition_by: str,
+        engine_settings: str,
+        **kwargs,
+    ):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_full_insert_sql(self, reader: Reader, schema: str, table: str, sign_column: str = None):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def handle_event(
+        self,
+        tables_dict: Dict,
+        pk,
+        schema: str,
+        table: str,
+        action: str,
+        tmp_event_list: Dict,
+        event: Dict,
+    ):
+        raise NotImplementedError
+
+    def delete_events(self, schema: str, table: str, pk: Union[tuple, str], pk_list: List):
+        pass

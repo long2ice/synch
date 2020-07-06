@@ -11,13 +11,14 @@ from synch.settings import Settings
 from synch.writer import ClickHouse
 from synch.writer.collapsing_merge_tree import ClickHouseCollapsingMergeTree
 from synch.writer.merge_tree import ClickHouseMergeTree
+from synch.writer.versioned_collapsing_merge_tree import ClickHouseVersionedCollapsingMergeTree
 
 _readers: Dict[str, Reader] = {}
 _writers: Dict[str, ClickHouse] = {}
 _brokers: Dict[str, Broker] = {}
 
 
-def get_reader(alias: str):
+def get_reader(alias: str) -> Reader:
     """
     get reader once
     """
@@ -41,7 +42,7 @@ def get_reader(alias: str):
     return r
 
 
-def get_writer(engine: ClickHouseEngine = None):
+def get_writer(engine: ClickHouseEngine = None) -> ClickHouse:
     """
     get writer once
     """
@@ -52,11 +53,13 @@ def get_writer(engine: ClickHouseEngine = None):
             w = ClickHouseMergeTree(settings)
         elif engine == ClickHouseEngine.collapsing_merge_tree:
             w = ClickHouseCollapsingMergeTree(settings)
+        elif engine == ClickHouseEngine.versioned_collapsing_merge_tree:
+            w = ClickHouseVersionedCollapsingMergeTree(settings)
         _writers[engine] = w
     return w
 
 
-def get_broker(alias: str):
+def get_broker(alias: str) -> Broker:
     b = _brokers.get(alias)
     broker_type = Settings.get_source_db(alias).get("broker_type")
     if not b:

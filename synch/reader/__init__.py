@@ -41,3 +41,7 @@ class Reader:
     @abc.abstractmethod
     def signal_handler(self, signum: Signals, handler: Callable):
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_source_select_sql(self, schema: str, table: str, sign_column: str = None):
+        raise NotImplementedError

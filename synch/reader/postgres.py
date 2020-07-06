@@ -170,3 +170,9 @@ WHERE i.indrelid = '{db}.public.{table}'::regclass AND i.indisprimary;"""
             t.setDaemon(True)
             t.start()
             t.join()
+
+    def get_source_select_sql(self, schema: str, table: str, sign_column=None):
+        select = "*"
+        if sign_column:
+            select += f", toInt8(1) as {sign_column}"
+        return f"SELECT {select} FROM jdbc('postgresql://{self.host}:{self.port}/{schema}?user={self.user}&password={self.password}', '{table}')"

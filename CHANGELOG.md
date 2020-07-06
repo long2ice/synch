@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.4
+
+- Add `VersionedCollapsingMergeTree` support.
+
 ### 0.6.3
 
 - Fix redis sentinel error.

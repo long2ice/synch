@@ -43,6 +43,12 @@ class Mysql(Reader):
         self.databases = list(map(lambda x: x.get("database"), source_db.get("databases")))
         self.pos_handler = RedisLogPos(alias)
 
+    def get_source_select_sql(self, schema: str, table: str, sign_column: str = None):
+        select = "*"
+        if sign_column:
+            select += f", toInt8(1) as {sign_column}"
+        return f"SELECT {select} FROM mysql('{self.host}:{self.port}', '{schema}', '{table}', '{self.user}', '{self.password}')"
+
     def get_binlog_pos(self) -> Tuple[str, str]:
         """
         get binlog pos from master

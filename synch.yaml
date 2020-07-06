@@ -41,11 +41,15 @@ source_dbs:
             # optional, default true
             auto_full_etl: true # auto do full etl at first when table not exists
             # optional, default MergeTree
-            clickhouse_engine: MergeTree # current support MergeTree and CollapsingMergeTree
+            clickhouse_engine: MergeTree # current support MergeTree and CollapsingMergeTree and VersionedCollapsingMergeTree
             # optional
             partition_by: # Table create partitioning by, like toYYYYMM(created_at).
             # optional
             settings: # Table create settings, like index_granularity=8192
+            # optional
+            sign_column: sign # need when clickhouse_engine=CollapsingMergeTree and VersionedCollapsingMergeTree, no need real in source db, will auto generate in clickhouse
+            # optional
+            version_column: updated_at # need when clickhouse_engine=VersionedCollapsingMergeTree, need real in source db, usually is `updated_at` with auto update.
   - db_type: postgres
     alias: postgres_db
     broker_type: kafka # current support redis and kafka
@@ -57,9 +61,10 @@ source_dbs:
       - database: postgres
         tables:
           - table: test
-            auto_full_etl: true # now clickhouse-jdbc-bridge-service not support decimal mapping
+            auto_full_etl: false # always false since clickhouse-jdbc-bridge-service not support decimal mapping for postgres
             clickhouse_engine: CollapsingMergeTree
-            sign_column: sign # need when clickhouse_engine=CollapsingMergeTree, no need real in source db, will auto generate in clickhouse
+            sign_column: sign
+            version_column: updated_at
             partition_by:
             settings:
 

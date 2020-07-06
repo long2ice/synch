@@ -21,6 +21,7 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 - Custom configurable items.
 - Support kafka and redis as broker.
 - Multiple source db sync to ClickHouse at the same time。
+- Support ClickHouse `MergeTree`,`CollapsingMergeTree`,`VersionedCollapsingMergeTree`.
 
 ## Requirements
 
@@ -119,9 +120,11 @@ Consume schema `test` and insert into `ClickHouse`:
 
 ### ClickHouse Table Engine
 
-Now synch support `MergeTree` and `CollapsingMergeTree`, and performance of `CollapsingMergeTree` is higher than `MergeTree`.
+Now synch support `MergeTree`, `CollapsingMergeTree`, `VersionedCollapsingMergeTree`.
 
-Default you should choice `MergeTree`, and if you pursue a high performance or your database is frequently updated, you can choice `CollapsingMergeTree`, but your `select` sql query should rewrite. More detail see at [CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/).
+- `MergeTree`, default common choices.
+- `CollapsingMergeTree`, see detail in [CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/).
+- `VersionedCollapsingMergeTree`, see detail in [VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/).
 
 ## Use docker-compose(recommended)
 

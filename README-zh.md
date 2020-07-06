@@ -21,6 +21,7 @@
 - 自定义配置项。
 - 支持 redis 与 kafka 作为消息队列。
 - 支持多源数据库同时同步到 ClickHouse。
+- 支持 ClickHouse `MergeTree`，`CollapsingMergeTree`，`VersionedCollapsingMergeTree`引擎。
 
 ## 依赖
 
@@ -35,7 +36,7 @@
 > pip install synch[all]
 ```
 
-额外pip依赖：
+额外 pip 依赖：
 
 - `mysql`， 如果你的源库为 `MySQL`。
 - `postgres`， 如果你的源库为 `PostgreSQL`。
@@ -119,9 +120,11 @@ Options:
 
 ### ClickHouse 表引擎
 
-现在 synch 支持 `MergeTree` 和 `CollapsingMergeTree`，`CollapsingMergeTree` 的性能要高于`MergeTree`。
+现在 synch 支持 `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`等引擎。
 
-通常情况下你应该选择`MergeTree`，如果你追求更高性能或者你的数据库极为频繁的更新，你可以选择 `CollapsingMergeTree`， 但是你的 `select` sql 语句需要重写。 更多详情参考[CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/)。
+- `MergeTree`，默认引擎，通常情况下的选择。
+- `CollapsingMergeTree`，详情参考[CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/)。
+- `VersionedCollapsingMergeTree`，详情参考[VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/)。
 
 ## 使用 docker-compose（推荐）
 
