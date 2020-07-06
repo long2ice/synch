@@ -5,6 +5,7 @@
 ### 0.6.3
 
 - Fix redis sentinel error.
+- Fix debug error.
 
 ### 0.6.2
 
