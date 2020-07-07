@@ -26,7 +26,7 @@ services:
       - 9000:9000
     environment:
       ZK_HOSTS: zookeeper:2181
-      KAFKA_MANAGER_AUTH_ENABLED: false
+      KAFKA_MANAGER_AUTH_ENABLED: "false"
     command: -Dpidfile.path=/dev/null
   producer:
     depends_on:
