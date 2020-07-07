@@ -82,8 +82,9 @@ def continuous_etl(
                 query = values["query"]
             else:
                 engine = tables_dict.get(table).get("clickhouse_engine")
-                event_list = get_writer(engine).handle_event(
-                    tables_dict, tables_pk, schema, table, action, event_list, event,
+                writer = get_writer(engine)
+                event_list = writer.handle_event(
+                    tables_dict, tables_pk.get(table), schema, table, action, event_list, event,
                 )
 
             if len_event == insert_num:

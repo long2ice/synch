@@ -228,7 +228,7 @@ volumes:
 
 ## Important
 
-- Synch don't support composite primary key, and you need always keep a primary key or unique key.
+- You need always keep a primary key or unique key without null or composite primary key.
 - DDL sync not support postgres.
 - Postgres sync is not fully test, be careful use it in production.
 

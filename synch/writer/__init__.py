@@ -1,5 +1,7 @@
 import abc
 import logging
+from copy import deepcopy
+from decimal import Decimal
 from typing import Dict, List, Union
 
 import clickhouse_driver
@@ -108,6 +110,18 @@ class ClickHouse:
         event: Dict,
     ):
         raise NotImplementedError
+
+    def pre_handle_values(self, skip_decimal: bool, values: Dict):
+        """
+        handle decimal column if skip_decimal
+        """
+        tmp_values = deepcopy(values)
+        if skip_decimal:
+            for k, v in values.items():
+                if isinstance(v, Decimal):
+                    tmp_values[k] = str(v)
+            return tmp_values
+        return values
 
     def delete_events(self, schema: str, table: str, pk: Union[tuple, str], pk_list: List):
         pass

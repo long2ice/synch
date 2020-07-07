@@ -65,7 +65,8 @@ class ClickHouseMergeTree(ClickHouse):
         tmp_event_list: Dict,
         event: Dict,
     ):
-        values = event["values"]
+        values = self.pre_handle_values(tables_dict.get(table).get("skip_decimal"), event["values"])
+        event["values"] = values
         tmp_event_list.setdefault(table, {}).setdefault(action, {})
         if not pk:
             logger.warning(f"No pk found in table {schema}.{table}, skip...")

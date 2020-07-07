@@ -38,6 +38,8 @@ source_dbs:
       - database: test
         tables:
           - table: test
+            # optional, default false, if your table has decimal column with nullable, there is a bug with full data etl will, see https://github.com/ClickHouse/ClickHouse/issues/7690.
+            skip_decimal: false # set it true will replace decimal with string type.
             # optional, default true
             auto_full_etl: true # auto do full etl at first when table not exists
             # optional, default MergeTree

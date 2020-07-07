@@ -40,7 +40,8 @@ class ClickHouseCollapsingMergeTree(ClickHouse):
         tmp_event_list: Dict,
         event: Dict,
     ):
-        values = event["values"]
+        values = self.pre_handle_values(tables_dict.get(table).get("skip_decimal"), event["values"])
+        event["values"] = values
         sign_column = tables_dict.get(table).get("sign_column")
         if action == "delete":
             values[sign_column] = -1

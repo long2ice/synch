@@ -49,7 +49,7 @@ def etl_full(
                     version_column=version_column,
                 )
             )
-            if reader.fix_column_type:
+            if reader.fix_column_type and not table.get("skip_decimal"):
                 writer.fix_table_column_type(reader, schema, table_name)
             full_insert_sql = writer.get_full_insert_sql(reader, schema, table_name, sign_column)
             writer.execute(full_insert_sql)
