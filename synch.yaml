@@ -37,6 +37,8 @@ source_dbs:
     skip_update_tables: # tables skip update, format with schema.table
     databases:
       - database: test
+        # optional, default true, auto create database when database in clickhouse not exists
+        auto_create: true
         tables:
           - table: test
             # optional, default false, if your table has decimal column with nullable, there is a bug with full data etl will, see https://github.com/ClickHouse/ClickHouse/issues/7690.
@@ -62,6 +64,7 @@ source_dbs:
     password:
     databases:
       - database: postgres
+        auto_create: true
         tables:
           - table: test
             auto_full_etl: false # always false since clickhouse-jdbc-bridge-service not support decimal mapping for postgres

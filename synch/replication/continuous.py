@@ -45,6 +45,11 @@ def continuous_etl(
     """
     insert_interval = Settings.insert_interval()
     insert_num = Settings.insert_num()
+    if not Settings.debug():
+        if insert_interval < 60 or insert_num < 20000:
+            logger.warning(
+                "If is recommended to set insert_interval=60 and insert_num=20000 when production."
+            )
     logger.info(
         f"start consumer for {schema} success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, last_msg_id={last_msg_id}, insert_interval={insert_interval}, insert_num={insert_num}"
     )

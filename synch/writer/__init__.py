@@ -28,10 +28,23 @@ class ClickHouse:
             password=settings.get("password") or "",
         )
 
-    def table_exists(self, schema: str, table: str):
-        sql = f"select count(*)from system.tables where database = '{schema}' and name = '{table}'"
-        ret = self.execute(sql)[0][0]
-        return bool(ret)
+    def check_table_exists(self, schema: str, table: str):
+        sql = f"select 1 from system.tables where database = '{schema}' and name = '{table}'"
+        ret = self.execute(sql)
+        if ret:
+            return bool(ret[0][0])
+        return False
+
+    def check_database_exists(self, schema: str):
+        sql = f"select 1 from system.databases where name = '{schema}'"
+        ret = self.execute(sql)
+        if ret:
+            return bool(ret[0][0])
+        return False
+
+    def create_database(self, schema: str):
+        sql = f"create database if not exists {schema}"
+        return self.execute(sql)
 
     def execute(self, sql, params=None, *args, **kwargs):
         log_sql = sql

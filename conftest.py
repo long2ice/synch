@@ -3,7 +3,7 @@ import os
 import psycopg2
 import pytest
 
-from synch.factory import get_reader
+from synch.factory import get_reader, get_writer
 from synch.factory import init
 
 local = os.getenv('local') == 'True'
@@ -45,3 +45,19 @@ def create_postgres_table(initialize_tests):
         reader.execute(sql)
     except psycopg2.ProgrammingError as e:
         assert str(e) == "no results to fetch"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def create_clickhouse_table(initialize_tests):
+    sql_create_database = "create database if not exists test"
+    sql_create_table = """CREATE TABLE if not exists test.test
+(
+    `id` Int32, 
+    `amount` Nullable(Decimal(10, 2))
+)
+ENGINE = MergeTree
+ORDER BY id
+SETTINGS index_granularity = 8192;"""
+    writer = get_writer()
+    writer.execute(sql_create_database)
+    writer.execute(sql_create_table)

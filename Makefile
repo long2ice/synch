@@ -30,7 +30,7 @@ check: deps
 	bandit -x tests -r $(checkfiles)
 
 test: deps
-	$(py_warn) local=$(local) pytest
+	$(py_warn) local=$(local) pytest -s
 
 build: deps
 	@poetry build

@@ -6,6 +6,7 @@
 
 - Add `VersionedCollapsingMergeTree` support.
 - Add `skip_decimal` in config to fix [#7690](https://github.com/ClickHouse/ClickHouse/issues/7690).
+- Add `auto_create` in config.
 
 ### 0.6.3
 

@@ -16,6 +16,15 @@ def etl_full(
     reader = get_reader(alias)
     source_db_database = Settings.get_source_db_database(alias, schema)
     schema = source_db_database.get("database")
+    writer = get_writer()
+    if not writer.check_database_exists(schema):
+        if source_db_database.get("auto_create") is not False:
+            writer.create_database(schema)
+        else:
+            logger.warning(
+                f"Can't etl since no database {schema} found in ClickHouse and auto_create=false"
+            )
+            exit(-1)
     for table in source_db_database.get("tables"):
         if table.get("auto_full_etl") is False:
             continue
@@ -34,7 +43,7 @@ def etl_full(
                 logger.info(f"drop table success:{schema}.{table_name}")
             except Exception:
                 logger.warning(f"Try to drop table {schema}.{table_name} fail")
-        if not writer.table_exists(schema, table_name):
+        if not writer.check_table_exists(schema, table_name):
             sign_column = table.get("sign_column")
             version_column = table.get("version_column")
             writer.execute(
