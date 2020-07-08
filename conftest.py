@@ -3,18 +3,17 @@ import os
 import psycopg2
 import pytest
 
-from synch.factory import get_reader, get_writer
-from synch.factory import init
+from synch.factory import get_reader, get_writer, init
 
-local = os.getenv('local') == 'True'
+local = os.getenv("local") == "True"
 
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_tests():
     if local:
-        init('synch.yaml')
+        init("synch.yaml")
     else:
-        init('tests/synch.yaml')
+        init("tests/synch.yaml")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -44,20 +43,13 @@ def create_postgres_table(initialize_tests):
     try:
         reader.execute(sql)
     except psycopg2.ProgrammingError as e:
-        assert str(e) == "no results to fetch"
+        assert str(e) == "no results to fetch"  # nosec: B101
 
 
 @pytest.fixture(scope="session", autouse=True)
 def create_clickhouse_table(initialize_tests):
     sql_create_database = "create database if not exists test"
-    sql_create_table = """CREATE TABLE if not exists test.test
-(
-    `id` Int32, 
-    `amount` Nullable(Decimal(10, 2))
-)
-ENGINE = MergeTree
-ORDER BY id
-SETTINGS index_granularity = 8192;"""
+    sql_create_table = """CREATE TABLE if not exists test.test(`id` Int32, `amount` Nullable(Decimal(10, 2))) ENGINE = MergeTree ORDER BY id SETTINGS index_granularity = 8192;"""
     writer = get_writer()
     writer.execute(sql_create_database)
     writer.execute(sql_create_table)

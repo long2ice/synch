@@ -1,4 +1,4 @@
-checkfiles = synch/ tests/
+checkfiles = synch/ tests/ conftest.py
 black_opts = -l 100 -t py38
 py_warn = PYTHONDEVMODE=1
 
@@ -35,4 +35,4 @@ test: deps
 build: deps
 	@poetry build
 
-ci: deps check test
+ci: check test
