@@ -119,7 +119,9 @@ def continuous_etl(
                             if insert_events:
                                 writer.insert_events(schema, table, insert_events)
                         except Exception as e:
-                            logger.error(f"insert event error,error: {e}")
+                            logger.error(
+                                f"insert event error,error: {e}", exc_info=True, stack_info=True
+                            )
                     else:
                         if delete_pks:
                             writer.delete_events(schema, table, pk, delete_pks)
@@ -132,12 +134,16 @@ def continuous_etl(
                             try:
                                 writer.insert_events(schema, table, v)
                             except Exception as e:
-                                logger.error(f"insert event error,error: {e}")
+                                logger.error(
+                                    f"insert event error,error: {e}", exc_info=True, stack_info=True
+                                )
                         else:
                             writer.insert_events(schema, table, v)
             if alter_table:
-                get_writer().alter_table(query, skip_error)
-
+                try:
+                    get_writer().execute(query)
+                except Exception as e:
+                    logger.error(f"alter table error: {e}", exc_info=True, stack_info=True)
             broker.commit(schema)
             logger.info(f"success commit {len_event} events")
             event_list = {}

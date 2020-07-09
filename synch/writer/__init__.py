@@ -80,20 +80,6 @@ class ClickHouse:
         insert_sql = "insert into {0}.{1} values ".format(schema, table)
         self.execute(insert_sql, list(map(lambda x: x.get("values"), insert_data)))
 
-    def alter_table(self, query: str, skip_error: bool):
-        """
-        alter table
-        """
-        if skip_error:
-            try:
-                self.execute(query)
-                logger.info(f"execute query: {query}")
-            except Exception as e:
-                logger.error(f"execute query error, e:{e}")
-        else:
-            self.execute(query)
-            logger.info(f"execute ddl query: {query}")
-
     @abc.abstractmethod
     def get_table_create_sql(
         self,

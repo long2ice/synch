@@ -117,7 +117,7 @@ class Mysql(Reader):
             skip_delete_tables=self.skip_delete_tables,
             skip_update_tables=self.skip_update_tables,
         ):
-            if not schema_tables.get(schema) or (table and table not in schema_tables.get(schema)):
+            if table and table not in schema_tables.get(schema):
                 continue
             broker.send(msg=event, schema=schema)
             self.pos_handler.set_log_pos_slave(file, pos)
@@ -169,7 +169,11 @@ class Mysql(Reader):
                     convent_sql = SqlConvert.to_clickhouse(schema, query)
                 except Exception as e:
                     convent_sql = ""
-                    logger.error(f"query convert to clickhouse error, error: {e}, query: {query}")
+                    logger.error(
+                        f"query convert to clickhouse error, error: {e}, query: {query}",
+                        stack_info=True,
+                        exc_info=True,
+                    )
                 if not convent_sql:
                     continue
                 event = {
