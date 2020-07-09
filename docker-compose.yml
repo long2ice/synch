@@ -16,7 +16,6 @@ services:
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   redis:
-    hostname: redis
     image: redis:latest
     volumes:
       - redis:/data

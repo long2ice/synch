@@ -101,7 +101,9 @@ class Mysql(Reader):
                 pk = self.get_primary_key(database_name, table_name)
                 if not pk or isinstance(pk, tuple):
                     # skip delete and update when no pk and composite pk
-                    self.skip_delete_tables.add(f"{database_name}.{table_name}")
+                    database_table = f"{database_name}.{table_name}"
+                    if database_table not in database_table:
+                        self.skip_delete_tables.append(database_table)
                 tables.append(table_name)
         only_schemas = self.databases
         only_tables = list(set(tables))

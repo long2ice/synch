@@ -18,7 +18,7 @@ def version():
     # with open("pyproject.toml") as f:
     #     ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
     #     return ret[0]
-    return "0.6.4"
+    return "0.6.5"
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})

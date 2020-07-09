@@ -29,6 +29,7 @@ services:
       KAFKA_MANAGER_AUTH_ENABLED: "false"
     command: -Dpidfile.path=/dev/null
   producer:
+    restart: always
     depends_on:
       - redis
       - kafka
@@ -39,6 +40,7 @@ services:
       - ./synch.yaml:/synch/synch.yaml
   # one service consume on schema
   consumer.test:
+    restart: always
     depends_on:
       - redis
       - kafka
@@ -48,7 +50,6 @@ services:
     volumes:
       - ./synch.yaml:/synch/synch.yaml
   redis:
-    hostname: redis
     image: redis:latest
     volumes:
       - redis:/data

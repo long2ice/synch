@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.5
+
+_ Fix bugs in skip database table.
+
 ### 0.6.4
 
 - Add `VersionedCollapsingMergeTree` support.

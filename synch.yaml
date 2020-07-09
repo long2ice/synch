@@ -30,7 +30,9 @@ source_dbs:
     port: 3306
     user: root
     password: "123456"
+    # optional, auto get from `show master status` when empty
     init_binlog_file:
+    # optional, auto get from `show master status` when empty
     init_binlog_pos:
     skip_dmls: # dmls to skip
     skip_delete_tables: # tables skip delete, format with schema.table
