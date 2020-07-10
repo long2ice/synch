@@ -4,6 +4,8 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
+      - name: add hosts
+        run: echo "127.0.0.1 redis\n127.0.0.1 mysql\n127.0.0.1 postgres\n127.0.0.1 clickhouse" >> /etc/hosts
       - uses: actions/checkout@v2
       - name: docker-compose
         run: docker-compose -f tests/docker-compose.yml up -d
@@ -11,5 +13,5 @@ jobs:
         with:
           python-version: "3.x"
       - uses: dschep/install-poetry-action@v1.3
-      - name: CI
+      - name: ci
         run: make ci
