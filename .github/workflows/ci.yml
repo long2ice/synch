@@ -4,12 +4,24 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     services:
+      mariadb:
+        network_mode: host
+        image: mariadb
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_USER: root
+          MYSQL_PASSWORD: 123456
+          MYSQL_ROOT_PASSWORD: 123456
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
       clickhouse:
+        network_mode: host
         image: yandex/clickhouse-server
         ports:
           - 8123:8123
           - 9000:9000
       redis:
+        network_mode: host
         image: redis
         ports:
           - 6379:6379
@@ -20,6 +32,7 @@ jobs:
           --health-retries 5
       postgres:
         image: postgres:latest
+        network_mode: host
         ports:
           - 5432:5432
         env:
@@ -27,8 +40,6 @@ jobs:
           POSTGRES_USER: postgres
         options: --health-cmd=pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Start MySQL
-        run: sudo systemctl start mysql.service
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:

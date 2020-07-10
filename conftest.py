@@ -1,19 +1,12 @@
-import os
-
 import psycopg2
 import pytest
 
 from synch.factory import get_reader, get_writer, init
 
-local = os.getenv("local") == "True"
-
 
 @pytest.fixture(scope="session", autouse=True)
 def initialize_tests():
-    if local:
-        init("synch.yaml")
-    else:
-        init("tests/synch.yaml")
+    init("synch.yaml")
 
 
 @pytest.fixture(scope="session", autouse=True)
