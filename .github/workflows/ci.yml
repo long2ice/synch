@@ -4,10 +4,10 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: add hosts
-        run: sudo echo "127.0.0.1 redis\n127.0.0.1 mysql\n127.0.0.1 postgres\n127.0.0.1 clickhouse" | sudo tee -a /etc/hosts
+      - name: Add hosts
+        run: sudo echo "$(ip addr show eth0 | grep -Po 'inet \K[\d.]+') redis mysql postgres clickhouse" | sudo tee -a /etc/hosts
       - uses: actions/checkout@v2
-      - name: docker-compose
+      - name: Run docker-compose
         run: docker-compose -f tests/docker-compose.yml up -d
       - uses: actions/setup-python@v2
         with:
