@@ -13,5 +13,5 @@ jobs:
         with:
           python-version: "3.x"
       - uses: dschep/install-poetry-action@v1.3
-      - name: ci
+      - name: CI
         run: make ci

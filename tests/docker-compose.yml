@@ -6,6 +6,7 @@ services:
       - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: 123456
+    command: ["mysqld", "--log-bin"]
     healthcheck:
       test: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
   clickhouse:
