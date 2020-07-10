@@ -12,7 +12,7 @@ services:
     image: yandex/clickhouse-server
     ports:
       - 8123:8123
-      - 9001:9000
+      - 9000:9000
   redis:
     image: redis
     ports:
