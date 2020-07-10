@@ -3,37 +3,9 @@ on: [push, pull_request]
 jobs:
   ci:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mariadb
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: 123456
-        options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
-      clickhouse:
-        image: yandex/clickhouse-server
-        ports:
-          - 8123:8123
-          - 9000:9000
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      postgres:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: 123456
-          POSTGRES_USER: postgres
-        options: --health-cmd=pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
+      - name: docker-compose
+        run: docker-compose -f tests/docker-compose.yml up -d
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
