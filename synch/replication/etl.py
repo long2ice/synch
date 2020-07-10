@@ -35,7 +35,7 @@ def etl_full(
             logger.warning(f"No pk found in {schema}.{table_name}, skip")
             continue
         elif isinstance(pk, tuple):
-            pk = f"({','.join(pk)}"
+            pk = f"({','.join(pk)})"
         if renew:
             drop_sql = f"drop table {schema}.{table_name}"
             try:

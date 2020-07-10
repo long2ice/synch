@@ -4,7 +4,8 @@
 
 ### 0.6.5
 
-_ Fix bugs in skip database table.
+- Fix bugs in skip database table.
+- Fix composite primary key etl.
 
 ### 0.6.4
 
