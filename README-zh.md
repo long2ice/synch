@@ -116,6 +116,25 @@ Options:
 > synch --alias mysql_db consume --schema test
 ```
 
+### 监控
+
+设置`core.monitoring`为`true`的时候会自动在`ClickHouse`创建一个`synch`数据库用以插入监控数据。
+
+表结构：
+
+```sql
+create table if not exists synch.log
+(
+    alias      String,
+    schema     String,
+    table      String,
+    num        int,
+    type       int, -- 1：生产者, 2：消费者
+    created_at DateTime
+)
+    engine = MergeTree partition by toYYYYMM(created_at) order by created_at;
+```
+
 **一个消费者消费一个数据库产生的消息**
 
 ### ClickHouse 表引擎
@@ -228,7 +247,7 @@ volumes:
 
 ## 重要提示
 
-- 同步的表必须有主键或非null唯一键或复合主键。
+- 同步的表必须有主键或非 null 唯一键或复合主键。
 - DDL 不支持 postgres.
 - Postgres 同步未经过大量测试，生产环境谨慎使用。
 

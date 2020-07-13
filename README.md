@@ -116,6 +116,25 @@ Consume schema `test` and insert into `ClickHouse`:
 > synch --alias mysql_db consume --schema test
 ```
 
+### Monitor
+
+Set `true` to `core.monitoring`, which will create database `synch` in `ClickHouse` automatically and insert monitoring data.
+
+Table struct:
+
+```sql
+create table if not exists synch.log
+(
+    alias      String,
+    schema     String,
+    table      String,
+    num        int,
+    type       int, -- 1:producer, 2:consumer
+    created_at DateTime
+)
+    engine = MergeTree partition by toYYYYMM(created_at) order by created_at;
+```
+
 **One consumer consume one schema**
 
 ### ClickHouse Table Engine
