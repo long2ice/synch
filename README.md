@@ -135,8 +135,6 @@ create table if not exists synch.log
     engine = MergeTree partition by toYYYYMM(created_at) order by created_at;
 ```
 
-**One consumer consume one schema**
-
 ### ClickHouse Table Engine
 
 Now synch support `MergeTree`, `CollapsingMergeTree`, `VersionedCollapsingMergeTree`.

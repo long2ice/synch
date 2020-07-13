@@ -135,8 +135,6 @@ create table if not exists synch.log
     engine = MergeTree partition by toYYYYMM(created_at) order by created_at;
 ```
 
-**一个消费者消费一个数据库产生的消息**
-
 ### ClickHouse 表引擎
 
 现在 synch 支持 `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`等引擎。
