@@ -5,6 +5,8 @@ from decimal import Decimal
 
 import dateutil.parser
 
+from synch.settings import Settings
+
 logger = logging.getLogger("synch.common")
 
 CONVERTERS = {
@@ -35,3 +37,15 @@ def object_hook(obj):
         return CONVERTERS[_spec_type](obj["val"])
     else:
         raise TypeError("Unknown {}".format(_spec_type))
+
+
+def insert_log(
+    alias: str, schema: str, table: str, num: int, type_: int,
+):
+    if not Settings.monitoring():
+        return
+    from synch.factory import get_writer
+
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sql = f"""INSERT INTO synch.log (alias, schema, table, num, type, created_at) VALUES ('{alias}', '{schema}', '{table}', {num}, {type_}, '{now}')"""
+    get_writer().execute(sql)

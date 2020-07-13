@@ -21,7 +21,6 @@ logger = logging.getLogger("synch.reader.postgres")
 
 class Postgres(Reader):
     _repl_conn = {}
-    count = last_time = 0
     lock = threading.Lock()
     lsn = None
 
@@ -139,13 +138,7 @@ WHERE i.indrelid = '{db}.public.{table}'::regclass AND i.indisprimary;"""
 
         with self.lock:
             self.lsn = msg.data_start
-            now = int(time.time())
-            self.count += 1
-            if self.last_time == 0:
-                self.last_time = now
-            if now - self.last_time >= self.insert_interval:
-                logger.info(f"success send {self.count} events in {self.insert_interval} seconds")
-                self.last_time = self.count = 0
+            self.after_send(database, table)
 
     def signal_handler(self, signum: Signals, handler: Callable):
         sig = Signals(signum)
@@ -164,7 +157,7 @@ WHERE i.indrelid = '{db}.public.{table}'::regclass AND i.indisprimary;"""
         cursor.start_replication(slot_name="synch", decode=True, status_interval=1)
         cursor.consume_stream(functools.partial(self._consumer, broker, database))
 
-    def start_sync(self, broker: Broker, insert_interval: int):
+    def start_sync(self, broker: Broker):
         for database in self.source_db.get("databases"):
             t = threading.Thread(target=self._run, args=(broker, database.get("database"),))
             t.setDaemon(True)

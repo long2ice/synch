@@ -78,7 +78,7 @@ class Mysql(Reader):
         logger.info(f"shutdown producer on {sig.name}, current position: {log_f}:{log_p}")
         exit()
 
-    def start_sync(self, broker: Broker, insert_interval: int):
+    def start_sync(self, broker: Broker):
         log_file, log_pos = self.pos_handler.get_log_pos()
         if not (log_file and log_pos):
             log_file = self.init_binlog_file
@@ -90,7 +90,6 @@ class Mysql(Reader):
         log_pos = int(log_pos)
         logger.info(f"mysql binlog: {log_file}:{log_pos}")
 
-        count = last_time = 0
         tables = []
         schema_tables = {}
         for database in self.source_db.get("databases"):
@@ -123,15 +122,7 @@ class Mysql(Reader):
             self.pos_handler.set_log_pos_slave(file, pos)
             logger.debug(f"send to queue success: key:{schema},event:{event}")
             logger.debug(f"success set binlog pos:{file}:{pos}")
-
-            now = int(time.time())
-            count += 1
-
-            if last_time == 0:
-                last_time = now
-            if now - last_time >= insert_interval:
-                logger.info(f"success send {count} events in {insert_interval} seconds")
-                last_time = count = 0
+            self.after_send(schema, table)
 
     def _binlog_reading(
         self,

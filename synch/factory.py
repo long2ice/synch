@@ -95,6 +95,26 @@ def init_logging(debug):
     base_logger.addHandler(sh)
 
 
+def init_monitor_db():
+    """
+    init monitor db
+    """
+    writer = get_writer()
+    sql_create_db = "create database if not exists synch"
+    writer.execute(sql_create_db)
+    sql_create_tb = """create table if not exists synch.log
+(
+    alias      String,
+    schema     String,
+    table      String,
+    num        int,
+    type       int,
+    created_at DateTime
+)
+    engine = MergeTree partition by toYYYYMM(created_at) order by created_at;"""
+    writer.execute(sql_create_tb)
+
+
 def init(config_file):
     """
     init
@@ -111,3 +131,5 @@ def init(config_file):
             environment=Settings.get("sentry", "environment"),
             integrations=[RedisIntegration()],
         )
+    if Settings.get("monitor"):
+        init_monitor_db()

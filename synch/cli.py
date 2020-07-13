@@ -18,7 +18,7 @@ def version():
     # with open("pyproject.toml") as f:
     #     ret = re.findall(r'version = "(\d+\.\d+\.\d+)"', f.read())
     #     return ret[0]
-    return "0.6.5"
+    return "0.6.6"
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -93,7 +93,7 @@ def produce(ctx: Context):
     logger.info(
         f"start producer success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
-    reader.start_sync(broker, Settings.insert_interval())
+    reader.start_sync(broker)
 
 
 if __name__ == "__main__":

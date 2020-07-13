@@ -4,6 +4,7 @@ import signal
 from signal import Signals
 from typing import Callable, Dict
 
+from synch.common import insert_log
 from synch.enums import ClickHouseEngine
 from synch.factory import get_broker, get_writer
 from synch.settings import Settings
@@ -97,6 +98,7 @@ def continuous_etl(
 
         if is_insert or alter_table:
             for table, v in event_list.items():
+                table_event_num = 0
                 pk = tables_pk.get(table)
                 if isinstance(v, dict):
                     writer = get_writer(ClickHouseEngine.merge_tree)
@@ -118,6 +120,7 @@ def continuous_etl(
                                 writer.delete_events(schema, table, pk, delete_pks)
                             if insert_events:
                                 writer.insert_events(schema, table, insert_events)
+
                         except Exception as e:
                             logger.error(
                                 f"insert event error,error: {e}", exc_info=True, stack_info=True
@@ -127,7 +130,12 @@ def continuous_etl(
                             writer.delete_events(schema, table, pk, delete_pks)
                         if insert_events:
                             writer.insert_events(schema, table, insert_events)
+
+                    table_event_num += len(delete_pks)
+                    table_event_num += len(insert_events)
+
                 elif isinstance(v, list):
+                    table_event_num += len(v)
                     writer = get_writer(ClickHouseEngine.collapsing_merge_tree)
                     if v:
                         if skip_error:
@@ -139,6 +147,9 @@ def continuous_etl(
                                 )
                         else:
                             writer.insert_events(schema, table, v)
+
+                insert_log(alias, schema, table, table_event_num, 2)
+
             if alter_table:
                 try:
                     get_writer().execute(query)

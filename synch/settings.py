@@ -17,6 +17,10 @@ class Settings:
         return cls.get("core", "debug")
 
     @classmethod
+    def monitoring(cls):
+        return cls.get("core", "monitoring")
+
+    @classmethod
     def insert_interval(cls):
         return cls.get("core", "insert_interval")
 
