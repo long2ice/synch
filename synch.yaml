@@ -96,5 +96,5 @@ mail:
   toaddrs:
     - long2ice@gmail.com
   user: long2ice@gmail.com
-  password: 123456
-  subject: [synch] Error logging report
+  password: "123456"
+  subject: "[synch] Error logging report"
