@@ -5,6 +5,7 @@
 ### 0.6.6
 
 - Add `monitoring` in config, which insert monitoring records in ClickHouse.
+- Add email error report config.
 
 ### 0.6.5
 

@@ -27,6 +27,7 @@ pyyaml = "*"
 redis = "*"
 sentry-sdk = {version = "*", optional = true}
 sqlparse = "*"
+ratelimitingfilter = "*"
 
 [tool.poetry.dev-dependencies]
 bandit = "*"

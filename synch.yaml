@@ -88,3 +88,13 @@ kafka:
   servers:
     - kafka:9092
   topic_prefix: synch
+
+# enable this to send error report, comment or delete these if not.
+mail:
+  mailhost: smtp.gmail.com
+  fromaddr: long2ice@gmail.com
+  toaddrs:
+    - long2ice@gmail.com
+  user: long2ice@gmail.com
+  password: 123456
+  subject: [synch] Error logging report

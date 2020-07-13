@@ -386,6 +386,14 @@ version = "5.3.1"
 
 [[package]]
 category = "main"
+description = "A rate limiting filter for the Python logging system"
+name = "ratelimitingfilter"
+optional = false
+python-versions = "*"
+version = "1.2"
+
+[[package]]
+category = "main"
 description = "Python client for Redis key-value store"
 name = "redis"
 optional = false
@@ -520,7 +528,7 @@ postgres = ["psycopg2"]
 sentry = ["sentry-sdk"]
 
 [metadata]
-content-hash = "e402fd6e00ce785630c868bccbc89b928a9fbdb3e11b5ce6636b70a49f813f33"
+content-hash = "5efa76a3f391fbc5b207dc76d0be79832a027343ed6f12cb085a576876e4646d"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -724,6 +732,10 @@ pyyaml = [
     {file = "PyYAML-5.3.1-cp38-cp38-win32.whl", hash = "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97"},
     {file = "PyYAML-5.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:95f71d2af0ff4227885f7a6605c37fd53d3a106fcab511b8860ecca9fcf400ee"},
     {file = "PyYAML-5.3.1.tar.gz", hash = "sha256:b8eac752c5e14d3eca0e6dd9199cd627518cb5ec06add0de9d32baeee6fe645d"},
+]
+ratelimitingfilter = [
+    {file = "ratelimitingfilter-1.2-py2.py3-none-any.whl", hash = "sha256:f4e35b73f8177c099a5baa48ab2d07fdfd9ae20d7764b8ed7193deb310a39cf5"},
+    {file = "ratelimitingfilter-1.2.tar.gz", hash = "sha256:2b6bdc0e81f7b470ffb011fb309054d6279eb980489de1a00edc15f69a9c518d"},
 ]
 redis = [
     {file = "redis-3.5.3-py2.py3-none-any.whl", hash = "sha256:432b788c4530cfe16d8d943a09d40ca6c16149727e4afe8c2c9d5580c59d9f24"},

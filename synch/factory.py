@@ -1,6 +1,9 @@
 import logging
+import logging.handlers
 import sys
 from typing import Dict
+
+from ratelimitingfilter import RateLimitingFilter
 
 from synch.broker import Broker
 from synch.broker.kafka import KafkaBroker
@@ -73,26 +76,40 @@ def get_broker(alias: str) -> Broker:
     return b
 
 
-def init_logging(debug):
+def init_logging():
     """
     init logging config
     :param debug:
     :return:
     """
     base_logger = logging.getLogger("synch")
+    debug = Settings.debug()
     if debug:
         base_logger.setLevel(logging.DEBUG)
     else:
         base_logger.setLevel(logging.INFO)
+    fmt = logging.Formatter(
+        fmt="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     sh = logging.StreamHandler(sys.stdout)
     sh.setLevel(logging.DEBUG)
-    sh.setFormatter(
-        logging.Formatter(
-            fmt="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-    )
+    sh.setFormatter(fmt)
     base_logger.addHandler(sh)
+    mail = Settings.get("mail")
+    if mail:
+        rate_limit = RateLimitingFilter(per=60)
+        sh = logging.handlers.SMTPHandler(
+            mailhost=mail.get("mailhost"),
+            fromaddr=mail.get("fromaddr"),
+            toaddrs=mail.get("toaddrs"),
+            subject=mail.get("subject"),
+            credentials=(mail.get("user"), mail.get("password")),
+        )
+        sh.setLevel(logging.ERROR)
+        sh.setFormatter(fmt)
+        sh.addFilter(rate_limit)
+        base_logger.addHandler(sh)
 
 
 def init_monitor_db():
@@ -120,7 +137,7 @@ def init(config_file):
     init
     """
     Settings.init(config_file)
-    init_logging(Settings.debug())
+    init_logging()
     dsn = Settings.get("sentry", "dsn")
     if dsn:
         import sentry_sdk
