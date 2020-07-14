@@ -39,11 +39,6 @@ def create_mysql_table(initialize_tests, request):
     reader = get_reader(alias_mysql)
     reader.execute(sql)
 
-    def finalizer():
-        reader.execute(f"drop database if exists {database}")
-
-    request.addfinalizer(finalizer)
-
 
 @pytest.fixture(scope="session", autouse=True)
 def create_postgres_table(initialize_tests, request):
