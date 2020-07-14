@@ -65,7 +65,7 @@ source_dbs:
     host: postgres
     port: 5432
     user: postgres
-    password:
+    password: "123456"
     databases:
       - database: postgres
         auto_create: true
