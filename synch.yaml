@@ -62,7 +62,7 @@ source_dbs:
   - db_type: postgres
     alias: postgres_db
     broker_type: kafka # current support redis and kafka
-    host: 192.168.10.23
+    host: postgres
     port: 5432
     user: postgres
     password:
