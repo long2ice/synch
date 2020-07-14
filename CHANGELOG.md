@@ -6,6 +6,8 @@
 
 - Add `monitoring` in config, which insert monitoring records in ClickHouse.
 - Add email error report config.
+- Bug fix.
+- Support postgres full etl, need [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge).
 
 ### 0.6.5
 
