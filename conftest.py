@@ -29,7 +29,7 @@ def get_postgres_database():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def create_mysql_table(initialize_tests, request):
+def create_mysql_table(initialize_tests):
     database = get_mysql_database()
     sql = f"""create database if not exists {database};use {database};create table `test` (
   `id` int not null auto_increment,
@@ -41,7 +41,7 @@ def create_mysql_table(initialize_tests, request):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def create_postgres_table(initialize_tests, request):
+def create_postgres_table(initialize_tests):
     database = get_postgres_database()
     reader = get_reader(alias_postgres)
     sql = f"create database {database}"
@@ -62,7 +62,7 @@ def create_postgres_table(initialize_tests, request):
 
 
 @pytest.fixture(scope="function")
-def truncate_postgres_table(request):
+def truncate_postgres_table(create_postgres_table, request):
     postgres = get_postgres_database()
     sql = f"truncate table {postgres}.public.test restart identity cascade"
     reader = get_reader(alias_postgres)
@@ -76,7 +76,7 @@ def truncate_postgres_table(request):
 
 
 @pytest.fixture(scope="function")
-def truncate_mysql_table(request):
+def truncate_mysql_table(create_mysql_table, request):
     database = get_mysql_database()
     sql = f"truncate table {database}.test"
     reader = get_reader(alias_mysql)
