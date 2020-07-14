@@ -1,14 +1,34 @@
-import clickhouse_driver
+from decimal import Decimal
 
+import pytest
+
+from conftest import alias_mysql, alias_postgres, get_mysql_database
+from synch.factory import get_reader, get_writer
 from synch.replication.etl import etl_full
 
 
+@pytest.mark.usefixtures("truncate_postgres_table")
 def test_full_etl_postgres():
-    try:
-        etl_full("postgres_db", "postgres", {"test": "id"}, True)
-    except clickhouse_driver.errors.ServerException as e:
-        assert e.code == 86
+    sql = "insert into test(amount) values(1)"
+    get_reader(alias_postgres).execute(sql)
+
+    etl_full(alias_postgres, "postgres", {"test": "id"}, True)
+
+    sql = "select * from postgres.test"
+    ret = get_writer().execute(sql)
+    assert ret == [(1, Decimal("1"))]
 
 
+@pytest.mark.usefixtures("truncate_mysql_table")
 def test_full_etl_mysql():
-    etl_full("mysql_db", "test", {"test": "id"}, True)
+    database = get_mysql_database()
+
+    sql = f"insert into {database}.test(amount) values(1.00)"
+    get_reader(alias_mysql).execute(sql)
+
+    etl_full(alias_mysql, database, {"test": "id"}, True)
+
+    sql = f"select * from {database}.test"
+
+    ret = get_writer().execute(sql)
+    print(ret)

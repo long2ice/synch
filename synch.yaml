@@ -40,7 +40,7 @@ source_dbs:
     skip_delete_tables: # tables skip delete, format with schema.table
     skip_update_tables: # tables skip update, format with schema.table
     databases:
-      - database: test
+      - database: synch_mysql_test
         # optional, default true, auto create database when database in clickhouse not exists
         auto_create: true
         tables:
@@ -62,17 +62,17 @@ source_dbs:
   - db_type: postgres
     alias: postgres_db
     broker_type: kafka # current support redis and kafka
-    host: postgres
+    host: 192.168.10.23
     port: 5432
     user: postgres
-    password: 123456
+    password:
     databases:
       - database: postgres
         auto_create: true
         tables:
           - table: test
-            auto_full_etl: false # always false since clickhouse-jdbc-bridge-service not support decimal mapping for postgres
-            clickhouse_engine: CollapsingMergeTree
+            auto_full_etl: true
+            clickhouse_engine: MergeTree
             sign_column: sign
             version_column: updated_at
             partition_by:

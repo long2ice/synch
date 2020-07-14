@@ -33,7 +33,8 @@ class Reader:
     def execute(self, sql, args=None):
         logger.debug(sql)
         self.cursor.execute(sql, args)
-        return self.cursor.fetchall()
+        ret = self.cursor.fetchall()
+        return ret
 
     @abc.abstractmethod
     def get_primary_key(self, db: str, table: str) -> Union[None, str, Tuple[str, ...]]:

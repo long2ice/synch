@@ -37,12 +37,9 @@ def etl_full(
         elif isinstance(pk, tuple):
             pk = f"({','.join(pk)})"
         if renew:
-            drop_sql = f"drop table {schema}.{table_name}"
-            try:
-                writer.execute(drop_sql)
-                logger.info(f"drop table success:{schema}.{table_name}")
-            except Exception:
-                logger.warning(f"Try to drop table {schema}.{table_name} fail")
+            drop_sql = f"drop table if exists {schema}.{table_name}"
+            writer.execute(drop_sql)
+            logger.info(f"drop table success:{schema}.{table_name}")
         if not writer.check_table_exists(schema, table_name):
             sign_column = table.get("sign_column")
             version_column = table.get("version_column")
