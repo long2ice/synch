@@ -13,9 +13,11 @@ def initialize_tests(request):
     init("synch.yaml")
 
     def finalizer():
+        sql = f"drop database if exists {get_mysql_database()}"
         writer = get_writer()
-        writer.execute(f"drop database if exists {get_mysql_database()}")
+        writer.execute(sql)
         writer.execute(f"drop database if exists {get_postgres_database()}")
+        get_reader(alias_mysql).execute(sql)
 
     request.addfinalizer(finalizer)
 

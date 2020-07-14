@@ -21,7 +21,11 @@ class ClickHouseMergeTree(ClickHouse):
             for pk_value in pk_list:
                 item = []
                 for index, pk_item in enumerate(pk):
-                    item.append(f"{pk_item}={pk_value[index]}")
+                    pv = pk_value[index]
+                    if isinstance(pv, str):
+                        item.append(f"{pk_item}='{pk}'")
+                    else:
+                        item.append(f"{pk_item}={pk}")
                 pks_list.append("(" + " and ".join(item) + ")")
             sql += " or ".join(pks_list)
         else:
@@ -73,7 +77,7 @@ class ClickHouseMergeTree(ClickHouse):
             return tmp_event_list
         else:
             if isinstance(pk, tuple):
-                pk_value = {values[pk[0]], values[pk[1]]}
+                pk_value = tuple(values[pk[i]] for i in pk)
             else:
                 pk_value = values[pk]
             tmp_event_list[table][action][pk_value] = event
