@@ -64,7 +64,7 @@ def create_postgres_table(initialize_tests):
 
 
 @pytest.fixture(scope="function")
-def truncate_postgres_table(create_postgres_table, request):
+def truncate_postgres_table(request):
     postgres = get_postgres_database()
     sql = f"truncate table {postgres}.public.test restart identity cascade"
     reader = get_reader(alias_postgres)
@@ -72,13 +72,13 @@ def truncate_postgres_table(create_postgres_table, request):
 
     def finalizer():
         reader.execute(sql)
-        get_writer().execute(f"truncate table {postgres}.test")
+        get_writer().execute(f"truncate table if exists {postgres}.test")
 
     request.addfinalizer(finalizer)
 
 
 @pytest.fixture(scope="function")
-def truncate_mysql_table(create_mysql_table, request):
+def truncate_mysql_table(request):
     database = get_mysql_database()
     sql = f"truncate table {database}.test"
     reader = get_reader(alias_mysql)
