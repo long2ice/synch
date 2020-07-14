@@ -21,7 +21,12 @@ class ClickHouseMergeTree(ClickHouse):
             for pk_value in pk_list:
                 item = []
                 for index, pk_item in enumerate(pk):
-                    item.append(f"{pk_item}={pk_value[index]}")
+                    # There will be problems if the primary key has multiple data types, not just numeric types
+                    v = pk_value[index]
+                    if isinstance(v, (int, float)):
+                        item.append(f"{pk_item}={pk_value[index]}")
+                    else:
+                        item.append(f"{pk_item}='{pk_value[index]}'")
                 pks_list.append("(" + " and ".join(item) + ")")
             sql += " or ".join(pks_list)
         else:
