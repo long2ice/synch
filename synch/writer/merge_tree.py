@@ -34,14 +34,14 @@ class ClickHouseMergeTree(ClickHouse):
         return sql
 
     def get_table_create_sql(
-        self,
-        reader: Reader,
-        schema: str,
-        table: str,
-        pk,
-        partition_by: str = None,
-        engine_settings: str = None,
-        **kwargs,
+            self,
+            reader: Reader,
+            schema: str,
+            table: str,
+            pk,
+            partition_by: str = None,
+            engine_settings: str = None,
+            **kwargs,
     ):
         partition_by_str = ""
         engine_settings_str = ""
@@ -56,14 +56,14 @@ class ClickHouseMergeTree(ClickHouse):
         return f"insert into {schema}.{table} {reader.get_source_select_sql(schema, table, )}"
 
     def handle_event(
-        self,
-        tables_dict: Dict,
-        pk,
-        schema: str,
-        table: str,
-        action: str,
-        tmp_event_list: Dict,
-        event: Dict,
+            self,
+            tables_dict: Dict,
+            pk,
+            schema: str,
+            table: str,
+            action: str,
+            tmp_event_list: Dict,
+            event: Dict,
     ):
         values = self.pre_handle_values(tables_dict.get(table).get("skip_decimal"), event["values"])
         event["values"] = values
@@ -73,7 +73,9 @@ class ClickHouseMergeTree(ClickHouse):
             return tmp_event_list
         else:
             if isinstance(pk, tuple):
-                pk_value = {values[pk[0]], values[pk[1]]}
+                # if use {} ,then TypeError: unhashable type: 'set'
+                # so use ()
+                pk_value = (values[pk[0]], values[pk[1]])
             else:
                 pk_value = values[pk]
             tmp_event_list[table][action][pk_value] = event
