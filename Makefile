@@ -18,7 +18,7 @@ up:
 	@poetry update
 
 deps:
-	@poetry install --no-root -E mysql -E postgres -E kafka -E sentry
+	@poetry install --no-root
 
 style: deps
 	isort -src $(checkfiles)
