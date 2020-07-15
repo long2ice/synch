@@ -77,7 +77,7 @@ class ClickHouseMergeTree(ClickHouse):
             return tmp_event_list
         else:
             if isinstance(pk, tuple):
-                pk_value = tuple(values[pk[i]] for i in pk)
+                pk_value = tuple(values[i] for i in pk)
             else:
                 pk_value = values[pk]
             tmp_event_list[table][action][pk_value] = event
