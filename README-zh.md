@@ -18,13 +18,14 @@
 
 - 全量复制与实时增量复制。
 - 支持 DML 同步与 DDL 同步， 支持增加字段、删除字段、更改字段，并且支持所有的 DML。
-- 自定义配置项。
+- 错误邮件通知。
 - 支持 redis 与 kafka 作为消息队列。
 - 支持多源数据库同时同步到 ClickHouse。
 - 支持 ClickHouse `MergeTree`，`CollapsingMergeTree`，`VersionedCollapsingMergeTree`引擎。
 
 ## 依赖
 
+- Python >= 3.7
 - [redis](https://redis.io)，缓存 binlog 和作为消息队列，支持 redis 集群。
 - [kafka](https://kafka.apache.org)，使用 kafka 作为消息队列时需要。
 - [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge)， 在 postgres 执行`etl`命令的时候需要。
@@ -33,21 +34,7 @@
 ## 安装
 
 ```shell
-> pip install synch[all]
-```
-
-额外 pip 依赖：
-
-- `mysql`， 如果你的源库为 `MySQL`。
-- `postgres`， 如果你的源库为 `PostgreSQL`。
-- `kafka`， 如果你是否 `kafka`消息队列。
-- `sentry`， 如果你使用 `sentry`。
-- `all`， 安装所有依赖。
-
-示例:
-
-```shell
-> pip install synch[mysql,sentry]
+> pip install synch
 ```
 
 ## 使用

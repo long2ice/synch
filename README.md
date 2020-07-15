@@ -18,13 +18,14 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 
 - Full data etl and real time increment etl.
 - Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support of DML also.
-- Custom configurable items.
+- Email error report.
 - Support kafka and redis as broker.
 - Multiple source db sync to ClickHouse at the same time。
 - Support ClickHouse `MergeTree`,`CollapsingMergeTree`,`VersionedCollapsingMergeTree`.
 
 ## Requirements
 
+- Python >= 3.7
 - [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
 - [kafka](https://kafka.apache.org), need if you use kafka as broker.
 - [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge), need if you use postgres and set `auto_full_etl = true`, or exec `synch etl` command.
@@ -33,21 +34,7 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 ## Install
 
 ```shell
-> pip install synch[all]
-```
-
-Extra pip dependencies:
-
-- `mysql`, if your source db is `MySQL`.
-- `postgres`, if your source db is `PostgreSQL`.
-- `kafka`, if your broker type is `kafka`.
-- `sentry`, if your use `sentry`.
-- `all`, install all dependencies.
-
-Example:
-
-```shell
-> pip install synch[mysql,sentry]
+> pip install synch
 ```
 
 ## Usage
