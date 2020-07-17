@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.7
+
+- Fix monitor config.
+
 ### 0.6.6
 
 - Add `monitoring` in config, which insert monitoring records in ClickHouse.

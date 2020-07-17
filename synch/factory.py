@@ -148,5 +148,5 @@ def init(config_file):
             environment=Settings.get("sentry", "environment"),
             integrations=[RedisIntegration()],
         )
-    if Settings.get("monitor"):
+    if Settings.monitoring():
         init_monitor_db()
