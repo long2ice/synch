@@ -50,7 +50,7 @@ source_dbs:
             # optional, default true
             auto_full_etl: true # auto do full etl at first when table not exists
             # optional, default MergeTree
-            clickhouse_engine: MergeTree # current support MergeTree and CollapsingMergeTree and VersionedCollapsingMergeTree
+            clickhouse_engine: MergeTree # current support MergeTree, CollapsingMergeTree, VersionedCollapsingMergeTree, ReplacingMergeTree
             # optional
             partition_by: # Table create partitioning by, like toYYYYMM(created_at).
             # optional
@@ -58,7 +58,7 @@ source_dbs:
             # optional
             sign_column: sign # need when clickhouse_engine=CollapsingMergeTree and VersionedCollapsingMergeTree, no need real in source db, will auto generate in clickhouse
             # optional
-            version_column: updated_at # need when clickhouse_engine=VersionedCollapsingMergeTree, need real in source db, usually is `updated_at` with auto update.
+            version_column: updated_at # need when clickhouse_engine=VersionedCollapsingMergeTree and ReplacingMergeTree(optional), need real in source db, usually is `updated_at` with auto update.
   - db_type: postgres
     alias: postgres_db
     broker_type: kafka # current support redis and kafka

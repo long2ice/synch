@@ -5,6 +5,7 @@
 ### 0.6.7
 
 - Fix monitor config.
+- Add `ReplacingMergeTree` support.
 
 ### 0.6.6
 

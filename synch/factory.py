@@ -14,6 +14,7 @@ from synch.settings import Settings
 from synch.writer import ClickHouse
 from synch.writer.collapsing_merge_tree import ClickHouseCollapsingMergeTree
 from synch.writer.merge_tree import ClickHouseMergeTree
+from synch.writer.replacing_merge_tree import ClickHouseReplacingMergeTree
 from synch.writer.versioned_collapsing_merge_tree import ClickHouseVersionedCollapsingMergeTree
 
 _readers: Dict[str, Reader] = {}
@@ -58,6 +59,8 @@ def get_writer(engine: ClickHouseEngine = None) -> ClickHouse:
             w = ClickHouseCollapsingMergeTree(settings)
         elif engine == ClickHouseEngine.versioned_collapsing_merge_tree:
             w = ClickHouseVersionedCollapsingMergeTree(settings)
+        elif engine == ClickHouseEngine.replacing_merge_tree:
+            w = ClickHouseReplacingMergeTree(settings)
         _writers[engine] = w
     return w
 

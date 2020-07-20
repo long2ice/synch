@@ -23,7 +23,7 @@
 - 错误邮件通知。
 - 支持 redis 与 kafka 作为消息队列。
 - 支持多源数据库同时同步到 ClickHouse。
-- 支持 ClickHouse `MergeTree`，`CollapsingMergeTree`，`VersionedCollapsingMergeTree`引擎。
+- 支持 ClickHouse `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`、`ReplacingMergeTree`引擎。
 
 ## 依赖
 
