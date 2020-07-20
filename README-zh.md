@@ -126,11 +126,12 @@ create table if not exists synch.log
 
 ### ClickHouse 表引擎
 
-现在 synch 支持 `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`等引擎。
+现在 synch 支持 `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`、`ReplacingMergeTree`等引擎。
 
 - `MergeTree`，默认引擎，通常情况下的选择。
 - `CollapsingMergeTree`，详情参考[CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/)。
 - `VersionedCollapsingMergeTree`，详情参考[VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/)。
+- `ReplacingMergeTree`，详情参考[ReplacingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/replacingmergetree/)。
 
 ## 使用 docker-compose（推荐）
 

@@ -126,11 +126,12 @@ create table if not exists synch.log
 
 ### ClickHouse Table Engine
 
-Now synch support `MergeTree`, `CollapsingMergeTree`, `VersionedCollapsingMergeTree`.
+Now synch support `MergeTree`, `CollapsingMergeTree`, `VersionedCollapsingMergeTree`, `ReplacingMergeTree`.
 
 - `MergeTree`, default common choices.
 - `CollapsingMergeTree`, see detail in [CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/).
 - `VersionedCollapsingMergeTree`, see detail in [VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/).
+- `ReplacingMergeTree`, see detail in [ReplacingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/replacingmergetree/).
 
 ## Use docker-compose(recommended)
 
