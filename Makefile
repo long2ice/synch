@@ -36,3 +36,6 @@ build: deps
 	@poetry build
 
 ci: check test
+
+act:
+	@act -P ubuntu-latest=nektos/act-environments-ubuntu:18.04 -b

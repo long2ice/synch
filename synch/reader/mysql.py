@@ -33,6 +33,7 @@ class Mysql(Reader):
             cursorclass=DictCursor,
             charset="utf8",
         )
+        self.conn.autocommit(True)
         self.init_binlog_file = source_db.get("init_binlog_file")
         self.init_binlog_pos = source_db.get("init_binlog_pos")
         self.server_id = source_db.get("server_id")

@@ -9,12 +9,14 @@ from synch.replication.etl import etl_full
 
 @pytest.mark.usefixtures("truncate_postgres_table")
 def test_full_etl_postgres():
+    database = get_postgres_database()
+
     sql = "insert into test(id,amount) values(1,1)"
     get_reader(alias_postgres).execute(sql)
 
-    etl_full(alias_postgres, get_postgres_database(), {"test": "id"}, True)
+    etl_full(alias_postgres, database, {"test": "id"}, True)
 
-    sql = "select * from postgres.test"
+    sql = f"select * from {database}.test"
     ret = get_writer().execute(sql)
     assert ret == [(1, Decimal("1"))]
 
@@ -31,4 +33,4 @@ def test_full_etl_mysql():
     sql = f"select * from {database}.test"
 
     ret = get_writer().execute(sql)
-    print(ret)
+    assert ret == [(1, Decimal("1"))]

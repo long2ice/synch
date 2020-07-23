@@ -12,15 +12,6 @@ alias_mysql = "mysql_db"
 def initialize_tests(request):
     init("synch.yaml")
 
-    def finalizer():
-        sql = f"drop database if exists {get_mysql_database()}"
-        writer = get_writer()
-        writer.execute(sql)
-        writer.execute(f"drop database if exists {get_postgres_database()}")
-        get_reader(alias_mysql).execute(sql)
-
-    request.addfinalizer(finalizer)
-
 
 def get_mysql_database():
     return Settings.get_source_db(alias_mysql).get("databases")[0].get("database")
@@ -33,7 +24,7 @@ def get_postgres_database():
 @pytest.fixture(scope="session", autouse=True)
 def create_mysql_table(initialize_tests):
     database = get_mysql_database()
-    sql = f"""create database if not exists {database};use {database};create table `test` (
+    sql = f"""create database if not exists {database};use {database};create table if not exists `test`  (
   `id` int not null auto_increment,
   `amount` decimal(10,2) not null,
   primary key (`id`)
@@ -87,5 +78,6 @@ def truncate_mysql_table(request):
 
     def finalizer():
         reader.execute(sql)
+        get_writer().execute(f"truncate table if exists {database}.test")
 
     request.addfinalizer(finalizer)
