@@ -18,7 +18,7 @@ version = "0.6.7"
 click = "*"
 clickhouse-driver = "*"
 kafka-python = "*"
-mysql-replication = "*"
+mysql-replication = {git = "https://github.com/long2ice/python-mysql-replication.git", branch = "pymysql_0_10_0"}
 mysqlclient = "*"
 psycopg2 = "*"
 python = "^3.7"
