@@ -128,6 +128,7 @@ WHERE i.indrelid = '{db}.public.{table}'::regclass AND i.indisprimary;"""
             }
         else:
             return
+        event["values"] = self.deep_decode_dict(event["values"])
         if delete_event:
             broker.send(msg=delete_event, schema=database)
         if event:

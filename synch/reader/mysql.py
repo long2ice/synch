@@ -119,6 +119,7 @@ class Mysql(Reader):
         ):
             if table and table not in schema_tables.get(schema):
                 continue
+            event["values"] = self.deep_decode_dict(event["values"])
             broker.send(msg=event, schema=schema)
             self.pos_handler.set_log_pos_slave(file, pos)
             logger.debug(f"send to queue success: key:{schema},event:{event}")

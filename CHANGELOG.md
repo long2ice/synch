@@ -2,6 +2,10 @@
 
 ## 0.6
 
+### 0.6.8
+
+- Fix json field encode.
+
 ### 0.6.7
 
 - Fix monitor config.

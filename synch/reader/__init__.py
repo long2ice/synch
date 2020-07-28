@@ -1,4 +1,5 @@
 import abc
+import json
 import logging
 import signal
 import time
@@ -6,7 +7,7 @@ from signal import Signals
 from typing import Callable, Tuple, Union
 
 from synch.broker import Broker
-from synch.common import insert_log
+from synch.common import JsonEncoder, insert_log
 from synch.settings import Settings
 
 logger = logging.getLogger("synch.reader")
@@ -51,6 +52,20 @@ class Reader:
     @abc.abstractmethod
     def get_source_select_sql(self, schema: str, table: str, sign_column: str = None):
         raise NotImplementedError
+
+    def deep_decode_dict(self, d: dict):
+        ret = {}
+
+        for k, v in d.items():
+            if isinstance(k, bytes):
+                k = k.decode()
+            if isinstance(v, dict):
+                ret[k] = json.dumps(self.deep_decode_dict(v), cls=JsonEncoder)
+            elif isinstance(v, bytes):
+                ret[k] = v.decode()
+            else:
+                ret[k] = v
+        return ret
 
     def after_send(self, schema, table):
         now = int(time.time())
