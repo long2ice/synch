@@ -49,8 +49,8 @@ source_dbs:
             skip_decimal: false # set it true will replace decimal with string type.
             # optional, default true
             auto_full_etl: true # auto do full etl at first when table not exists
-            # optional, default MergeTree
-            clickhouse_engine: MergeTree # current support MergeTree, CollapsingMergeTree, VersionedCollapsingMergeTree, ReplacingMergeTree
+            # optional, default ReplacingMergeTree
+            clickhouse_engine: ReplacingMergeTree # current support MergeTree, CollapsingMergeTree, VersionedCollapsingMergeTree, ReplacingMergeTree
             # optional
             partition_by: # Table create partitioning by, like toYYYYMM(created_at).
             # optional
@@ -58,7 +58,7 @@ source_dbs:
             # optional
             sign_column: sign # need when clickhouse_engine=CollapsingMergeTree and VersionedCollapsingMergeTree, no need real in source db, will auto generate in clickhouse
             # optional
-            version_column: updated_at # need when clickhouse_engine=VersionedCollapsingMergeTree and ReplacingMergeTree(optional), need real in source db, usually is `updated_at` with auto update.
+            version_column: # need when clickhouse_engine=VersionedCollapsingMergeTree and ReplacingMergeTree(optional), need real in source db, usually is `updated_at` with auto update.
   - db_type: postgres
     alias: postgres_db
     broker_type: kafka # current support redis and kafka
@@ -72,7 +72,7 @@ source_dbs:
         tables:
           - table: test
             auto_full_etl: true
-            clickhouse_engine: MergeTree
+            clickhouse_engine: ReplacingMergeTree
             sign_column: sign
             version_column: updated_at
             partition_by:

@@ -5,6 +5,7 @@
 ### 0.6.8
 
 - Fix json field encode.
+- Make `ReplacingMergeTree` as default.
 
 ### 0.6.7
 
