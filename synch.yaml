@@ -74,7 +74,7 @@ source_dbs:
             auto_full_etl: true
             clickhouse_engine: ReplacingMergeTree
             sign_column: sign
-            version_column: updated_at
+            version_column:
             partition_by:
             settings:
 
