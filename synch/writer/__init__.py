@@ -28,6 +28,10 @@ class ClickHouse:
             password=settings.get("password") or "",
         )
 
+    def get_count(self, schema: str, table: str):
+        sql = f"select count(*) as c from {schema}.{table}"
+        return self.execute(sql)[0][0]
+
     def check_table_exists(self, schema: str, table: str):
         sql = f"select 1 from system.tables where database = '{schema}' and name = '{table}'"
         ret = self.execute(sql)

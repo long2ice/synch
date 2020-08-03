@@ -5,7 +5,7 @@ from typing import List
 import click
 from click import Context
 
-from synch.factory import get_broker, get_reader, init
+from synch.factory import get_broker, get_reader, get_writer, init
 from synch.replication.continuous import continuous_etl
 from synch.replication.etl import etl_full
 from synch.settings import Settings
@@ -94,6 +94,25 @@ def produce(ctx: Context):
         f"start producer success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     reader.start_sync(broker)
+
+
+@cli.command(help="Check whether equal count of target database records and ClickHouse.")
+@click.option("--schema", help="Schema to check.", required=True)
+@click.pass_context
+def check(ctx: Context, schema: str):
+    alias = ctx.obj["alias"]
+    reader = get_reader(alias)
+    writer = get_writer()
+    tables = Settings.get_source_db_database_tables_name(alias, schema)
+    for table in tables:
+        source_table_count = reader.get_count(schema, table)
+        target_table_count = writer.get_count(schema, table)
+        if source_table_count == target_table_count:
+            logger.info(f"{schema}.{table} is equal, count={source_table_count}")
+        else:
+            logger.warning(
+                f"{schema}.{table} is not equal, source_table_count={source_table_count}, target_table_count={target_table_count}"
+            )
 
 
 if __name__ == "__main__":

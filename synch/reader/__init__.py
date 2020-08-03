@@ -37,6 +37,10 @@ class Reader:
         ret = self.cursor.fetchall()
         return ret
 
+    def get_count(self, schema: str, table: str):
+        sql = f"select count(*) as c from {schema}.{table}"
+        return self.execute(sql)[0].get("c")
+
     @abc.abstractmethod
     def get_primary_key(self, db: str, table: str) -> Union[None, str, Tuple[str, ...]]:
         raise NotImplementedError

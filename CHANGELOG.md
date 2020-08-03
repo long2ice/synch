@@ -6,6 +6,7 @@
 
 - Fix json field encode.
 - Make `ReplacingMergeTree` as default.
+- Add cli `check` to check count of source table and target table.
 
 ### 0.6.7
 
