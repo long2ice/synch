@@ -39,6 +39,8 @@
 > pip install synch
 ```
 
+> 注意，你只能安装最新版至 `0.6.7`因为依赖包 `mysql-replication` 有一些 bug 并在 `https://github.com/long2ice/python-mysql-replication/tree/pymysql_0_10_0`修复， 但是原始仓库并没有合并，所以你可以使用 `pip install git+https://github.com/long2ice/synch.git@dev#egg=synch`安装最新版本。
+
 ## 使用
 
 ### 配置文件 `synch.yaml`

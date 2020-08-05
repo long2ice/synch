@@ -39,6 +39,8 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 > pip install synch
 ```
 
+> Warning, you can only install version up to `0.6.7` becase there has bug to package `mysql-replication` and fixed in `https://github.com/long2ice/python-mysql-replication/tree/pymysql_0_10_0`, and the origin repo didn't merge that, so you can install from source code by `pip install git+https://github.com/long2ice/synch.git@dev#egg=synch`.
+
 ## Usage
 
 ### Config file `synch.yaml`
