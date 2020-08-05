@@ -16,7 +16,7 @@ len_event = 0
 event_list = {}
 is_insert = False
 is_stop = False
-last_insert_time = 0
+last_insert_time = time.time()
 
 
 def signal_handler(signum: Signals, handler: Callable):
@@ -97,9 +97,9 @@ def continuous_etl(
                     tables_dict, tables_pk.get(table), schema, table, action, event_list, event,
                 )
 
-            if len_event == insert_num or (
-                last_insert_time != 0
-                and time.time() - last_insert_time >= Settings.insert_interval()
+            if (
+                len_event == insert_num
+                or time.time() - last_insert_time >= Settings.insert_interval()
             ):
                 is_insert = True
 
