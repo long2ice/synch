@@ -13,7 +13,7 @@ class Broker:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def msgs(self, schema: str, last_msg_id, block: int = None):
+    def msgs(self, schema: str, last_msg_id, count: int = None, block: int = None):
         """
         get msgs from broker
         """

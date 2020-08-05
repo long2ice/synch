@@ -40,7 +40,7 @@ class KafkaBroker(Broker):
             if database.get("database") == schema:
                 return index
 
-    def msgs(self, schema: str, last_msg_id, block: int = None):
+    def msgs(self, schema: str, last_msg_id, count: int = None, block: int = None):
         self.consumer = KafkaConsumer(
             bootstrap_servers=self.servers,
             value_deserializer=lambda x: json.loads(x, object_hook=object_hook),
@@ -56,7 +56,7 @@ class KafkaBroker(Broker):
         if last_msg_id:
             self.consumer.seek(topic_partition, last_msg_id)
         while True:
-            msgs = self.consumer.poll(block)
+            msgs = self.consumer.poll(block, max_records=count)
             if not msgs:
                 yield None, msgs
             else:

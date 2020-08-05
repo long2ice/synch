@@ -46,11 +46,6 @@ def continuous_etl(
     """
     insert_interval = Settings.insert_interval()
     insert_num = Settings.insert_num()
-    if not Settings.debug():
-        if insert_interval < 60 or insert_num < 20000:
-            logger.warning(
-                "If is recommended to set insert_interval=60 and insert_num=20000 when production."
-            )
     logger.info(
         f"start consumer for {schema} success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, last_msg_id={last_msg_id}, insert_interval={insert_interval}, insert_num={insert_num}"
     )
@@ -62,8 +57,13 @@ def continuous_etl(
     signal.signal(signal.SIGTERM, signal_handler)
 
     broker = get_broker(alias)
-    for msg_id, msg in broker.msgs(schema, last_msg_id=last_msg_id, block=insert_interval * 1000):
-        if not msg_id:
+    for msg_id, msg in broker.msgs(
+        schema, last_msg_id=last_msg_id, count=Settings.insert_num(), block=insert_interval * 1000
+    ):
+        if not msg_id and not msg:
+            logger.info(
+                f"Block {insert_interval} seconds timeout, insert current {len_event} events"
+            )
             if len_event > 0:
                 is_insert = True
                 alter_table = False

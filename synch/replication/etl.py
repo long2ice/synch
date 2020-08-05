@@ -61,6 +61,6 @@ def etl_full(
             writer.execute(full_insert_sql)
             logger.info(f"full data etl for {schema}.{table_name} success")
         else:
-            logger.info(
+            logger.debug(
                 f"{schema}.{table_name} exists, skip, or use --renew force etl with drop old tables"
             )

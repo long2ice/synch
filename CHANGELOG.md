@@ -2,6 +2,11 @@
 
 ## 0.6
 
+### 0.6.9
+
+- Add count in consumer.
+- Add more log.
+
 ### 0.6.8
 
 - Fix json field encode.
