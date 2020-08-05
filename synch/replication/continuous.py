@@ -1,6 +1,7 @@
 import datetime
 import logging
 import signal
+import time
 from signal import Signals
 from typing import Callable, Dict
 
@@ -9,12 +10,13 @@ from synch.enums import ClickHouseEngine
 from synch.factory import get_broker, get_writer
 from synch.settings import Settings
 
-logger = logging.getLogger("synch.replication.etl")
+logger = logging.getLogger("synch.replication.continuous")
 
 len_event = 0
 event_list = {}
 is_insert = False
 is_stop = False
+last_insert_time = 0
 
 
 def signal_handler(signum: Signals, handler: Callable):
@@ -44,14 +46,16 @@ def continuous_etl(
     """
     continuous etl from broker and insert into clickhouse
     """
+    global len_event
+    global event_list
+    global is_insert
+    global last_insert_time
+
     insert_interval = Settings.insert_interval()
     insert_num = Settings.insert_num()
     logger.info(
         f"start consumer for {schema} success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, last_msg_id={last_msg_id}, insert_interval={insert_interval}, insert_num={insert_num}"
     )
-    global len_event
-    global event_list
-    global is_insert
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -93,7 +97,10 @@ def continuous_etl(
                     tables_dict, tables_pk.get(table), schema, table, action, event_list, event,
                 )
 
-            if len_event == insert_num:
+            if len_event == insert_num or (
+                last_insert_time != 0
+                and time.time() - last_insert_time >= Settings.insert_interval()
+            ):
                 is_insert = True
 
         if is_insert or alter_table:
@@ -160,5 +167,6 @@ def continuous_etl(
             event_list = {}
             is_insert = False
             len_event = 0
+            last_insert_time = time.time()
             if is_stop:
                 finish_continuous_etl(broker)

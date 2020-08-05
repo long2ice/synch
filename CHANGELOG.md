@@ -7,6 +7,7 @@
 - Add count in consumer.
 - Add more log.
 - `synch` table add `id` column.
+- Fix insert interval.
 
 ### 0.6.8
 
