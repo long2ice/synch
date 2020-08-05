@@ -124,6 +124,7 @@ def init_monitor_db():
     writer.execute(sql_create_db)
     sql_create_tb = """create table if not exists synch.log
 (
+    id         int,
     alias      String,
     schema     String,
     table      String,
@@ -131,7 +132,7 @@ def init_monitor_db():
     type       int,
     created_at DateTime
 )
-    engine = MergeTree partition by toYYYYMM(created_at) order by created_at;"""
+    engine = MergeTree partition by toYYYYMM(created_at) order by id;"""
     writer.execute(sql_create_tb)
 
 

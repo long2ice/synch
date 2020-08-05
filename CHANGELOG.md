@@ -6,6 +6,7 @@
 
 - Add count in consumer.
 - Add more log.
+- `synch` table add `id` column.
 
 ### 0.6.8
 

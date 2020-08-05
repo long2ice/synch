@@ -3,7 +3,7 @@ core:
   insert_num: 1 # how many num to submit,recommend set 20000 when production
   insert_interval: 1 # how many seconds to submit,recommend set 60 when production
   # enable this will auto create database `synch` in ClickHouse and insert monitor data
-  monitoring: false
+  monitoring: true
 
 sentry:
   environment: development
