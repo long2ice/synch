@@ -1,4 +1,3 @@
-import datetime
 import logging
 import signal
 import time
@@ -50,17 +49,15 @@ def continuous_etl(
     global event_list
     global is_insert
     global last_insert_time
+    broker = get_broker(alias)
 
     insert_interval = Settings.insert_interval()
     insert_num = Settings.insert_num()
-    logger.info(
-        f"start consumer for {schema} success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, last_msg_id={last_msg_id}, insert_interval={insert_interval}, insert_num={insert_num}"
-    )
+    logger.info(f"start consumer for {alias}.{schema} success")
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    broker = get_broker(alias)
     for msg_id, msg in broker.msgs(
         schema, last_msg_id=last_msg_id, count=Settings.insert_num(), block=insert_interval * 1000
     ):

@@ -1,4 +1,3 @@
-import datetime
 import logging
 from typing import List
 
@@ -90,9 +89,7 @@ def produce(ctx: Context):
     alias = ctx.obj["alias"]
     reader = get_reader(alias)
     broker = get_broker(alias)
-    logger.info(
-        f"start producer success at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    )
+    logger.info(f"start producer for {alias} success")
     reader.start_sync(broker)
 
 
