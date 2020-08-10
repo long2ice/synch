@@ -15,6 +15,7 @@ class ClickHouseMergeTree(ClickHouse):
         """
         delete record by pk
         """
+        params = None
         if isinstance(pk, tuple):
             sql = f"alter table {schema}.{table} delete where "
             pks_list = []
@@ -23,20 +24,16 @@ class ClickHouseMergeTree(ClickHouse):
                 for index, pk_item in enumerate(pk):
                     pv = pk_value[index]
                     if isinstance(pv, str):
-                        item.append(f"{pk_item}='{pk}'")
+                        item.append(f"{pk_item}='{pv}'")
                     else:
-                        item.append(f"{pk_item}={pk}")
+                        item.append(f"{pk_item}={pv}")
                 pks_list.append("(" + " and ".join(item) + ")")
             sql += " or ".join(pks_list)
         else:
-            if len(pk_list) > 1:
-                pks = ",".join(str(pk) for pk in pk_list)
-            else:
-                pks = pk_list[0]
-            params = {"pks": pks}
-            sql = f"alter table {schema}.{table} delete where {pk} in (%(pks)s)"
+            params = {"pks": tuple(pk_list)}
+            sql = f"alter table {schema}.{table} delete where {pk} in %(pks)s"
         self.execute(sql, params)
-        return sql
+        return sql, params
 
     def get_table_create_sql(
         self,

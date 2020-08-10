@@ -196,7 +196,7 @@ description = "A Python utility / library to sort Python imports."
 name = "isort"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "5.2.2"
+version = "5.3.2"
 
 [package.extras]
 colors = ["colorama (>=0.4.3,<0.5.0)"]
@@ -384,6 +384,20 @@ version = "1.3.0"
 [package.dependencies]
 py = "*"
 pytest = ">=3.10"
+
+[[package]]
+category = "dev"
+description = "Thin-wrapper around the mock package for easier use with pytest"
+name = "pytest-mock"
+optional = false
+python-versions = ">=3.5"
+version = "3.2.0"
+
+[package.dependencies]
+pytest = ">=2.7"
+
+[package.extras]
+dev = ["pre-commit", "tox", "pytest-asyncio"]
 
 [[package]]
 category = "dev"
@@ -576,7 +590,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "ca16bed816ea9404e0046698cbf201672c3d88951918a51e411340499e1bfbb9"
+content-hash = "76bd6cb91688bd3f1ddc7256dee0160663797afb837932fe03b63a4e81c8cdf9"
 lock-version = "1.0"
 python-versions = "^3.7"
 
@@ -682,8 +696,8 @@ iniconfig = [
     {file = "iniconfig-1.0.1.tar.gz", hash = "sha256:e5f92f89355a67de0595932a6c6c02ab4afddc6fcdc0bfc5becd0d60884d3f69"},
 ]
 isort = [
-    {file = "isort-5.2.2-py3-none-any.whl", hash = "sha256:aea484023188ef1c38256dd24afa96e914adafe3a911a1786800a74e433006d1"},
-    {file = "isort-5.2.2.tar.gz", hash = "sha256:96b27045e3187b9bdde001143b79f9b10a462f372bff7062302818013b6c86f3"},
+    {file = "isort-5.3.2-py3-none-any.whl", hash = "sha256:5196bd2f5b23dc91215734b1c96c6d28390061d69860a948094c12635d6d64e6"},
+    {file = "isort-5.3.2.tar.gz", hash = "sha256:ba83762132a8661d3525f87a86549712fb7d8da79eeb452e01f327ada9e87920"},
 ]
 kafka-python = [
     {file = "kafka-python-2.0.1.tar.gz", hash = "sha256:e59ad42dec8c7d54e3fbba0c1f8b54c44d92a3392d88242962d0c29803f2f6f8"},
@@ -762,6 +776,10 @@ pytest = [
 pytest-forked = [
     {file = "pytest-forked-1.3.0.tar.gz", hash = "sha256:6aa9ac7e00ad1a539c41bec6d21011332de671e938c7637378ec9710204e37ca"},
     {file = "pytest_forked-1.3.0-py2.py3-none-any.whl", hash = "sha256:dc4147784048e70ef5d437951728825a131b81714b398d5d52f17c7c144d8815"},
+]
+pytest-mock = [
+    {file = "pytest-mock-3.2.0.tar.gz", hash = "sha256:7122d55505d5ed5a6f3df940ad174b3f606ecae5e9bc379569cdcbd4cd9d2b83"},
+    {file = "pytest_mock-3.2.0-py3-none-any.whl", hash = "sha256:5564c7cd2569b603f8451ec77928083054d8896046830ca763ed68f4112d17c7"},
 ]
 pytest-xdist = [
     {file = "pytest-xdist-1.34.0.tar.gz", hash = "sha256:340e8e83e2a4c0d861bdd8d05c5d7b7143f6eea0aba902997db15c2a86be04ee"},
