@@ -8,6 +8,7 @@
 - Add more log.
 - `synch` table add `id` column.
 - Fix insert interval.
+- Fix pk with not int type.
 
 ### 0.6.8
 

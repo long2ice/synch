@@ -33,8 +33,9 @@ class ClickHouseMergeTree(ClickHouse):
                 pks = ",".join(str(pk) for pk in pk_list)
             else:
                 pks = pk_list[0]
-            sql = f"alter table {schema}.{table} delete where {pk} in ({pks})"
-        self.execute(sql)
+            params = {"pks": pks}
+            sql = f"alter table {schema}.{table} delete where {pk} in (%(pks)s)"
+        self.execute(sql, params)
         return sql
 
     def get_table_create_sql(
