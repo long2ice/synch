@@ -27,7 +27,7 @@ class SqlConvert:
     @classmethod
     def _add_token(cls, schema, parsed, tokens, token_list):
         for i, token in enumerate(tokens):
-            if token.value == "add" and parsed.token_next(i)[1].value != "column":
+            if token.value in ["add", "drop"] and parsed.token_next(i)[1].value != "column":
                 token_list.tokens.append(token)
                 token_list.tokens.append(SQLToken(Whitespace, " "))
                 token_list.tokens.append(SQLToken(Keyword, "column"))
@@ -101,3 +101,19 @@ class SqlConvert:
         parsed = sqlparse.parse(query)[0]
         token_list = cls._add_token(schema, parsed, parsed.tokens, token_list)
         return str(token_list)
+
+    @classmethod
+    def get_table_name(cls, schema: str, query: str):
+        """
+        parse ddl query get table name
+        :param schema:
+        :param query:
+        :return:
+        """
+        table_name = None
+        parsed = sqlparse.parse(query)[0]
+        for i, token in enumerate(parsed.tokens):
+            if isinstance(token, Identifier):
+                if parsed.token_prev(i - 1)[1].value == "table":
+                    table_name = token.value.replace(schema, "").replace("`", "")
+        return table_name

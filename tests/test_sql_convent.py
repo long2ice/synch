@@ -38,6 +38,10 @@ class TestSqlConvent(TestCase):
         ret = SqlConvert.to_clickhouse("test", sql)
         self.assertEqual(ret, "alter table test.test drop column name")
 
+        sql = "alter table test drop name"
+        ret = SqlConvert.to_clickhouse("test", sql)
+        self.assertEqual(ret, "alter table test.test drop column name")
+
     def test_change_column(self):
         sql = "alter table test change `column` column2 int null"
         ret = SqlConvert.to_clickhouse("test", sql)
