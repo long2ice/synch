@@ -36,6 +36,7 @@ flake8 = "*"
 isort = "*"
 pytest = "*"
 pytest-xdist = "*"
+pytest-mock = "*"
 
 [build-system]
 build-backend = "poetry.masonry.api"

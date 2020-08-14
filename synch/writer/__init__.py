@@ -53,7 +53,7 @@ class ClickHouse:
     def execute(self, sql, params=None, *args, **kwargs):
         log_sql = sql
         if params:
-            log_sql = f"{sql}{params}"
+            log_sql = f"sql={sql},params={params}"
         logger.debug(log_sql)
         return self._client.execute(sql, params=params, *args, **kwargs)
 
