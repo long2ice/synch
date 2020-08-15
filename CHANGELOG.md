@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 0.7
+
+## 0.7.0
+
+- Make DDL sync work better.
+
 ## 0.6
 
 ### 0.6.9

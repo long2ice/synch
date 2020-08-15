@@ -159,6 +159,8 @@ def continuous_etl(
                     get_writer().execute(query)
                 except Exception as e:
                     logger.error(f"alter table error: {e}", exc_info=True, stack_info=True)
+                    if not skip_error:
+                        exit(-1)
             broker.commit(schema)
             logger.info(f"success commit {len_event} events")
             event_list = {}
