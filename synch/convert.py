@@ -103,10 +103,9 @@ class SqlConvert:
         return str(token_list)
 
     @classmethod
-    def get_table_name(cls, schema: str, query: str):
+    def get_table_name(cls, query: str):
         """
         parse ddl query get table name
-        :param schema:
         :param query:
         :return:
         """
@@ -115,5 +114,5 @@ class SqlConvert:
         for i, token in enumerate(parsed.tokens):
             if isinstance(token, Identifier):
                 if parsed.token_prev(i - 1)[1].value == "table":
-                    table_name = token.value.replace(schema, "").replace("`", "")
+                    table_name = token.value[token.value.find('.')+1:].replace('`', '')
         return table_name

@@ -46,3 +46,12 @@ class TestSqlConvent(TestCase):
         sql = "alter table test change `column` column2 int null"
         ret = SqlConvert.to_clickhouse("test", sql)
         self.assertEqual(ret, "alter table test.test rename column `column` to column2")
+
+    def test_get_table_name(self):
+        sql = "alter table scheme.table1 add column test"
+        ret = SqlConvert.get_table_name(sql)
+        self.assertEqual(ret, "table1")
+
+        sql = "alter table  `scheme`.`table1` add column test"
+        ret = SqlConvert.get_table_name(sql)
+        self.assertEqual(ret, "table1")

@@ -170,7 +170,7 @@ class Mysql(Reader):
                 if not convent_sql:
                     continue
                 event = {
-                    "table": SqlConvert.get_table_name(schema, query),
+                    "table": SqlConvert.get_table_name(query),
                     "schema": schema,
                     "action": "query",
                     "values": {"query": convent_sql},
