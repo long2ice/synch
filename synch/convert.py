@@ -114,5 +114,5 @@ class SqlConvert:
         for i, token in enumerate(parsed.tokens):
             if isinstance(token, Identifier):
                 if parsed.token_prev(i - 1)[1].value == "table":
-                    table_name = token.value[token.value.find('.')+1:].replace('`', '')
+                    table_name = token.value[token.value.find(".") + 1:].replace("`", "")  # fmt: on
         return table_name
