@@ -15,6 +15,7 @@ class ParseRet:
     data_type: ParseResults
     null: str
     column_position: str
+    comment: str
 
 
 class SqlConvert:
@@ -49,6 +50,7 @@ class SqlConvert:
         null = alter_specification.null
         new_column_name = alter_specification.new_column_name
         column_position = alter_specification.column_position
+        comment = alter_specification.comment
         return ParseRet(
             statement_type=statement_type,
             table_name=table_name,
@@ -58,6 +60,7 @@ class SqlConvert:
             null=null,
             column_position=column_position,
             new_column_name=new_column_name,
+            comment=comment,
         )
 
     @classmethod
@@ -87,12 +90,16 @@ class SqlConvert:
         alter_action = ret.alter_action
         sql = None
         column_name = ret.column_name
+        if ret.comment:
+            comment = f" comment '{ret.comment}'"
+        else:
+            comment = ""
         if alter_action == "ADD COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} add column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}"
+            sql = f"alter table {schema}.{ret.table_name} add column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}{comment}"
         elif alter_action == "DROP COLUMN":
             sql = f"alter table {schema}.{ret.table_name} drop column {column_name}"
         elif alter_action == "CHANGE COLUMN":
             sql = f"alter table {schema}.{ret.table_name} rename column {column_name} to {ret.new_column_name}"
         elif alter_action == "MODIFY COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} modify column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}"
+            sql = f"alter table {schema}.{ret.table_name} modify column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}{comment}"
         return sql
