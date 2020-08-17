@@ -1,8 +1,20 @@
-import sqlparse
-from sqlparse.sql import Function, Identifier
-from sqlparse.sql import Token as SQLToken
-from sqlparse.sql import TokenList
-from sqlparse.tokens import Keyword, Token, Whitespace
+import ast
+from dataclasses import dataclass
+
+import mysqlparse
+from pyparsing import ParseResults
+
+
+@dataclass
+class ParseRet:
+    statement_type: str
+    table_name: str
+    alter_action: str
+    column_name: str
+    new_column_name: str
+    data_type: ParseResults
+    null: str
+    column_position: str
 
 
 class SqlConvert:
@@ -13,7 +25,7 @@ class SqlConvert:
         "float": "Float32",
         "double": "Float64",
         "varchar": "String",
-        "decimal": "Decimal{digits}",
+        "decimal": "Decimal{}",
         "tinyint": "Int8",
         "int": "Int32",
         "smallint": "Int16",
@@ -25,95 +37,62 @@ class SqlConvert:
     }
 
     @classmethod
-    def _add_token(cls, schema, parsed, tokens, token_list):
-        for i, token in enumerate(tokens):
-            if token.value in ["add", "drop"] and parsed.token_next(i)[1].value != "column":
-                token_list.tokens.append(token)
-                token_list.tokens.append(SQLToken(Whitespace, " "))
-                token_list.tokens.append(SQLToken(Keyword, "column"))
-            elif token.value == "change":
-                token_list.tokens.append(SQLToken(Keyword, "rename"))
-                token_list.tokens.append(SQLToken(Whitespace, " "))
-                token_list.tokens.append(SQLToken(Keyword, "column"))
-                token_list.tokens.append(SQLToken(Whitespace, " "))
-                tokens = parsed.token_next(i)[1].tokens
-                token_list.tokens.append(tokens[0])
-                token_list.tokens.append(SQLToken(Whitespace, " "))
-                token_list.tokens.append(SQLToken(Keyword, "to"))
-                token_list.tokens.append(SQLToken(Whitespace, " "))
-                token_list.tokens.append(tokens[2])
-                return token_list
-            elif token.value == "modify":
-                token_list.tokens.append(token)
-                token_list.tokens.append(SQLToken(Whitespace, " "))
-                token_list.tokens.append(SQLToken(Keyword, "column"))
-            elif isinstance(token, (Function, Identifier)) or token.ttype == Token.Name.Builtin:
-                if token.ttype == Token.Name.Builtin:
-                    token_list.tokens.append(SQLToken(Keyword, cls._type_mapping.get(token.value)))
-                elif isinstance(token, Identifier):
-                    if parsed.token_prev(i - 1)[1].value == "table":
-                        value = token.value
-                        table = (
-                            f"{schema}.{token.value}" if len(value.split(".")) == 1 else token.value
-                        )
-                        token_list.tokens.append(SQLToken(Keyword, table))
-                    elif len(token.tokens) == 1:
-                        real_token = cls._type_mapping.get(token.value)
-                        token_list.tokens.append(
-                            SQLToken(Keyword, real_token) if real_token else token
-                        )
-                    else:
-                        cls._add_token(schema, parsed, token.tokens, token_list)
-                else:
-                    len_token = len(token.tokens)
-                    if len_token == 3:
-                        identifier, _, digits = token.tokens
-                    else:
-                        identifier, digits = token.tokens
-                    if identifier.value == "decimal":
-                        token_list.tokens.append(
-                            SQLToken(
-                                Keyword,
-                                cls._type_mapping.get(identifier.value).format(digits=digits),
-                            )
-                        )
-                    else:
-                        token_list.tokens.append(
-                            SQLToken(Keyword, cls._type_mapping.get(identifier.value))
-                        )
-            elif token.value in ["null", "not null"]:
-                continue
-            elif token.ttype == Whitespace and i > 0 and token_list.tokens[-1].ttype == Whitespace:
-                continue
-            else:
-                token_list.tokens.append(token)
-        return token_list
+    def get_parse_ret(cls, query: str) -> ParseRet:
+        parsed = mysqlparse.parse(query)
+        statement = parsed.statements[0]  # type:ast.stmt
+        statement_type = statement.statement_type
+        table_name = statement.table_name
+        alter_specification = statement.alter_specification[0]
+        alter_action = alter_specification.alter_action
+        column_name = alter_specification.column_name
+        data_type = alter_specification.data_type
+        null = alter_specification.null
+        new_column_name = alter_specification.new_column_name
+        column_position = alter_specification.column_position
+        return ParseRet(
+            statement_type=statement_type,
+            table_name=table_name,
+            alter_action=alter_action,
+            column_name=column_name,
+            data_type=data_type,
+            null=null,
+            column_position=column_position,
+            new_column_name=new_column_name,
+        )
+
+    @classmethod
+    def get_real_data_type(cls, data_type: ParseResults, null: bool):
+        data_type = data_type.asList()
+        data_type_0 = data_type[0]
+        data_type_1 = ""
+        if data_type_0 == "DECIMAL":
+            data_type_1 = f"({data_type[1]},{data_type[3]})"
+        elif len(data_type) > 1:
+            data_type_1 = data_type[1]
+        real_data_type = cls._type_mapping.get(data_type_0.lower()).format(data_type_1)
+        if null:
+            return f"Nullable({real_data_type})"
+        return real_data_type
 
     @classmethod
     def to_clickhouse(cls, schema: str, query: str):
         """
-        parse ddl query
+        parse ddl query to clickhouse
         :param schema:
         :param query:
         :return:
         """
-        token_list = TokenList()
-        parsed = sqlparse.parse(query)[0]
-        token_list = cls._add_token(schema, parsed, parsed.tokens, token_list)
-        return str(token_list)
-
-    @classmethod
-    def get_table_name(cls, schema: str, query: str):
-        """
-        parse ddl query get table name
-        :param schema:
-        :param query:
-        :return:
-        """
-        table_name = None
-        parsed = sqlparse.parse(query)[0]
-        for i, token in enumerate(parsed.tokens):
-            if isinstance(token, Identifier):
-                if parsed.token_prev(i - 1)[1].value == "table":
-                    table_name = token.value.replace(schema, "").replace("`", "")
-        return table_name
+        query = query.replace(f"{schema}.", "")
+        ret = cls.get_parse_ret(query)
+        alter_action = ret.alter_action
+        sql = None
+        column_name = ret.column_name
+        if alter_action == "ADD COLUMN":
+            sql = f"alter table {schema}.{ret.table_name} add column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}"
+        elif alter_action == "DROP COLUMN":
+            sql = f"alter table {schema}.{ret.table_name} drop column {column_name}"
+        elif alter_action == "CHANGE COLUMN":
+            sql = f"alter table {schema}.{ret.table_name} rename column {column_name} to {ret.new_column_name}"
+        elif alter_action == "MODIFY COLUMN":
+            sql = f"alter table {schema}.{ret.table_name} modify column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}"
+        return sql
