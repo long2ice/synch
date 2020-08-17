@@ -31,7 +31,7 @@ def etl_full(
         table_name = table.get("table")
         pk = tables_pk.get(table_name)
         writer = get_writer(table.get("clickhouse_engine"))
-        if not pk:
+        if not pk and not renew:
             logger.warning(f"No pk found in {schema}.{table_name}, skip")
             continue
         elif isinstance(pk, tuple):
