@@ -16,6 +16,9 @@ class ParseRet:
     null: str
     column_position: str
     comment: str
+    default: str
+    decimals: str
+    length: str
 
 
 class SqlConvert:
@@ -50,6 +53,10 @@ class SqlConvert:
         null = alter_specification.null
         new_column_name = alter_specification.new_column_name
         column_position = alter_specification.column_position
+        default = alter_specification.default
+        decimals = alter_specification.decimals
+        length = alter_specification.length
+
         comment = alter_specification.comment
         return ParseRet(
             statement_type=statement_type,
@@ -61,19 +68,22 @@ class SqlConvert:
             column_position=column_position,
             new_column_name=new_column_name,
             comment=comment,
+            decimals=decimals,
+            default=default,
+            length=length,
         )
 
     @classmethod
-    def get_real_data_type(cls, data_type: ParseResults, null: bool):
-        data_type = data_type.asList()
+    def get_real_data_type(cls, ret: ParseRet):
+        data_type = ret.data_type.asList()
         data_type_0 = data_type[0]
         data_type_1 = ""
-        if data_type_0 == "DECIMAL":
-            data_type_1 = f"({data_type[1]},{data_type[3]})"
+        if ret.decimals:
+            data_type_1 = f"({ret.length},{ret.decimals})"
         elif len(data_type) > 1:
             data_type_1 = data_type[1]
         real_data_type = cls._type_mapping.get(data_type_0.lower()).format(data_type_1)
-        if null:
+        if ret.null:
             return f"Nullable({real_data_type})"
         return real_data_type
 
@@ -94,12 +104,16 @@ class SqlConvert:
             comment = f" comment '{ret.comment}'"
         else:
             comment = ""
+        if ret.default:
+            default = f" default '{ret.default}'"
+        else:
+            default = ""
         if alter_action == "ADD COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} add column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}{comment}"
+            sql = f"alter table {schema}.{ret.table_name} add column {column_name} {cls.get_real_data_type(ret)}{default}{comment}"
         elif alter_action == "DROP COLUMN":
             sql = f"alter table {schema}.{ret.table_name} drop column {column_name}"
         elif alter_action == "CHANGE COLUMN":
             sql = f"alter table {schema}.{ret.table_name} rename column {column_name} to {ret.new_column_name}"
         elif alter_action == "MODIFY COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} modify column {column_name} {cls.get_real_data_type(ret.data_type, ret.null)}{comment}"
-        return sql
+            sql = f"alter table {schema}.{ret.table_name} modify column {column_name} {cls.get_real_data_type(ret)}{default}{comment}"
+        return ret.table_name, sql

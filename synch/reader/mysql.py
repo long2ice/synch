@@ -158,11 +158,11 @@ class Mysql(Reader):
                 query = binlog_event.query.lower()
                 if "alter" not in query:
                     continue
-                convent_sql = SqlConvert.to_clickhouse(schema, query)
+                table, convent_sql = SqlConvert.to_clickhouse(schema, query)
                 if not convent_sql:
                     continue
                 event = {
-                    "table": SqlConvert.get_table_name(schema, query),
+                    "table": table,
                     "schema": schema,
                     "action": "query",
                     "values": {"query": convent_sql},
