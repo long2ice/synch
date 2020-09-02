@@ -6,8 +6,6 @@
 ![workflows](https://github.com/long2ice/synch/workflows/pypi/badge.svg)
 ![workflows](https://github.com/long2ice/synch/workflows/ci/badge.svg)
 
-<a href="https://tracking.gitads.io/?repo=synch"><img src="https://images.gitads.io/synch" alt="GitAds"/></a>
-
 [中文文档](https://github.com/long2ice/synch/blob/dev/README-zh.md)
 
 ## Introduction
