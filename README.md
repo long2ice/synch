@@ -68,7 +68,7 @@ Options:
 Full etl from table `test.test`:
 
 ```shell
-> synch etl --schema test --tables test
+> synch etl --schema test --table test --table test2
 ```
 
 ### Produce
@@ -249,17 +249,9 @@ volumes:
 - Join QQ group for communication.
 - Donation.
 
-### AliPay
-
-<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/>
-
-### WeChat Pay
-
-<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/>
-
-### PayPal
-
-Donate money by [paypal](https://www.paypal.me/long2ice) to my account long2ice.
+| AliPay                                                                                | WeChatPay                                                                                | PayPal                                                           |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/> | <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/> | [PayPal](https://www.paypal.me/long2ice) to my account long2ice. |
 
 ## ThanksTo
 
