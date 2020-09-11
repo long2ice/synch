@@ -1,8 +1,11 @@
 import ast
+import logging
 from dataclasses import dataclass
 
 import mysqlparse
 from pyparsing import ParseResults
+
+logger = logging.getLogger("synch.convert")
 
 
 @dataclass
@@ -96,7 +99,13 @@ class SqlConvert:
         :return:
         """
         query = query.replace(f"{schema}.", "")
-        ret = cls.get_parse_ret(query)
+        try:
+            ret = cls.get_parse_ret(query)
+        except Exception as e:
+            logger.warning(
+                f"Parse query error, query: {query}, err: {e}", stack_info=True, exc_info=True
+            )
+            return "", ""
         alter_action = ret.alter_action
         sql = None
         column_name = ret.column_name
