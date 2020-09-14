@@ -239,10 +239,6 @@ volumes:
 - DDL sync not support postgres.
 - Postgres sync is not fully test, be careful use it in production.
 
-## QQ Group
-
-<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/qq_group.png"/>
-
 ## Support this project
 
 - Just give a star!

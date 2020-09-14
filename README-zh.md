@@ -239,10 +239,6 @@ volumes:
 - DDL 不支持 postgres.
 - Postgres 同步未经过大量测试，生产环境谨慎使用。
 
-## QQ 群
-
-<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/qq_group.png"/>
-
 ## 支持这个项目
 
 - 只需点一个 star！
