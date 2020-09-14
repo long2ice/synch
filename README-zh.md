@@ -241,10 +241,6 @@ volumes:
 
 ## 支持这个项目
 
-- 只需点一个 star！
-- 加入 QQ 群一起交流。
-- 捐赠。
-
 ### 支付宝
 
 <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/>
