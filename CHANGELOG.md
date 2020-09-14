@@ -2,6 +2,10 @@
 
 ## 0.7
 
+## 0.7.1
+
+- Catch query parse error.
+
 ## 0.7.0
 
 - Make DDL sync work better.
