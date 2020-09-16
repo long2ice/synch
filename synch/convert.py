@@ -42,7 +42,7 @@ class SqlConvert:
         "char": "FixedString",
         "bigchar": "String",
         "text": "String",
-        "longtext": "String"
+        "longtext": "String",
     }
 
     @classmethod
