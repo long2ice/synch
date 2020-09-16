@@ -41,6 +41,7 @@ class SqlConvert:
         "timestamp": "DateTime",
         "char": "FixedString",
         "bigchar": "String",
+        "text": "String"
     }
 
     @classmethod
