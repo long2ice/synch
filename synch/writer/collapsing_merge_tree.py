@@ -2,10 +2,10 @@ from typing import Dict
 
 from synch.enums import ClickHouseEngine
 from synch.reader import Reader
-from synch.writer import ClickHouse
+from synch.writer.merge_tree import ClickHouseMergeTree
 
 
-class ClickHouseCollapsingMergeTree(ClickHouse):
+class ClickHouseCollapsingMergeTree(ClickHouseMergeTree):
     engine = ClickHouseEngine.collapsing_merge_tree
 
     def get_table_create_sql(

@@ -79,11 +79,15 @@ source_dbs:
             settings:
 
 clickhouse:
-  host: clickhouse
-  port: 9000
+  hosts:
+    - clickhouse:9011
+    - clickhouse:9012
+    - clickhouse:9021
+    - clickhouse:9022
   user: default
   password:
-
+  policy: random # insert policy to local table, random or polling, default random, only available in cluster mode.
+  cluster_name: cluster # enable cluster mode when not empty, and hosts must be more than one if enable.
 kafka:
   servers:
     - kafka:9092

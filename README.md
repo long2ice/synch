@@ -22,6 +22,7 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 - Support kafka and redis as broker.
 - Multiple source db sync to ClickHouse at the same time。
 - Support ClickHouse `MergeTree`,`CollapsingMergeTree`,`VersionedCollapsingMergeTree`,`ReplacingMergeTree`.
+- Support ClickHouse cluster.
 
 ## Requirements
 
