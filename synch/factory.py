@@ -1,14 +1,17 @@
 import logging
 import logging.handlers
+import random
 import sys
-from typing import Dict
+from typing import Dict, List, Optional, Union
 
 from ratelimitingfilter import RateLimitingFilter
 
 from synch.broker import Broker
 from synch.broker.kafka import KafkaBroker
 from synch.broker.redis import RedisBroker
+from synch.common import cluster_sql
 from synch.enums import BrokerType, ClickHouseEngine, SourceDatabase
+from synch.exceptions import ConfigurationError
 from synch.reader import Reader
 from synch.settings import Settings
 from synch.writer import ClickHouse
@@ -18,7 +21,7 @@ from synch.writer.replacing_merge_tree import ClickHouseReplacingMergeTree
 from synch.writer.versioned_collapsing_merge_tree import ClickHouseVersionedCollapsingMergeTree
 
 _readers: Dict[str, Reader] = {}
-_writers: Dict[str, ClickHouse] = {}
+_writers: Dict[str, List[ClickHouse]] = {}
 _brokers: Dict[str, Broker] = {}
 
 
@@ -30,7 +33,7 @@ def get_reader(alias: str) -> Reader:
     if not r:
         source_db = Settings.get_source_db(alias)
         if not source_db:
-            raise Exception(f"Can't find alias {alias} in config.")
+            raise ConfigurationError(f"Can't find alias {alias} in config.")
         db_type = source_db.get("db_type")
         if db_type == SourceDatabase.mysql.value:
             from synch.reader.mysql import Mysql
@@ -41,28 +44,37 @@ def get_reader(alias: str) -> Reader:
 
             r = Postgres(alias)
         else:
-            raise NotImplementedError(f"Unsupported db_type {db_type}")
+            raise ConfigurationError(f"Unsupported db_type {db_type}")
         _readers[alias] = r
     return r
 
 
-def get_writer(engine: ClickHouseEngine = None) -> ClickHouse:
+def get_writer(engine: ClickHouseEngine = None, choice=True) -> Union[ClickHouse, List[ClickHouse]]:
     """
     get writer once
     """
-    w = _writers.get(engine)
-    if not w:
+    writers = _writers.get(engine)
+    if not choice:
+        return writers
+    if not writers:
         settings = Settings.get("clickhouse")
-        if engine == ClickHouseEngine.merge_tree.value:
-            w = ClickHouseMergeTree(settings)
-        elif engine == ClickHouseEngine.collapsing_merge_tree:
-            w = ClickHouseCollapsingMergeTree(settings)
-        elif engine == ClickHouseEngine.versioned_collapsing_merge_tree:
-            w = ClickHouseVersionedCollapsingMergeTree(settings)
-        elif engine == ClickHouseEngine.replacing_merge_tree or engine is None:
-            w = ClickHouseReplacingMergeTree(settings)
-        _writers[engine] = w
-    return w
+        hosts = settings.get("hosts")
+        if Settings.is_cluster() and len(hosts) <= 1:
+            raise ConfigurationError("hosts must more than one when cluster")
+        for host in hosts:
+            args = [host, settings.get("user"), settings.get("password"), Settings.cluster_name()]
+            if engine == ClickHouseEngine.merge_tree.value:
+                w = ClickHouseMergeTree(*args)
+            elif engine == ClickHouseEngine.collapsing_merge_tree:
+                w = ClickHouseCollapsingMergeTree(*args)
+            elif engine == ClickHouseEngine.versioned_collapsing_merge_tree:
+                w = ClickHouseVersionedCollapsingMergeTree(*args)
+            elif engine == ClickHouseEngine.replacing_merge_tree or engine is None:
+                w = ClickHouseReplacingMergeTree(*args)
+            else:
+                w = ClickHouse(*args)
+            _writers.setdefault(engine, []).append(w)
+    return random.choice(_writers.get(engine))
 
 
 def get_broker(alias: str) -> Broker:
@@ -74,7 +86,7 @@ def get_broker(alias: str) -> Broker:
         elif broker_type == BrokerType.kafka:
             b = KafkaBroker(alias)
         else:
-            raise NotImplementedError(f"Unsupported broker_type {broker_type}")
+            raise ConfigurationError(f"Unsupported broker_type {broker_type}")
         _brokers[alias] = b
     return b
 
@@ -115,14 +127,18 @@ def init_logging():
         base_logger.addHandler(sh)
 
 
-def init_monitor_db():
+def init_monitor_db(cluster_name: str = None):
     """
     init monitor db
     """
     writer = get_writer()
-    sql_create_db = "create database if not exists synch"
+    sql_create_db = f"create database if not exists synch {cluster_sql(cluster_name)}"
     writer.execute(sql_create_db)
-    sql_create_tb = """create table if not exists synch.log
+    if cluster_name:
+        engine = "ReplicatedMergeTree('/clickhouse/tables/{{shard}}/synch/log','{{replica}}')"
+    else:
+        engine = "ReplacingMergeTree"
+    sql_create_tb = f"""create table if not exists synch.log {cluster_sql(cluster_name)}
 (
     id         int,
     alias      String,
@@ -132,7 +148,7 @@ def init_monitor_db():
     type       int,
     created_at DateTime
 )
-    engine = MergeTree partition by toYYYYMM(created_at) order by id;"""
+    engine = {engine} partition by toYYYYMM(created_at) order by id;"""
     writer.execute(sql_create_tb)
 
 
@@ -153,4 +169,4 @@ def init(config_file):
             integrations=[RedisIntegration()],
         )
     if Settings.monitoring():
-        init_monitor_db()
+        init_monitor_db(Settings.cluster_name())

@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import mysqlparse
 from pyparsing import ParseResults
 
+from synch.common import cluster_sql
+
 logger = logging.getLogger("synch.convert")
 
 
@@ -93,11 +95,12 @@ class SqlConvert:
         return real_data_type
 
     @classmethod
-    def to_clickhouse(cls, schema: str, query: str):
+    def to_clickhouse(cls, schema: str, query: str, cluster_name: str = None):
         """
         parse ddl query to clickhouse
         :param schema:
         :param query:
+        :param cluster_name
         :return:
         """
         query = query.replace(f"{schema}.", "")
@@ -120,11 +123,11 @@ class SqlConvert:
         else:
             default = ""
         if alter_action == "ADD COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} add column {column_name} {cls.get_real_data_type(ret)}{default}{comment}"
+            sql = f"alter table {schema}.{ret.table_name}{cluster_sql(cluster_name)} add column {column_name} {cls.get_real_data_type(ret)}{default}{comment}"
         elif alter_action == "DROP COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} drop column {column_name}"
+            sql = f"alter table {schema}.{ret.table_name}{cluster_sql(cluster_name)} drop column {column_name}"
         elif alter_action == "CHANGE COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} rename column {column_name} to {ret.new_column_name}"
+            sql = f"alter table {schema}.{ret.table_name}{cluster_sql(cluster_name)} rename column {column_name} to {ret.new_column_name}"
         elif alter_action == "MODIFY COLUMN":
-            sql = f"alter table {schema}.{ret.table_name} modify column {column_name} {cls.get_real_data_type(ret)}{default}{comment}"
+            sql = f"alter table {schema}.{ret.table_name}{cluster_sql(cluster_name)} modify column {column_name} {cls.get_real_data_type(ret)}{default}{comment}"
         return ret.table_name, sql

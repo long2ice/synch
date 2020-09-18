@@ -40,6 +40,11 @@ class Settings:
 
     @classmethod
     @functools.lru_cache()
+    def cluster_name(cls):
+        return cls.get("clickhouse").get("cluster_name")
+
+    @classmethod
+    @functools.lru_cache()
     def get_source_db_database(cls, alias: str, database: str) -> Dict:
         source_db = cls.get_source_db(alias)
         return next(filter(lambda x: x.get("database") == database, source_db.get("databases")))

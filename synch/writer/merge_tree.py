@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, List, Union
 
+from synch.common import cluster_sql
 from synch.enums import ClickHouseEngine
 from synch.reader import Reader
 from synch.writer import ClickHouse
@@ -45,6 +46,9 @@ class ClickHouseMergeTree(ClickHouse):
         engine_settings: str = None,
         **kwargs,
     ):
+        super(ClickHouseMergeTree, self).get_table_create_sql(
+            reader, schema, table, pk, partition_by, engine_settings, **kwargs
+        )
         partition_by_str = ""
         engine_settings_str = ""
         if partition_by:
@@ -52,7 +56,7 @@ class ClickHouseMergeTree(ClickHouse):
         if engine_settings:
             engine_settings_str = f" SETTINGS {engine_settings} "
         select_sql = reader.get_source_select_sql(schema, table)
-        return f"CREATE TABLE {schema}.{table} ENGINE = {self.engine} {partition_by_str} ORDER BY {pk} {engine_settings_str} AS {select_sql} limit 0"
+        return f"CREATE TABLE {schema}.{table}{cluster_sql(self.cluster_name)} ENGINE = {self.engine} {partition_by_str} ORDER BY {pk} {engine_settings_str} AS {select_sql} limit 0"
 
     def get_full_insert_sql(self, reader: Reader, schema: str, table: str, sign_column: str = None):
         return f"insert into {schema}.{table} {reader.get_source_select_sql(schema, table, )}"

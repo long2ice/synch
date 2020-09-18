@@ -13,6 +13,7 @@ from synch.broker import Broker
 from synch.convert import SqlConvert
 from synch.reader import Reader
 from synch.redis import RedisLogPos
+from synch.settings import Settings
 
 logger = logging.getLogger("synch.reader.mysql")
 
@@ -158,7 +159,9 @@ class Mysql(Reader):
                 query = binlog_event.query.lower()
                 if "alter" not in query:
                     continue
-                table, convent_sql = SqlConvert.to_clickhouse(schema, query)
+                table, convent_sql = SqlConvert.to_clickhouse(
+                    schema, query, Settings.cluster_name()
+                )
                 if not convent_sql:
                     continue
                 event = {

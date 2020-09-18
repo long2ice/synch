@@ -6,6 +6,7 @@ from typing import Dict, List, Union
 
 import clickhouse_driver
 
+from synch.common import cluster_sql
 from synch.enums import ClickHouseEngine
 from synch.reader import Reader
 
@@ -19,14 +20,10 @@ class ClickHouse:
     is_insert = False
     event_list = {}
 
-    def __init__(self, settings: Dict):
-        self.settings = settings
-        self._client = clickhouse_driver.Client(
-            host=settings.get("host"),
-            port=settings.get("port"),
-            user=settings.get("user"),
-            password=settings.get("password") or "",
-        )
+    def __init__(self, host: str, user: str, password: str, cluster_name: str = None):
+        host, port = host.split(":")
+        self._client = clickhouse_driver.Client(host=host, port=port, password=password, user=user)
+        self.cluster_name = cluster_name
 
     def get_count(self, schema: str, table: str):
         sql = f"select count(*) as c from {schema}.{table}"
@@ -46,8 +43,8 @@ class ClickHouse:
             return bool(ret[0][0])
         return False
 
-    def create_database(self, schema: str):
-        sql = f"create database if not exists {schema}"
+    def create_database(self, schema: str, cluster_name: str = None):
+        sql = f"create database if not exists {schema}{cluster_sql(cluster_name)}"
         return self.execute(sql)
 
     def execute(self, sql, params=None, *args, **kwargs):
@@ -57,7 +54,9 @@ class ClickHouse:
         logger.debug(log_sql)
         return self._client.execute(sql, params=params, *args, **kwargs)
 
-    def fix_table_column_type(self, reader, database, table):
+    def fix_table_column_type(
+        self, reader, database, table,
+    ):
         """
         fix table column type in full etl
         :return:
@@ -73,11 +72,9 @@ class ClickHouse:
             is_nullable = item.get("IS_NULLABLE")
             column_type = item.get("COLUMN_TYPE").title()
             if is_nullable:
-                fix_sql = f"alter table {database}.{table} modify column {column_name} Nullable({column_type})"
+                fix_sql = f"alter table {database}.{table}{cluster_sql(self.cluster_name)} modify column {column_name} Nullable({column_type})"
             else:
-                fix_sql = (
-                    f"alter table {database}.{table} modify column {column_name} {column_type}"
-                )
+                fix_sql = f"alter table {database}.{table}{cluster_sql(self.cluster_name)} modify column {column_name} {column_type}"
             self.execute(fix_sql)
 
     def insert_events(self, schema: str, table: str, insert_data: List[Dict]):
@@ -95,7 +92,8 @@ class ClickHouse:
         engine_settings: str,
         **kwargs,
     ):
-        raise NotImplementedError
+        if self.cluster_name:
+            self.engine = f"ReplicatedMergeTree('/clickhouse/tables/{{shard}}/{schema}/{table}','{{replica}}')"
 
     @abc.abstractmethod
     def get_full_insert_sql(self, reader: Reader, schema: str, table: str, sign_column: str = None):
@@ -128,3 +126,8 @@ class ClickHouse:
 
     def delete_events(self, schema: str, table: str, pk: Union[tuple, str], pk_list: List):
         pass
+
+    def get_distributed_table_create_sql(self, schema: str, table: str, suffix: str):
+        return f"""create table if not exists {schema}.{table}{suffix} on cluster {self.cluster_name}
+AS {schema}.{table}
+ENGINE = Distributed({self.cluster_name},{schema},{table},rand());"""

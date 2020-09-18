@@ -19,7 +19,7 @@ def etl_full(
     writer = get_writer()
     if not writer.check_database_exists(schema):
         if source_db_database.get("auto_create") is not False:
-            writer.create_database(schema)
+            writer.create_database(schema, Settings.cluster_name())
         else:
             logger.warning(
                 f"Can't etl since no database {schema} found in ClickHouse and auto_create=false"
@@ -55,6 +55,13 @@ def etl_full(
                     version_column=version_column,
                 )
             )
+            if Settings.is_cluster():
+                for w in get_writer(choice=False):
+                    w.execute(
+                        w.get_distributed_table_create_sql(
+                            schema, table_name, Settings.get("clickhouse.distributed_suffix")
+                        )
+                    )
             if reader.fix_column_type and not table.get("skip_decimal"):
                 writer.fix_table_column_type(reader, schema, table_name)
             full_insert_sql = writer.get_full_insert_sql(reader, schema, table_name, sign_column)

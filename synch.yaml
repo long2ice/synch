@@ -79,15 +79,14 @@ source_dbs:
             settings:
 
 clickhouse:
+  # shard hosts when cluster, will insert by random
   hosts:
-    - clickhouse:9011
-    - clickhouse:9012
-    - clickhouse:9021
-    - clickhouse:9022
+    - clickhouse:9000
+#    - clickhouse:9021
   user: default
-  password:
-  policy: random # insert policy to local table, random or polling, default random, only available in cluster mode.
-  cluster_name: cluster # enable cluster mode when not empty, and hosts must be more than one if enable.
+  password: ''
+  cluster_name:  # enable cluster mode when not empty, and hosts must be more than one if enable.
+  distributed_suffix: _all # distributed tables suffix, available in cluster
 kafka:
   servers:
     - kafka:9092

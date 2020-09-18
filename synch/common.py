@@ -49,3 +49,9 @@ def insert_log(
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     sql = f"""INSERT INTO synch.log (alias, schema, table, num, type, created_at) VALUES ('{alias}', '{schema}', '{table}', {num}, {type_}, '{now}')"""
     get_writer().execute(sql)
+
+
+def cluster_sql(cluster_name: str = None):
+    if cluster_name:
+        return f" on cluster {cluster_name} "
+    return ""

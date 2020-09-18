@@ -5,6 +5,7 @@
 ## 0.7.1
 
 - Catch query parse error.
+- Support ClickHouse cluster and `synch.yaml` struct changed.
 
 ## 0.7.0
 
