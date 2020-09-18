@@ -2,7 +2,7 @@ import logging
 import logging.handlers
 import random
 import sys
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 from ratelimitingfilter import RateLimitingFilter
 
@@ -74,7 +74,7 @@ def get_writer(engine: ClickHouseEngine = None, choice=True) -> Union[ClickHouse
             else:
                 w = ClickHouse(*args)
             _writers.setdefault(engine, []).append(w)
-    return random.choice(_writers.get(engine))
+    return random.choice(_writers.get(engine))  # nosec:B311
 
 
 def get_broker(alias: str) -> Broker:
