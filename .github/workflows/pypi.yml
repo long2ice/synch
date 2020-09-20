@@ -14,8 +14,8 @@ jobs:
       - uses: dschep/install-poetry-action@v1.3
       - name: Build dists
         run: make build
-#      - name: Pypi Publish
-#        uses: pypa/gh-action-pypi-publish@master
-#        with:
-#          user: __token__
-#          password: ${{ secrets.pypi_password }}
+      - name: Pypi Publish
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
