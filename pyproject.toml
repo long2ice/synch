@@ -4,7 +4,7 @@ description = "Sync data from other DB to ClickHouse, current support postgres a
 documentation = "https://github.com/long2ice/synch"
 homepage = "https://github.com/long2ice/synch"
 include = ["CHANGELOG.md", "LICENSE", "README.md", "pyproject.toml"]
-keywords = ["MySQL", "ClickHouse", "Sync"]
+keywords = ["MySQL", "ClickHouse", "Sync", "replication"]
 license = "Apache-2.0"
 name = "synch"
 packages = [
@@ -18,7 +18,7 @@ version = "0.7.1"
 click = "*"
 clickhouse-driver = "*"
 kafka-python = "*"
-mysql-replication = {git = "https://github.com/noplay/python-mysql-replication.git"}
+mysql-replication = "*"
 mysqlclient = "*"
 psycopg2 = "*"
 python = "^3.7"
