@@ -22,7 +22,7 @@
 - 支持 redis 与 kafka 作为消息队列。
 - 支持多源数据库同时同步到 ClickHouse。
 - 支持 ClickHouse `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`、`ReplacingMergeTree`引擎。
-- 支持ClickHouse集群。
+- 支持 ClickHouse 集群。
 
 ## 依赖
 
@@ -240,17 +240,9 @@ volumes:
 
 ## 支持这个项目
 
-### 支付宝
-
-<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/>
-
-### 微信
-
-<img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/>
-
-### PayPal
-
-捐赠 [paypal](https://www.paypal.me/long2ice) 到我的账号 long2ice.
+| AliPay                                                                                | WeChatPay                                                                                | PayPal                                                           |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/> | <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/> | [PayPal](https://www.paypal.me/long2ice) to my account long2ice. |
 
 ## 感谢
 
