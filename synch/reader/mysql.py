@@ -108,6 +108,7 @@ class Mysql(Reader):
                 tables.append(table_name)
         only_schemas = self.databases
         only_tables = list(set(tables))
+        logger.info(f'only_schemas:{only_schemas},only_tables:{only_tables}')
         for schema, table, event, file, pos in self._binlog_reading(
                 only_tables=only_tables,
                 only_schemas=only_schemas,
@@ -120,7 +121,7 @@ class Mysql(Reader):
         ):
             if table and table not in schema_tables.get(schema):
                 continue
-            if table and table not in only_tables:
+            if event['table'] and event['table'] not in only_tables:
                 continue
             event["values"] = self.deep_decode_dict(event["values"])
             broker.send(msg=event, schema=schema)
