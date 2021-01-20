@@ -8,7 +8,7 @@ logger = logging.getLogger("synch.replication.etl")
 
 
 def etl_full(
-        alias: str, schema: str, tables_pk: Dict, renew=False,
+    alias: str, schema: str, tables_pk: Dict, renew=False,
 ):
     """
     full etl
