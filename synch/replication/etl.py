@@ -8,7 +8,7 @@ logger = logging.getLogger("synch.replication.etl")
 
 
 def etl_full(
-    alias: str, schema: str, tables_pk: Dict, renew=False,
+        alias: str, schema: str, tables_pk: Dict, renew=False,
 ):
     """
     full etl
@@ -59,7 +59,7 @@ def etl_full(
                 for w in get_writer(choice=False):
                     w.execute(
                         w.get_distributed_table_create_sql(
-                            schema, table_name, Settings.get("clickhouse.distributed_suffix")
+                            schema, table_name, Settings.get("clickhouse", "distributed_suffix")
                         )
                     )
             if reader.fix_column_type and not table.get("skip_decimal"):
