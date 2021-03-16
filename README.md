@@ -67,7 +67,7 @@ Options:
 Full etl from table `test.test`:
 
 ```shell
-> synch etl --schema test --table test --table test2
+> synch --alias mysql_db etl --schema test --table test --table test2
 ```
 
 ### Produce
