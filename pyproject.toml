@@ -8,7 +8,7 @@ keywords = ["MySQL", "ClickHouse", "Sync", "replication"]
 license = "Apache-2.0"
 name = "synch"
 packages = [
-  {include = "synch"},
+    { include = "synch" },
 ]
 readme = "README.md"
 repository = "https://github.com/long2ice/synch.git"
@@ -28,6 +28,7 @@ redis = "*"
 sentry-sdk = "*"
 mysqlparse = "*"
 ratelimitingfilter = "*"
+pymysql = "<1.0.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "*"
