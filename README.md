@@ -17,7 +17,8 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 ## Features
 
 - Full data etl and real time increment etl.
-- Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support of DML also.
+- Support DDL and DML sync, current support `add column` and `drop column` and `change column` of DDL, and full support
+  of DML also.
 - Email error report.
 - Support kafka and redis as broker.
 - Multiple source db sync to ClickHouse at the same time。
@@ -29,7 +30,8 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 - Python >= 3.7
 - [redis](https://redis.io), cache mysql binlog file and position and as broker, support redis cluster also.
 - [kafka](https://kafka.apache.org), need if you use kafka as broker.
-- [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge), need if you use postgres and set `auto_full_etl = true`, or exec `synch etl` command.
+- [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge), need if you use postgres and
+  set `auto_full_etl = true`, or exec `synch etl` command.
 - [sentry](https://github.com/getsentry/sentry), error reporting, worked if set `dsn` in config.
 
 ## Install
@@ -80,7 +82,8 @@ Listen all MySQL binlog and produce to broker.
 
 ### Consume
 
-Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do full etl at first when set `auto_full_etl = true` in config.
+Consume message from broker and insert to ClickHouse,and you can skip error rows with `--skip-error`. And synch will do
+full etl at first when set `auto_full_etl = true` in config.
 
 ```shell
 > synch --alias mysql_db consume -h
@@ -106,21 +109,25 @@ Consume schema `test` and insert into `ClickHouse`:
 
 ### Monitor
 
-Set `true` to `core.monitoring`, which will create database `synch` in `ClickHouse` automatically and insert monitoring data.
+Set `true` to `core.monitoring`, which will create database `synch` in `ClickHouse` automatically and insert monitoring
+data.
 
 Table struct:
 
 ```sql
 create table if not exists synch.log
 (
-    alias      String,
-    schema     String,
-    table      String,
+    alias String,
+    schema String,
+    table String,
     num        int,
     type       int, -- 1:producer, 2:consumer
     created_at DateTime
 )
-    engine = MergeTree partition by toYYYYMM(created_at) order by created_at;
+    engine = MergeTree partition by toYYYYMM
+(
+    created_at
+) order by created_at;
 ```
 
 ### ClickHouse Table Engine
@@ -128,9 +135,13 @@ create table if not exists synch.log
 Now synch support `MergeTree`, `CollapsingMergeTree`, `VersionedCollapsingMergeTree`, `ReplacingMergeTree`.
 
 - `MergeTree`, default common choices.
-- `CollapsingMergeTree`, see detail in [CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/).
-- `VersionedCollapsingMergeTree`, see detail in [VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/).
-- `ReplacingMergeTree`, see detail in [ReplacingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/replacingmergetree/).
+- `CollapsingMergeTree`, see detail
+  in [CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/).
+- `VersionedCollapsingMergeTree`, see detail
+  in [VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/)
+  .
+- `ReplacingMergeTree`, see detail
+  in [ReplacingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/replacingmergetree/).
 
 ## Use docker-compose(recommended)
 
@@ -238,15 +249,10 @@ volumes:
 - DDL sync not support postgres.
 - Postgres sync is not fully test, be careful use it in production.
 
-## Support this project
-
-| AliPay                                                                                | WeChatPay                                                                                | PayPal                                                           |
-| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/> | <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/> | [PayPal](https://www.paypal.me/long2ice) to my account long2ice. |
-
 ## ThanksTo
 
-Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch) from [Jetbrains](https://www.jetbrains.com/?from=synch).
+Powerful Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch)
+from [Jetbrains](https://www.jetbrains.com/?from=synch).
 
 ![jetbrains](https://github.com/long2ice/synch/raw/dev/images/jetbrains.svg)
 

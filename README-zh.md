@@ -113,14 +113,17 @@ Options:
 ```sql
 create table if not exists synch.log
 (
-    alias      String,
-    schema     String,
-    table      String,
+    alias String,
+    schema String,
+    table String,
     num        int,
     type       int, -- 1：生产者, 2：消费者
     created_at DateTime
 )
-    engine = MergeTree partition by toYYYYMM(created_at) order by created_at;
+    engine = MergeTree partition by toYYYYMM
+(
+    created_at
+) order by created_at;
 ```
 
 ### ClickHouse 表引擎
@@ -128,9 +131,12 @@ create table if not exists synch.log
 现在 synch 支持 `MergeTree`、`CollapsingMergeTree`、`VersionedCollapsingMergeTree`、`ReplacingMergeTree`等引擎。
 
 - `MergeTree`，默认引擎，通常情况下的选择。
-- `CollapsingMergeTree`，详情参考[CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/)。
-- `VersionedCollapsingMergeTree`，详情参考[VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/)。
-- `ReplacingMergeTree`，详情参考[ReplacingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/replacingmergetree/)。
+- `CollapsingMergeTree`
+  ，详情参考[CollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/collapsingmergetree/)。
+- `VersionedCollapsingMergeTree`
+  ，详情参考[VersionedCollapsingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/versionedcollapsingmergetree/)。
+- `ReplacingMergeTree`
+  ，详情参考[ReplacingMergeTree](https://clickhouse.tech/docs/zh/engines/table-engines/mergetree-family/replacingmergetree/)。
 
 ## 使用 docker-compose（推荐）
 
@@ -238,15 +244,10 @@ volumes:
 - DDL 不支持 postgres.
 - Postgres 同步未经过大量测试，生产环境谨慎使用。
 
-## 支持这个项目
-
-| AliPay                                                                                | WeChatPay                                                                                | PayPal                                                           |
-| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/alipay.jpeg"/> | <img width="200" src="https://github.com/long2ice/synch/raw/dev/images/wechatpay.jpeg"/> | [PayPal](https://www.paypal.me/long2ice) to my account long2ice. |
-
 ## 感谢
 
-强大的 Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch) ，来自 [Jetbrains](https://www.jetbrains.com/?from=synch)。
+强大的 Python IDE [Pycharm](https://www.jetbrains.com/pycharm/?from=synch)
+，来自 [Jetbrains](https://www.jetbrains.com/?from=synch)。
 
 ![jetbrains](https://github.com/long2ice/synch/raw/dev/images/jetbrains.svg)
 
