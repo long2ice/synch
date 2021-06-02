@@ -30,7 +30,6 @@
 - [redis](https://redis.io)，缓存 binlog 和作为消息队列，支持 redis 集群。
 - [kafka](https://kafka.apache.org)，使用 kafka 作为消息队列时需要。
 - [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge)， 在 postgres 执行`etl`命令的时候需要。
-- [sentry](https://github.com/getsentry/sentry)，可选的，提供错误报告。
 
 ## 安装
 

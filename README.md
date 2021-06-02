@@ -32,7 +32,6 @@ Sync data from other DB to ClickHouse, current support postgres and mysql, and s
 - [kafka](https://kafka.apache.org), need if you use kafka as broker.
 - [clickhouse-jdbc-bridge](https://github.com/long2ice/clickhouse-jdbc-bridge), need if you use postgres and
   set `auto_full_etl = true`, or exec `synch etl` command.
-- [sentry](https://github.com/getsentry/sentry), error reporting, worked if set `dsn` in config.
 
 ## Install
 
