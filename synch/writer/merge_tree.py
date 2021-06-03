@@ -1,12 +1,11 @@
-import logging
 from typing import Dict, List, Union
+
+from loguru import logger
 
 from synch.common import cluster_sql
 from synch.enums import ClickHouseEngine
 from synch.reader import Reader
 from synch.writer import ClickHouse
-
-logger = logging.getLogger("synch.writer.merge_tree")
 
 
 class ClickHouseMergeTree(ClickHouse):

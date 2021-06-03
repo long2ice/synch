@@ -1,10 +1,9 @@
-import logging
 from typing import Dict
+
+from loguru import logger
 
 from synch.factory import get_reader, get_writer
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.replication.etl")
 
 
 def etl_full(

@@ -1,13 +1,10 @@
 import datetime
 import json
-import logging
 from decimal import Decimal
 
 import dateutil.parser
 
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.common")
 
 CONVERTERS = {
     "date": dateutil.parser.parse,

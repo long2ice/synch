@@ -2,15 +2,15 @@ import json
 
 from synch.broker import Broker
 from synch.common import JsonEncoder, object_hook
-from synch.redis import Redis
+from synch.redis_mixin import RedisMixin
 
 
-class RedisBroker(Broker, Redis):
+class RedisBroker(Broker, RedisMixin):
     last_msg_id: str = "0"
 
     def __init__(self, alias: str):
         Broker.__init__(self, alias)
-        Redis.__init__(self)
+        RedisMixin.__init__(self)
 
     def _get_queue(self, schema: str):
         return f"{self.prefix}:{self.alias}:{schema}"

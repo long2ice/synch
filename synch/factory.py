@@ -1,4 +1,3 @@
-import logging
 import logging.handlers
 import random
 import sys

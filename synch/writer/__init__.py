@@ -1,16 +1,14 @@
 import abc
-import logging
 from copy import deepcopy
 from decimal import Decimal
 from typing import Dict, List, Union
 
 import clickhouse_driver
+from loguru import logger
 
 from synch.common import cluster_sql
 from synch.enums import ClickHouseEngine
 from synch.reader import Reader
-
-logger = logging.getLogger("synch.replication.clickhouse")
 
 
 class ClickHouse:

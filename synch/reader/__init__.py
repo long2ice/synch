@@ -1,16 +1,15 @@
 import abc
 import json
-import logging
 import signal
 import time
 from signal import Signals
 from typing import Callable, Tuple, Union
 
+from loguru import logger
+
 from synch.broker import Broker
 from synch.common import JsonEncoder, insert_log
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.reader")
 
 
 class Reader:

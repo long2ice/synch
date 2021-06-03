@@ -28,6 +28,7 @@ redis = "*"
 mysqlparse = "*"
 ratelimitingfilter = "*"
 pymysql = "<1.0.0"
+loguru = "*"
 
 [tool.poetry.dev-dependencies]
 bandit = "*"

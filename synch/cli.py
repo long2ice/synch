@@ -1,15 +1,13 @@
-import logging
 from typing import List
 
 import click
 from click import Context
+from loguru import logger
 
 from synch.factory import get_broker, get_reader, get_writer, init
 from synch.replication.continuous import continuous_etl
 from synch.replication.etl import etl_full
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.cli")
 
 
 def version():

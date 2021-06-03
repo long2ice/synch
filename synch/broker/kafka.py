@@ -1,5 +1,4 @@
 import json
-import logging
 
 import kafka.errors
 from kafka import KafkaAdminClient, KafkaConsumer, KafkaProducer, TopicPartition
@@ -8,8 +7,6 @@ from kafka.admin import NewTopic
 from synch.broker import Broker
 from synch.common import JsonEncoder, object_hook
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.brokers.kafka")
 
 
 class KafkaBroker(Broker):
