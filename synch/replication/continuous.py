@@ -1,15 +1,14 @@
-import logging
 import signal
 import time
 from signal import Signals
 from typing import Callable, Dict
 
+from loguru import logger
+
 from synch.common import insert_log
 from synch.enums import ClickHouseEngine
 from synch.factory import get_broker, get_writer
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.replication.continuous")
 
 len_event = 0
 event_list = {}

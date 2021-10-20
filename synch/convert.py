@@ -1,13 +1,11 @@
 import ast
-import logging
 from dataclasses import dataclass
 
 import mysqlparse
+from loguru import logger
 from pyparsing import ParseResults
 
 from synch.common import cluster_sql
-
-logger = logging.getLogger("synch.convert")
 
 
 @dataclass

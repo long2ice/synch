@@ -1,9 +1,9 @@
-import logging
 import time
 from signal import Signals
 from typing import Callable, Generator, Tuple, Union
 
 import MySQLdb
+from loguru import logger
 from MySQLdb.cursors import DictCursor
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.event import QueryEvent
@@ -12,10 +12,8 @@ from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, Write
 from synch.broker import Broker
 from synch.convert import SqlConvert
 from synch.reader import Reader
-from synch.redis import RedisLogPos
+from synch.redis_mixin import RedisLogPos
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.reader.mysql")
 
 
 class Mysql(Reader):

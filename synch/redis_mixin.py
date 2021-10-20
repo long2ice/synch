@@ -1,12 +1,13 @@
 import redis
+from redis import Redis
 from redis.sentinel import Sentinel
 
 from synch.settings import Settings
 
 
-class Redis:
-    master: redis.Redis
-    slave: redis.Redis
+class RedisMixin:
+    master: Redis
+    slave: Redis
 
     def __init__(self):
         """
@@ -42,7 +43,7 @@ class Redis:
         self.slave.close()
 
 
-class RedisLogPos(Redis):
+class RedisLogPos(RedisMixin):
     def __init__(
         self, alias: str,
     ):

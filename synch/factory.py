@@ -1,4 +1,3 @@
-import logging
 import logging.handlers
 import random
 import sys
@@ -158,15 +157,5 @@ def init(config_file):
     """
     Settings.init(config_file)
     init_logging()
-    dsn = Settings.get("sentry", "dsn")
-    if dsn:
-        import sentry_sdk
-        from sentry_sdk.integrations.redis import RedisIntegration
-
-        sentry_sdk.init(
-            dsn,
-            environment=Settings.get("sentry", "environment"),
-            integrations=[RedisIntegration()],
-        )
     if Settings.monitoring():
         init_monitor_db(Settings.cluster_name())

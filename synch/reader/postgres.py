@@ -1,6 +1,5 @@
 import functools
 import json
-import logging
 import threading
 import time
 from signal import Signals
@@ -8,6 +7,7 @@ from typing import Callable, Tuple, Union
 
 import psycopg2
 import psycopg2.errors
+from loguru import logger
 from psycopg2._psycopg import ReplicationMessage
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import DictCursor, LogicalReplicationConnection, ReplicationCursor
@@ -15,8 +15,6 @@ from psycopg2.extras import DictCursor, LogicalReplicationConnection, Replicatio
 from synch.broker import Broker
 from synch.reader import Reader
 from synch.settings import Settings
-
-logger = logging.getLogger("synch.reader.postgres")
 
 
 class Postgres(Reader):
