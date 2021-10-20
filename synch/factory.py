@@ -134,7 +134,7 @@ def init_monitor_db(cluster_name: str = None):
     sql_create_db = f"create database if not exists synch {cluster_sql(cluster_name)}"
     writer.execute(sql_create_db)
     if cluster_name:
-        engine = "ReplicatedMergeTree('/clickhouse/tables/{{shard}}/synch/log','{{replica}}')"
+        engine = f"ReplicatedReplacingMergeTree('/clickhouse/tables/{{shard}}/synch/log','{{replica}}')"
     else:
         engine = "ReplacingMergeTree"
     sql_create_tb = f"""create table if not exists synch.log {cluster_sql(cluster_name)}

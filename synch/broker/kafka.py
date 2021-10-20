@@ -30,7 +30,9 @@ class KafkaBroker(Broker):
         self.consumer and self.consumer.close()
 
     def send(self, schema: str, msg: dict):
-        self.producer.send(self.topic, key=schema, value=msg)
+        partition = self._get_kafka_partition(schema)
+        logger.debug(f"kafka schema:{schema} partition:{partition}")
+        self.producer.send(self.topic, key=schema, value=msg,partition= partition)
 
     def _get_kafka_partition(self, schema: str) -> int:
         for index, database in enumerate(self.databases):
@@ -48,6 +50,7 @@ class KafkaBroker(Broker):
             auto_offset_reset="latest",
         )
         partition = self._get_kafka_partition(schema)
+        logger.debug(f"kafka schema:{schema} partition:{partition}")
         topic_partition = TopicPartition(self.topic, partition)
         self.consumer.assign([topic_partition])
         if last_msg_id:

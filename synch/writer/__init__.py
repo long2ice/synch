@@ -91,7 +91,7 @@ class ClickHouse:
         **kwargs,
     ):
         if self.cluster_name:
-            self.engine = f"ReplicatedMergeTree('/clickhouse/tables/{{shard}}/{schema}/{table}','{{replica}}')"
+            self.engine = f"Replicated{self.engine}('/clickhouse/tables/{{shard}}/{schema}/{table}','{{replica}}')"
 
     @abc.abstractmethod
     def get_full_insert_sql(self, reader: Reader, schema: str, table: str, sign_column: str = None):
