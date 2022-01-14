@@ -10,6 +10,7 @@ from pymysqlreplication.event import QueryEvent
 from pymysqlreplication.row_event import DeleteRowsEvent, UpdateRowsEvent, WriteRowsEvent
 
 from synch.broker import Broker
+from synch.common import cluster_sql
 from synch.convert import SqlConvert
 from synch.reader import Reader
 from synch.redis_mixin import RedisLogPos
@@ -19,7 +20,6 @@ from synch.settings import Settings
 class Mysql(Reader):
     only_events = (DeleteRowsEvent, WriteRowsEvent, UpdateRowsEvent, QueryEvent)
     fix_column_type = True
-
     def __init__(self, alias):
         super().__init__(alias)
         source_db = self.source_db
@@ -136,6 +136,7 @@ class Mysql(Reader):
         skip_delete_tables,
         skip_update_tables,
     ) -> Generator:
+        sequence = 0
         stream = BinLogStreamReader(
             connection_settings=dict(
                 host=self.host, port=self.port, user=self.user, passwd=self.password,
@@ -152,13 +153,16 @@ class Mysql(Reader):
             slave_heartbeat=10,
         )
         for binlog_event in stream:
+            sequence += 1
             if isinstance(binlog_event, QueryEvent):
                 schema = binlog_event.schema.decode()
                 query = binlog_event.query.lower()
+                cluster_name = Settings.cluster_name()
+                suffix = Settings.get("clickhouse").get("distributed_suffix")
                 if "alter" not in query:
                     continue
                 table, convent_sql = SqlConvert.to_clickhouse(
-                    schema, query, Settings.cluster_name()
+                    schema, query, cluster_name
                 )
                 if not convent_sql:
                     continue
@@ -168,9 +172,30 @@ class Mysql(Reader):
                     "action": "query",
                     "values": {"query": convent_sql},
                     "event_unixtime": int(time.time() * 10 ** 6),
-                    "action_seq": 0,
+                    "action_seq": sequence,
                 }
                 yield schema, None, event, stream.log_file, stream.log_pos
+                if Settings.is_cluster():
+                    drop_sql = f"drop table {schema}.{table}{suffix}{cluster_sql(cluster_name)}"
+                    drop_event = {
+                        "table": table,
+                        "schema": schema,
+                        "action": "query",
+                        "values": {"query": drop_sql},
+                        "event_unixtime": int(time.time() * 10 ** 6),
+                        "action_seq": sequence,
+                    }
+                    yield schema, None, drop_event, stream.log_file, stream.log_pos
+                    create_sql = f"create table if not exists {schema}.{table}{suffix}{cluster_sql(cluster_name)} AS {schema}.{table} ENGINE = Distributed({cluster_name},{schema},{table},rand())"
+                    create_event = {
+                        "table": table,
+                        "schema": schema,
+                        "action": "query",
+                        "values": {"query": create_sql},
+                        "event_unixtime": int(time.time() * 10 ** 6),
+                        "action_seq": sequence,
+                    }
+                    yield schema, None, create_event, stream.log_file, stream.log_pos
             else:
                 schema = binlog_event.schema
                 table = binlog_event.table
@@ -183,7 +208,7 @@ class Mysql(Reader):
                             "action": "insert",
                             "values": row["values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_seq": 2,
+                            "action_seq": sequence,
                         }
 
                     elif isinstance(binlog_event, UpdateRowsEvent):
@@ -195,7 +220,7 @@ class Mysql(Reader):
                             "action": "delete",
                             "values": row["before_values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_seq": 1,
+                            "action_seq": sequence,
                         }
                         yield binlog_event.schema, binlog_event.table, delete_event, stream.log_file, stream.log_pos
                         event = {
@@ -204,7 +229,7 @@ class Mysql(Reader):
                             "action": "insert",
                             "values": row["after_values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_seq": 2,
+                            "action_seq": sequence,
                         }
 
                     elif isinstance(binlog_event, DeleteRowsEvent):
@@ -216,7 +241,7 @@ class Mysql(Reader):
                             "action": "delete",
                             "values": row["values"],
                             "event_unixtime": int(time.time() * 10 ** 6),
-                            "action_seq": 1,
+                            "action_seq": sequence,
                         }
                     else:
                         return

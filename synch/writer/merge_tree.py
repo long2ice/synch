@@ -2,6 +2,7 @@ from typing import Dict, List, Union
 
 from loguru import logger
 
+from synch.settings import Settings
 from synch.common import cluster_sql
 from synch.enums import ClickHouseEngine
 from synch.reader import Reader
@@ -17,7 +18,7 @@ class ClickHouseMergeTree(ClickHouse):
         """
         params = None
         if isinstance(pk, tuple):
-            sql = f"alter table {schema}.{table} delete where "
+            sql = f"alter table {schema}.{table}{cluster_sql(Settings.cluster_name())} delete where "
             pks_list = []
             for pk_value in pk_list:
                 item = []
@@ -31,7 +32,7 @@ class ClickHouseMergeTree(ClickHouse):
             sql += " or ".join(pks_list)
         else:
             params = {"pks": tuple(pk_list)}
-            sql = f"alter table {schema}.{table} delete where {pk} in %(pks)s"
+            sql = f"alter table {schema}.{table}{cluster_sql(Settings.cluster_name())} delete where {pk} in %(pks)s"
         self.execute(sql, params)
         return sql, params
 

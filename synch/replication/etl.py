@@ -4,6 +4,7 @@ from loguru import logger
 
 from synch.factory import get_reader, get_writer
 from synch.settings import Settings
+from synch.common import cluster_sql
 
 
 def etl_full(
@@ -36,7 +37,7 @@ def etl_full(
         elif isinstance(pk, tuple):
             pk = f"({','.join(pk)})"
         if renew:
-            drop_sql = f"drop table if exists {schema}.{table_name}"
+            drop_sql = f"drop table if exists {schema}.{table_name} {cluster_sql(Settings.cluster_name())}"
             writer.execute(drop_sql)
             logger.info(f"drop table success:{schema}.{table_name}")
         if not writer.check_table_exists(schema, table_name):
@@ -58,7 +59,7 @@ def etl_full(
                 for w in get_writer(choice=False):
                     w.execute(
                         w.get_distributed_table_create_sql(
-                            schema, table_name, Settings.get("clickhouse.distributed_suffix")
+                            schema, table_name, Settings.get("clickhouse").get("distributed_suffix")
                         )
                     )
             if reader.fix_column_type and not table.get("skip_decimal"):

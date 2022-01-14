@@ -112,6 +112,10 @@ def continuous_etl(
                     else:
                         delete_pks = []
                     if insert:
+                        #删除被delete掉的insert
+                        for pk_v, value in delete.items():
+                            if pk_v in insert and insert[pk_v]['action_seq']<value['action_seq']:
+                                insert.pop(pk_v)
                         insert_events = list(
                             sorted(insert.values(), key=lambda x: x.get("event_unixtime"))
                         )

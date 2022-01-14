@@ -50,5 +50,5 @@ def insert_log(
 
 def cluster_sql(cluster_name: str = None):
     if cluster_name:
-        return f" on cluster {cluster_name} "
+        return f" on cluster {cluster_name}"
     return ""
